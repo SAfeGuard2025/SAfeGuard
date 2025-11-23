@@ -1,6 +1,7 @@
 // ** File: lib/data_models/UtenteGenerico.dart ** (Manuale)
 
 class UtenteGenerico {
+  final int? id;
   final String? email;
   final String? telefono;
   final String? passwordHash; // Ora campo pubblico (gestito manualmente)
@@ -13,6 +14,7 @@ class UtenteGenerico {
 
   // Costruttore principale NON NOMINATO (Accetta tutti i campi)
   UtenteGenerico({
+    this.id,
     this.email,
     this.telefono,
     required this.passwordHash, // Obbligatorio per login
@@ -28,7 +30,8 @@ class UtenteGenerico {
 
   // Costruttore 1: Autenticazione tramite Email
   UtenteGenerico.conEmail(
-    String email,
+      int? id,
+      String email,
     String passwordHash, {
     String? telefono,
     String? nome,
@@ -37,6 +40,7 @@ class UtenteGenerico {
     String? cittaDiNascita,
     String? iconaProfilo,
   }) : this(
+          id: id,
          passwordHash: passwordHash,
          email: email,
          telefono: telefono,
@@ -49,6 +53,7 @@ class UtenteGenerico {
 
   // Costruttore 2: Autenticazione tramite Telefono
   UtenteGenerico.conTelefono(
+      int? id,
     String telefono,
     String passwordHash, {
     String? email,
@@ -58,6 +63,7 @@ class UtenteGenerico {
     String? cittaDiNascita,
     String? iconaProfilo,
   }) : this(
+          id: id,
          passwordHash: passwordHash,
          email: email,
          telefono: telefono,
@@ -72,6 +78,7 @@ class UtenteGenerico {
   factory UtenteGenerico.fromJson(Map<String, dynamic> json) {
     // Si assume che passwordHash non sia inviato dal Backend al Frontend
     return UtenteGenerico(
+      id: json['id'] as int?,
       email: json['email'] as String?,
       telefono: json['telefono'] as String?,
       passwordHash: json['passwordHash'] as String? ?? 'HASH_NON_RICEVUTO',
@@ -88,6 +95,7 @@ class UtenteGenerico {
   // SERIALIZZAZIONE MANUALE (Oggetto -> JSON)
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'email': email,
       'telefono': telefono,
       'passwordHash': passwordHash,

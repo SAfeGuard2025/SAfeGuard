@@ -5,11 +5,10 @@ import 'UtenteGenerico.dart';
 // Rimosse le importazioni e le annotazioni di json_serializable
 
 class Soccorritore extends UtenteGenerico {
-  final int id;
 
   // Costruttore principale NON NOMINATO
   Soccorritore({
-    required this.id,
+    required int id,
     required String email,
     String? passwordHash,
     String? telefono,
@@ -19,6 +18,7 @@ class Soccorritore extends UtenteGenerico {
     String? cittaDiNascita,
     String? iconaProfilo,
   }) : super(
+          id: id,
          email: email,
          passwordHash: passwordHash,
          telefono: telefono,
@@ -58,7 +58,7 @@ class Soccorritore extends UtenteGenerico {
     final utenteGenerico = UtenteGenerico.fromJson(json);
 
     return Soccorritore(
-      id: json['id'] as int,
+      id: utenteGenerico.id!,
       email: utenteGenerico.email!, // Email è obbligatoria per Soccorritore
       passwordHash: utenteGenerico.passwordHash,
       telefono: utenteGenerico.telefono,

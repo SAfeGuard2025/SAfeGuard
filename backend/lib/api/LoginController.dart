@@ -1,5 +1,8 @@
 import 'dart:convert';
 import '../services/LoginService.dart';
+import 'package:data_models/Utente.dart';
+import 'package:data_models/Soccorritore.dart';
+import 'package:data_models/UtenteGenerico.dart';
 
 class LoginController {
   final LoginService _loginService = LoginService();
@@ -14,17 +17,39 @@ class LoginController {
       final password = credentials['password'] as String;
 
       // Chiama il service con i parametri opzionali
-      final user = await _loginService.login(
+      // Il service ora ritorna una Map<String, dynamic> contenente 'user' e 'token'
+      final result = await _loginService.login(
         email: email,
         telefono: telefono,
         password: password,
       );
 
-      if (user != null) {
+      if (result != null) {
+        // 1. Estrai l'oggetto utente e il token dal risultato del service
+        final user = result['user'] as UtenteGenerico;
+        final token = result['token'] as String;
+
+        // 2. Verifica il tipo concreto di utente e ottieni l'ID
+        String tipoUtente;
+        int assegnatoId =
+            user.id ?? 0; // L'ID non è nullo qui, ma usiamo ?? per sicurezza
+
+        if (user is Soccorritore) {
+          tipoUtente = 'Soccorritore';
+        } else if (user is Utente) {
+          tipoUtente = 'Utente Standard';
+        } else {
+          tipoUtente = 'Generico';
+        }
+
+        // 3. Costruisci la risposta con il token e le info utente
         final responseBody = {
           'success': true,
-          'message': 'Login avvenuto con successo',
-          'user': user.toJson()..remove('passwordHash'),
+          'message':
+              'Login avvenuto con successo. Tipo: $tipoUtente, ID: $assegnatoId',
+          'user': user.toJson()
+            ..remove('passwordHash'), // Invia i dati utente senza hash
+          'token': token, // Invia il Token JWT al client
         };
         return jsonEncode(responseBody);
       } else {

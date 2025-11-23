@@ -1,19 +1,20 @@
 import 'dart:convert';
-import 'package:backend/services/VerificationService.dart';
-
 import '../services/RegisterService.dart';
+import '../services/VerificationService.dart';
+import '../services/SmsService.dart';
 import '../repositories/UserRepository.dart';
+
 import 'package:data_models/Utente.dart';
 import 'package:data_models/Soccorritore.dart';
-import '../services/SmsService.dart';
 
 class RegisterController {
+  // Corretta inizializzazione della catena di dipendenze
   final RegisterService _registerService = RegisterService(
-    UserRepository(), // Inietta UserRepository
+    UserRepository(), // Inietta UserRepository per RegisterService
     VerificationService(
-      UserRepository(), // Inietta UserRepository (di nuovo)
-      SmsService(), // Inietta SmsService
-    ), // Inietta VerificationService
+      UserRepository(), // Inietta UserRepository per VerificationService
+      SmsService(), // Inietta SmsService per VerificationService
+    ),
   );
 
   // Simula la gestione di una richiesta HTTP POST /api/register
@@ -27,19 +28,18 @@ class RegisterController {
       // Il resto dei dati (inclusi email e telefono opzionali) va al service
       final user = await _registerService.register(requestData, password);
 
-      // Controllo del tipo come prima (per la risposta)
+      // Controllo del tipo e recupero ID (richiede che id sia in UtenteGenerico)
       String tipoUtente;
-      int assegnatoId;
+      // L'ID è ora ereditato da UtenteGenerico, usa user.id! (assumendo non-null)
+      final int assegnatoId = user.id!;
 
       if (user is Soccorritore) {
         tipoUtente = 'Soccorritore';
-        assegnatoId = user.id;
       } else if (user is Utente) {
         tipoUtente = 'Utente Standard';
-        assegnatoId = user.id;
       } else {
         tipoUtente = 'Generico';
-        assegnatoId = 0;
+        // Questo non dovrebbe accadere se la logica di deserializzazione è corretta
       }
 
       final responseBody = {

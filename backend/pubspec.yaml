@@ -13,6 +13,8 @@ dependencies:
   shelf_cors_headers: ^0.1.5
   dotenv: ^4.2.0
   collection: ^1.18.0
+  dart_jsonwebtoken: ^2.10.0
+  http_server: ^1.0.0
 
   # dipendenza comune
   data_models:

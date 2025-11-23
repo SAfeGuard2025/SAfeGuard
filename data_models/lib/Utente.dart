@@ -5,11 +5,10 @@ import 'UtenteGenerico.dart';
 // Rimosse le importazioni e le annotazioni di json_serializable
 
 class Utente extends UtenteGenerico {
-  final int id;
 
   // Costruttore principale NON NOMINATO
   Utente({
-    required this.id,
+    required int id,
     String? passwordHash,
     String? email,
     String? telefono,
@@ -19,6 +18,7 @@ class Utente extends UtenteGenerico {
     String? cittaDiNascita,
     String? iconaProfilo,
   }) : super(
+          id: id,
          passwordHash: passwordHash,
          email: email,
          telefono: telefono,
@@ -31,7 +31,7 @@ class Utente extends UtenteGenerico {
 
   // Costruttore 1: Autenticazione tramite Email
   Utente.conEmail(
-    this.id,
+    int id,
     String email,
     String passwordHash, {
     String? telefono,
@@ -41,6 +41,7 @@ class Utente extends UtenteGenerico {
     String? cittaDiNascita,
     String? iconaProfilo,
   }) : super.conEmail(
+          id,
          email,
          passwordHash,
          telefono: telefono,
@@ -53,7 +54,7 @@ class Utente extends UtenteGenerico {
 
   // Costruttore 2: Autenticazione tramite Telefono
   Utente.conTelefono(
-    this.id,
+    int id,
     String telefono,
     String passwordHash, {
     String? email,
@@ -63,6 +64,7 @@ class Utente extends UtenteGenerico {
     String? cittaDiNascita,
     String? iconaProfilo,
   }) : super.conTelefono(
+          id,
          telefono,
          passwordHash,
          email: email,
@@ -79,7 +81,7 @@ class Utente extends UtenteGenerico {
     final utenteGenerico = UtenteGenerico.fromJson(json);
 
     return Utente(
-      id: json['id'] as int,
+      id: utenteGenerico.id!,
       passwordHash: utenteGenerico.passwordHash,
       email: utenteGenerico.email,
       telefono: utenteGenerico.telefono,
