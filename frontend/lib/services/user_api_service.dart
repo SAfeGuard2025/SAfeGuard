@@ -30,8 +30,11 @@ class UserApiService {
       host = host.replaceFirst('localhost', '10.0.2.2');
     }
 
+    // Se _envPort è "-1", non mettiamo nulla
+    final String portPart = _envPort == '-1' ? '' : ':$_envPort';
+
     // 3. Costruisci l'URL finale
-    return '$host:$_envPort$_envPrefix/user';
+    return '$host:$portPart$_envPrefix/user';
   }
 
   Future<User> fetchUser(int userId) async {
