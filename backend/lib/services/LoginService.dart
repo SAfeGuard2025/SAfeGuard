@@ -12,43 +12,54 @@ class LoginService {
   // per eseguire l'hashing e la verifica in modo sicuro.
   bool _verifyPassword(String providedPassword, String storedHash) {
     // Esempio: return bcrypt.checkpw(providedPassword, storedHash);
-
     // Per la simulazione, controlliamo solo l'hash simulato
-    if (storedHash == 'hashed_password_for_user' && providedPassword == 'password123') {
-      return true;
-    }
-    if (storedHash == 'hashed_password_for_rescue' && providedPassword == 'password456') {
-      return true;
-    }
-    return false;
+    return providedPassword == storedHash;
   }
 
   // Logica principale del Login
-  Future<UtenteGenerico?> login(String email, String password) async {
-    final userData = await _userRepository.findUserByEmail(email);
+  Future<UtenteGenerico?> login({String? email, String? telefono, required String password}) async {
+    // Pre-validazione
+    if (email == null && telefono == null) {
+      throw ArgumentError('Devi fornire email o telefono per il login.');
+    }
 
-    if (userData == null) {   // Utente non trovato
+    Map<String, dynamic>? userData;
+    String finalEmail = '';
+
+    // 1. Tenta il login tramite EMAIL
+    if (email != null) {
+      userData = await _userRepository.findUserByEmail(email);
+      if (userData != null) {
+        finalEmail = email;
+      }
+    }
+
+    // 2. Se l'email fallisce (o non è stata fornita), tenta il login tramite TELEFONO
+    if (userData == null && telefono != null) {
+      userData = await _userRepository.findUserByPhone(telefono);
+      if (userData != null) {
+        finalEmail = userData['email'] as String; // Recupera l'email dal DB
+      }
+    }
+
+    if (userData == null) {
+      // Utente non trovato in nessuno dei due modi
       return null;
     }
 
     final storedHash = userData['passwordHash'] as String;
 
-    // 1. Verifica della Password
-    if (!_verifyPassword(password, storedHash)) { // Password errata
+    // 3. Verifica della Password
+    if (!_verifyPassword(password, storedHash)) {
       return null;
     }
 
-    // Nota: L'hash NON viene incluso nell'oggetto che ritorna
-
-    // Rimuovi l'hash prima della deserializzazione per la sicurezza
+    // 4. Determina il tipo di Utente e deserializza
     userData.remove('passwordHash');
 
-    // 2. Determina il tipo di Utente e Deserializza
-    if (email.toLowerCase().endsWith(_RESCUER_DOMAIN)) {
-      // Se l'email finisce con il dominio speciale, è un Soccorritore
+    if (finalEmail.toLowerCase().endsWith(_RESCUER_DOMAIN)) {
       return Soccorritore.fromJson(userData);
     } else {
-      // Altrimenti, è un Utente standard
       return Utente.fromJson(userData);
     }
   }

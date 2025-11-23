@@ -1,27 +1,37 @@
 import 'package:data_models/Utente.dart';
 import 'package:data_models/Soccorritore.dart';
 import 'package:data_models/UtenteGenerico.dart';
+import 'package:collection/collection.dart';
 
 // SIMULAZIONE DATABASE FIREBASE
 // Normalmente, questa mappa sarebbe una collezione su Firebase Firestore.
 // L'email è usata come ID unico per la semplicità del login.
 final Map<String, Map<String, dynamic>> _simulatedDatabase = {
-  // Utente Standard
-  'user@example.com': {
+  // Utente Standard (Login tramite Email)
+  'mario.rossi@gmail.com': {
     'id': 101,
-    'email': 'user@example.com',
-    'passwordHash': 'hashed_password_for_user', // Hash simulato
+    'email': 'mario.rossi@gmail.com',
+    'telefono': '+393331234567',
+    'passwordHash': 'password123',
     'nome': 'Mario',
     'cognome': 'Rossi',
   },
-  // Soccorritore
-  'rescue@example.com': {
+  // Utente Solo Telefono (Simulato, la chiave è ancora l'email per consistenza)
+  'solo.telefono@gmail.com': { // Email placeholder, non usata per il login
+    'id': 103,
+    'email': 'solo.telefono@gmail.com',
+    'telefono': '+393457654321', // Numero di telefono usato per il login
+    'passwordHash': 'telefono_pass',
+    'nome': 'Anna',
+    'cognome': 'B.',
+  },
+  // Soccorritore (Login tramite Email discriminante)
+  'luca.verdi@soccorritore.gmail': {
     'id': 202,
-    'email': 'rescue@soccorritore.com',
-    'passwordHash': 'hashed_password_for_rescue', // Hash simulato
+    'email': 'luca.verdi@soccorritore.gmail',
+    'passwordHash': 'password456',
     'nome': 'Luca',
     'cognome': 'Verdi',
-    'tipoUtente': 'Soccorritore', // Campo discriminante per la deserializzazione
   },
 };
 
@@ -30,6 +40,14 @@ class UserRepository {
   Future<Map<String, dynamic>?> findUserByEmail(String email) async {
     // La ricerca in un vero DB avverrebbe con una query WHERE email == $email
     return _simulatedDatabase[email];
+  }
+
+  // 1. Simula l'interazione con il DB per trovare un utente tramite telefono
+  Future<Map<String, dynamic>?> findUserByPhone(String phone) async {
+    // Restituisce il primo elemento o null se nessun elemento soddisfa la condizione.
+    return _simulatedDatabase.values.firstWhereOrNull(
+          (user) => user['telefono'] == phone,
+    );
   }
 
   Future<UtenteGenerico> saveUser(UtenteGenerico newUser) async {
