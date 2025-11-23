@@ -5,44 +5,42 @@ import 'package:data_models/Utente.dart';
 import 'package:data_models/Soccorritore.dart';
 
 class RegisterController {
-  // Inizializzazione della dipendenza.
   final RegisterService _registerService = RegisterService(UserRepository());
 
   // Simula la gestione di una richiesta HTTP POST /api/register
   Future<String> handleRegisterRequest(String requestBodyJson) async {
     try {
       final Map<String, dynamic> requestData = jsonDecode(requestBodyJson);
-      // Estrae la password e la rimuove dal payload dei dati utente
+
+      // La password è necessaria
       final password = requestData.remove('password') as String;
 
+      // Il resto dei dati (inclusi email e telefono opzionali) va al service
       final user = await _registerService.register(requestData, password);
 
+      // Controllo del tipo come prima (per la risposta)
       String tipoUtente;
       int assegnatoId;
 
       if (user is Soccorritore) {
-        // Se è un Soccorritore, il compilatore sa che ha accesso al campo id
         tipoUtente = 'Soccorritore';
         assegnatoId = user.id;
       } else if (user is Utente) {
-        // Se è un Utente, accediamo all'id di Utente
         tipoUtente = 'Utente Standard';
         assegnatoId = user.id;
       } else {
-        // Caso di fallback (non dovrebbe succedere se la logica è corretta)
-        tipoUtente = 'Sconosciuto';
+        tipoUtente = 'Generico';
         assegnatoId = 0;
       }
 
       final responseBody = {
         'success': true,
-        'message': 'Registrazione avvenuta con successo. ID assegnato: $assegnatoId, Tipo Utente: $tipoUtente',
-        'user': user.toJson()..remove('passwordHash'), // Rimuovi l'hash per il frontend
+        'message': 'Registrazione avvenuta con successo. Tipo: $tipoUtente, ID assegnato: $assegnatoId',
+        'user': user.toJson()..remove('passwordHash'),
       };
       return jsonEncode(responseBody);
 
     } on Exception catch (e) {
-      // Gestisce gli errori di business (es. utente già registrato)
       final responseBody = {
         'success': false,
         'message': e.toString().replaceFirst('Exception: ', ''),

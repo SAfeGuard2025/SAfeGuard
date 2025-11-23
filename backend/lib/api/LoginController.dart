@@ -1,6 +1,5 @@
 import 'dart:convert';
 import '../services/LoginService.dart';
-import '../repositories/UserRepository.dart';
 
 class LoginController {
   final LoginService _loginService = LoginService();

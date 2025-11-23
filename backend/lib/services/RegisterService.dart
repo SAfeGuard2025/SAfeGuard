@@ -12,34 +12,47 @@ class RegisterService {
 
   Future<UtenteGenerico> register(Map<String, dynamic> requestData, String password) async {
     final email = requestData['email'] as String?;
+    final telefono = requestData['telefono'] as String?; // Estrae anche il telefono
 
-    if (email == null || password.isEmpty) {
-      throw Exception('Email e Password sono obbligatori.');
+    // 1. Validazione Iniziale: Almeno email o telefono deve essere fornito
+    if (password.isEmpty || (email == null && telefono == null)) {
+      throw Exception('Devi fornire Password e almeno Email o Telefono.');
     }
-    if (await _userRepository.findUserByEmail(email) != null) {
+
+    // 2. Controllo di esistenza (per email e per telefono)
+    if (email != null && await _userRepository.findUserByEmail(email) != null) {
       throw Exception('Utente con questa email è già registrato.');
     }
+    if (telefono != null && await _userRepository.findUserByPhone(telefono) != null) {
+      throw Exception('Utente con questo telefono è già registrato.');
+    }
 
-    // 1. Prepara il payload con la password (in chiaro per la simulazione)
+    // 3. Prepara il payload con la password
     requestData['passwordHash'] = password;
 
-    // 2. Determina il tipo di Utente e crea l'oggetto con ID 0 temporaneo
     final UtenteGenerico newUser;
 
-    // Aggiungiamo un ID temporaneo (0) perché il costruttore Utente/Soccorritore lo richiede,
-    // anche se il repository assegnerà l'ID finale.
-    requestData['id'] = 0;
+    requestData['id'] = 0; // ID 0 temporaneo
 
-    if (email.toLowerCase().endsWith(_RESCUER_DOMAIN)) {
+    // 4. La determinazione del tipo deve usare l'email se disponibile,
+    // altrimenti assume che un utente registrato solo con telefono sia standard.
+    bool isSoccorritore = false;
+    if (email != null) {
+      isSoccorritore = email.toLowerCase().endsWith(_RESCUER_DOMAIN);
+    }
+    // NOTA: Se si registra solo con telefono, non è possibile discriminare il tipo,
+    // quindi verrà trattato come Utente standard a meno che non ci sia un campo discriminante nel requestData.
+    // Qui assumiamo che la registrazione di Soccorritore debba sempre includere l'email.
+
+    if (isSoccorritore) {
       newUser = Soccorritore.fromJson(requestData);
     } else {
       newUser = Utente.fromJson(requestData);
     }
 
-    // 3. Salva l'utente nel Database (il Repository assegna l'ID finale e ritorna l'oggetto corretto)
+    // 5. Salva l'utente nel Database
     final savedUser = await _userRepository.saveUser(newUser);
 
-    // 4. Ritorna l'oggetto salvato (che contiene l'ID finale)
     return savedUser;
   }
 }
