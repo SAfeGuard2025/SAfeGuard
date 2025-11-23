@@ -4,11 +4,11 @@ import 'utenteGenerico.dart';
 part 'soccorritore.g.dart';
 
 @JsonSerializable(explicitToJson: true)
-class soccorritore extends utenteGenerico {
+class Soccorritore extends UtenteGenerico {
   final int id;
 
   // Costruttore principale NON NOMINATO per json_serializable.
-  soccorritore(
+  Soccorritore(
     this.id,
     String email, { // Email obbligatoria (posizionale)
     String? passwordHash,
@@ -30,7 +30,7 @@ class soccorritore extends utenteGenerico {
        );
 
   // Costruttore effettivo adattato per chiamare il costruttore principale
-  soccorritore.conTuttiICampi(
+  Soccorritore.conTuttiICampi(
     int id,
     String email,
     String passwordHash, {
@@ -52,9 +52,9 @@ class soccorritore extends utenteGenerico {
          iconaProfilo: iconaProfilo,
        );
 
-  factory soccorritore.fromJson(Map<String, dynamic> json) =>
-      _$soccorritoreFromJson(json);
+  factory Soccorritore.fromJson(Map<String, dynamic> json) =>
+      _$SoccorritoreFromJson(json);
 
   @override
-  Map<String, dynamic> toJson() => _$soccorritoreToJson(this);
+  Map<String, dynamic> toJson() => _$SoccorritoreToJson(this);
 }

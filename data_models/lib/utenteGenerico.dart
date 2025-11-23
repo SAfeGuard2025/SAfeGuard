@@ -37,10 +37,10 @@
 ///
 import 'package:json_annotation/json_annotation.dart';
 
-part 'utenteGenerico.g.dart';
+part 'UtenteGenerico.g.dart';
 
 @JsonSerializable(explicitToJson: true)
-class utenteGenerico {
+class UtenteGenerico {
   final String? _email;
   final String? _telefono;
 
@@ -53,7 +53,7 @@ class utenteGenerico {
   final String? iconaProfilo;
 
   //Costruttore principale NON NOMINATO.
-  utenteGenerico({
+  UtenteGenerico({
     String? passwordHash,
     String? email,
     String? telefono,
@@ -71,7 +71,7 @@ class utenteGenerico {
        );
 
   // Costruttore 1: Autenticazione tramite Email
-  utenteGenerico.conEmail(
+  UtenteGenerico.conEmail(
     String email,
     String passwordHash, {
     String? telefono,
@@ -92,7 +92,7 @@ class utenteGenerico {
        );
 
   // Costruttore 2: Autenticazione tramite Telefono
-  utenteGenerico.conTelefono(
+  UtenteGenerico.conTelefono(
     String telefono,
     String passwordHash, {
     String? email,
@@ -115,7 +115,7 @@ class utenteGenerico {
   @JsonKey(includeFromJson: false, includeToJson: false)
   String? get passwordHash => _passwordHash;
 
-  factory utenteGenerico.fromJson(Map<String, dynamic> json) =>
+  factory UtenteGenerico.fromJson(Map<String, dynamic> json) =>
       _$utenteGenericoFromJson(json);
 
   Map<String, dynamic> toJson() => _$utenteGenericoToJson(this);

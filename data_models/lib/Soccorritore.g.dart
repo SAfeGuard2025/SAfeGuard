@@ -6,7 +6,7 @@ part of 'soccorritore.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-soccorritore _$soccorritoreFromJson(Map<String, dynamic> json) => soccorritore(
+Soccorritore _$SoccorritoreFromJson(Map<String, dynamic> json) => Soccorritore(
   (json['id'] as num).toInt(),
   json['email'] as String,
   telefono: json['telefono'] as String?,
@@ -19,7 +19,7 @@ soccorritore _$soccorritoreFromJson(Map<String, dynamic> json) => soccorritore(
   iconaProfilo: json['iconaProfilo'] as String?,
 );
 
-Map<String, dynamic> _$soccorritoreToJson(soccorritore instance) =>
+Map<String, dynamic> _$SoccorritoreToJson(Soccorritore instance) =>
     <String, dynamic>{
       'nome': instance.nome,
       'cognome': instance.cognome,
