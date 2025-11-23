@@ -1,20 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart'; // 1. Importa il pacchetto dotenv
 
 // Importa il servizio che gestisce le chiamate HTTP
 import 'services/user_api_service.dart';
 
-// Importa il modello di dati comune (p. es. la classe User)
+// Importa il modello di dati comune
 import 'package:data_models/user.dart';
 
-void main() => runApp(MyApp());
+// 2. Trasforma il main in asincrono per caricare il file .env
+Future<void> main() async {
+  // 3. Assicura che il binding con il motore nativo sia attivo (necessario prima di codice asincrono nel main)
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // 4. Carica le variabili d'ambiente dal file asset
+  // Nota: Assicurati che il file .env esista e sia dichiarato nel pubspec.yaml
+  await dotenv.load(fileName: ".env");
+
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Inizializza l'applicazione con la schermata principale
-    return MaterialApp(home: UserScreen());
+    return MaterialApp(
+      debugShowCheckedModeBanner:
+          false, // Rimuove il banner di debug (opzionale)
+      home: const UserScreen(),
+    );
   }
 }
 
@@ -26,56 +40,52 @@ class UserScreen extends StatefulWidget {
 }
 
 class UserScreenState extends State<UserScreen> {
-  // Istanza del servizio per la chiamata API
   final UserApiService _apiService = UserApiService();
-  // Future che conterrà il risultato della chiamata (un oggetto User)
   late Future<User> _userFuture;
 
   @override
   void initState() {
     super.initState();
-    // 1. INIZIO CHIAMATA: Avvia la richiesta dati al Back-end non appena la schermata si carica
+    // La chiamata partirà usando l'URL configurato dinamicamente nel Service tramite .env
     _userFuture = _apiService.fetchUser(1);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('App Flutter (Front-end)')),
+      appBar: AppBar(title: const Text('App Flutter (Front-end)')),
       body: Center(
-        // FutureBuilder gestisce e aggiorna l'UI in base allo stato del Future (waiting, error, done)
         child: FutureBuilder<User>(
           future: _userFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              // Se lo stato della connessione è in attesa (fetching)
-              return CircularProgressIndicator();
+              return const CircularProgressIndicator();
             } else if (snapshot.hasError) {
-              // Se si è verificato un errore durante la chiamata
-              return Text(
-                'Errore di connessione: ${snapshot.error}',
-                style: TextStyle(color: Colors.red),
+              return Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Errore di connessione: ${snapshot.error}',
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
               );
             } else if (snapshot.hasData) {
-              // 2. RICEZIONE DATI: Se i dati sono disponibili
-              // I dati JSON sono stati decodificati in un oggetto User nativo di Dart
               final user = snapshot.data!;
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
+                  const Text(
                     'Dati Ricevuti dal Back-end:',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Text('ID: ${user.id}'),
                   Text('Nome: ${user.name}'),
                   Text('Email: ${user.email}'),
                 ],
               );
             }
-            // Stato di fallback (raro in questo contesto, ma utile)
-            return Text('In attesa di dati...');
+            return const Text('In attesa di dati...');
           },
         ),
       ),
