@@ -37,7 +37,7 @@
 ///
 import 'package:json_annotation/json_annotation.dart';
 
-part 'UtenteGenerico.g.dart';
+part 'utenteGenerico.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class UtenteGenerico {
@@ -116,9 +116,9 @@ class UtenteGenerico {
   String? get passwordHash => _passwordHash;
 
   factory UtenteGenerico.fromJson(Map<String, dynamic> json) =>
-      _$utenteGenericoFromJson(json);
+      _$UtenteGenericoFromJson(json);
 
-  Map<String, dynamic> toJson() => _$utenteGenericoToJson(this);
+  Map<String, dynamic> toJson() => _$UtenteGenericoToJson(this);
 
   String? get email => _email;
   String? get telefono => _telefono;
