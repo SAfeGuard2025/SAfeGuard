@@ -1,7 +1,7 @@
 import 'package:data_models/Utente.dart';
 import 'package:data_models/Soccorritore.dart';
 import 'package:data_models/UtenteGenerico.dart';
-import '../repository/UserRepository.dart';
+import '../repositories/UserRepository.dart';
 
 // Dominio speciale per i soccorritori da modificare poi
 const String _RESCUER_DOMAIN = '@soccorritore.com';

@@ -97,4 +97,5 @@ class Utente extends UtenteGenerico {
     // Unisce la mappa del Super con i campi propri di Utente
     return super.toJson()..addAll({'id': id});
   }
+
 }
