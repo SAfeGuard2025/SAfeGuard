@@ -21,51 +21,54 @@ class UtenteGenerico {
     this.dataDiNascita,
     this.cittaDiNascita,
     this.iconaProfilo,
-  }) : assert(email != null || telefono != null, 'Devi fornire almeno email o telefono per UtenteGenerico');
+  }) : assert(
+         email != null || telefono != null,
+         'Devi fornire almeno email o telefono per UtenteGenerico',
+       );
 
   // Costruttore 1: Autenticazione tramite Email
   UtenteGenerico.conEmail(
-      String email,
-      String passwordHash, {
-        String? telefono,
-        String? nome,
-        String? cognome,
-        DateTime? dataDiNascita,
-        String? cittaDiNascita,
-        String? iconaProfilo,
-      }) : this(
-    passwordHash: passwordHash,
-    email: email,
-    telefono: telefono,
-    nome: nome,
-    cognome: cognome,
-    dataDiNascita: dataDiNascita,
-    cittaDiNascita: cittaDiNascita,
-    iconaProfilo: iconaProfilo,
-  );
+    String email,
+    String passwordHash, {
+    String? telefono,
+    String? nome,
+    String? cognome,
+    DateTime? dataDiNascita,
+    String? cittaDiNascita,
+    String? iconaProfilo,
+  }) : this(
+         passwordHash: passwordHash,
+         email: email,
+         telefono: telefono,
+         nome: nome,
+         cognome: cognome,
+         dataDiNascita: dataDiNascita,
+         cittaDiNascita: cittaDiNascita,
+         iconaProfilo: iconaProfilo,
+       );
 
   // Costruttore 2: Autenticazione tramite Telefono
   UtenteGenerico.conTelefono(
-      String telefono,
-      String passwordHash, {
-        String? email,
-        String? nome,
-        String? cognome,
-        DateTime? dataDiNascita,
-        String? cittaDiNascita,
-        String? iconaProfilo,
-      }) : this(
-    passwordHash: passwordHash,
-    email: email,
-    telefono: telefono,
-    nome: nome,
-    cognome: cognome,
-    dataDiNascita: dataDiNascita,
-    cittaDiNascita: cittaDiNascita,
-    iconaProfilo: iconaProfilo,
-  );
+    String telefono,
+    String passwordHash, {
+    String? email,
+    String? nome,
+    String? cognome,
+    DateTime? dataDiNascita,
+    String? cittaDiNascita,
+    String? iconaProfilo,
+  }) : this(
+         passwordHash: passwordHash,
+         email: email,
+         telefono: telefono,
+         nome: nome,
+         cognome: cognome,
+         dataDiNascita: dataDiNascita,
+         cittaDiNascita: cittaDiNascita,
+         iconaProfilo: iconaProfilo,
+       );
 
-  // ⭐️ DESERIALIZZAZIONE MANUALE (JSON -> Oggetto)
+  //  DESERIALIZZAZIONE MANUALE (JSON -> Oggetto)
   factory UtenteGenerico.fromJson(Map<String, dynamic> json) {
     // Si assume che passwordHash non sia inviato dal Backend al Frontend
     return UtenteGenerico(
@@ -74,13 +77,15 @@ class UtenteGenerico {
       passwordHash: json['passwordHash'] as String? ?? 'HASH_NON_RICEVUTO',
       nome: json['nome'] as String?,
       cognome: json['cognome'] as String?,
-      dataDiNascita: json['dataDiNascita'] != null ? DateTime.parse(json['dataDiNascita']) : null,
+      dataDiNascita: json['dataDiNascita'] != null
+          ? DateTime.parse(json['dataDiNascita'])
+          : null,
       cittaDiNascita: json['cittaDiNascita'] as String?,
       iconaProfilo: json['iconaProfilo'] as String?,
     );
   }
 
-  // ⭐️ SERIALIZZAZIONE MANUALE (Oggetto -> JSON)
+  // SERIALIZZAZIONE MANUALE (Oggetto -> JSON)
   Map<String, dynamic> toJson() {
     return {
       'email': email,
