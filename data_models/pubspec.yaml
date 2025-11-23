@@ -10,6 +10,11 @@ environment:
 # Add regular dependencies here.
 dependencies:
   # path: ^1.9.0
+  # Strumento per la generazione di codice
+  build_runner: ^2.4.6
+  # Generatore di codice per json_annotation
+  json_serializable: ^6.7.1
+  json_annotation: ^4.9.0
 
 dev_dependencies:
   lints: ^6.0.0
