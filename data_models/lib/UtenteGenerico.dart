@@ -110,7 +110,7 @@ class UtenteGenerico {
     iconaProfilo: iconaProfilo,
   );
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   String? get passwordHash => _passwordHash;
 
   factory UtenteGenerico.fromJson(Map<String, dynamic> json) =>
