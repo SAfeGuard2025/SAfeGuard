@@ -135,11 +135,23 @@ jobs:
 
       # Dopo aver configurato gli SDK e ripristinato la cache, devi fare nuovamente il 'pub get'
       # per garantire che gli ambienti siano isolati correttamente.
-      - name: Pub Get per Analisi
+
+      # --- RISOLUZIONE DIPENDENZE (Fondamentale prima dell'analisi) ---
+      - name: Pub Get - Data Models
+        run: dart pub get
+        working-directory: data_models
+
+      - name: Pub Get - Backend
+        run: dart pub get
+        working-directory: backend
+
+      - name: Pub Get - Frontend
         run: flutter pub get
         working-directory: frontend
 
-      # --- Analisi Statica per Moduli Dart Puri ---
+      # --- ANALISI ---
+      # L'analyzer usa i defaultValue definiti nel codice Dart.
+
       - name: Analyze Data Models
         run: dart analyze --fatal-warnings .
         working-directory: data_models
@@ -148,7 +160,6 @@ jobs:
         run: dart analyze --fatal-warnings .
         working-directory: backend
 
-      # --- Analisi Statica per Modulo Frontend ---
       - name: Analyze Frontend (Flutter)
         run: flutter analyze
         working-directory: frontend
