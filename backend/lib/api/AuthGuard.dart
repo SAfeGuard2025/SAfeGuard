@@ -1,5 +1,3 @@
-// File: lib/api/AuthGuard.dart
-
 import 'dart:convert';
 import 'dart:io'; // Per gestire la richiesta/risposta HTTP (simulazione)
 import '../services/JWTService.dart';

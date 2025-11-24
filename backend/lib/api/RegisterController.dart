@@ -8,7 +8,6 @@ import 'package:data_models/Utente.dart';
 import 'package:data_models/Soccorritore.dart';
 
 class RegisterController {
-  // Corretta inizializzazione della catena di dipendenze
   final RegisterService _registerService = RegisterService(
     UserRepository(), // Inietta UserRepository per RegisterService
     VerificationService(
@@ -30,7 +29,6 @@ class RegisterController {
 
       // Controllo del tipo e recupero ID (richiede che id sia in UtenteGenerico)
       String tipoUtente;
-      // L'ID è ora ereditato da UtenteGenerico, usa user.id! (assumendo non-null)
       final int assegnatoId = user.id!;
 
       if (user is Soccorritore) {

@@ -1,10 +1,8 @@
-// File: lib/services/JWTService.dart
-
 import 'dart:convert';
 
 // CHIAVE SEGRETA: Questa DEVE essere una stringa lunga e casuale,
 // conservata in modo sicuro (es. variabili d'ambiente).
-const String jwtSecret = "la_mia_chiave_segreta_molto_forte_e_lunga";
+const String jwtSecret = "chiave_segreta_molto_forte";
 
 class JWTService {
   // Simula la generazione di un token JWT
@@ -34,7 +32,7 @@ class JWTService {
   // Simula la verifica e decodifica di un token JWT
   Map<String, dynamic>? verifyToken(String token) {
     // In un'implementazione reale: verifica la firma, la scadenza e decodifica il payload.
-    // ... logica di verifica ...
+    // logica di verifica
 
     // Se la verifica fallisce: return null;
 

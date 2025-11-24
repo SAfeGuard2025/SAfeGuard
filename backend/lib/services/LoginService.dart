@@ -15,13 +15,13 @@ class LoginService {
   final UserRepository _userRepository = UserRepository();
   final JWTService _jwtService = JWTService();
 
-  // SIMULAZIONE: In un ambiente reale, useremmo una libreria come 'bcrypt'
+  // Simulazione: In un ambiente reale, si dovrebbe usare una libreria come 'bcrypt'
   bool _verifyPassword(String providedPassword, String storedHash) {
     // Per la simulazione, controlliamo solo l'hash simulato
     return providedPassword == storedHash;
   }
 
-  // --- NUOVA FUNZIONE: Login con Google ---
+  // Login con Google
   Future<Map<String, dynamic>?> loginWithGoogle(String googleIdToken) async {
     // 1. Verifica del Token Google
     // Chiamiamo l'endpoint di Google per validare l'idToken ricevuto dal frontend
@@ -54,7 +54,7 @@ class LoginService {
     userType = isSoccorritore ? 'Soccorritore' : 'Utente';
 
     if (userData != null) {
-      // CASO A: L'utente esiste già
+      // Caso A: L'utente esiste già
       userData.remove('passwordHash'); // Pulizia sicurezza
 
       if (isSoccorritore) {
@@ -63,7 +63,7 @@ class LoginService {
         user = Utente.fromJson(userData);
       }
     } else {
-      // Primo accesso (Registrazione Automatica)
+      // Caso B: Primo accesso (Registrazione Automatica)
       // Creiamo l'oggetto utente.
       // Poiché è Google, non c'è passwordHash.
 
@@ -124,8 +124,8 @@ class LoginService {
       }
     }
 
+    // Utente non trovato in nessuno dei due modi
     if (userData == null) {
-      // Utente non trovato in nessuno dei due modi
       return null;
     }
 

@@ -50,7 +50,7 @@ class RegisterService {
     }
     // NOTA: Se si registra solo con telefono, non è possibile discriminare il tipo,
     // quindi verrà trattato come Utente standard a meno che non ci sia un campo discriminante nel requestData.
-    // Qui assumiamo che la registrazione di Soccorritore debba sempre includere l'email.
+    // Quindi assumiamo che la registrazione di Soccorritore debba sempre includere l'email.
 
     if (isSoccorritore) {
       newUser = Soccorritore.fromJson(requestData);

@@ -15,19 +15,19 @@ final Map<String, Map<String, dynamic>> _simulatedDatabase = {
     'passwordHash': 'password123',
     'nome': 'Mario',
     'cognome': 'Rossi',
-    'isVerified': 'false',
+    'isVerified': false,
     'otp': 'xxxx',
   },
   // Utente Solo Telefono (Simulato, la chiave è ancora l'email per consistenza)
   'solo.telefono@gmail.com': {
-    // Email placeholder, non usata per il login
     'id': 103,
-    'email': 'solo.telefono@gmail.com',
+    'email':
+        'solo.telefono@gmail.com', // Email placeholder, non usata per il login
     'telefono': '+393457654321', // Numero di telefono usato per il login
     'passwordHash': 'telefono_pass',
     'nome': 'Anna',
     'cognome': 'B.',
-    'isVerified': 'false',
+    'isVerified': false,
     'otp': 'xxxx',
   },
   // Soccorritore (Login tramite Email discriminante)
@@ -37,7 +37,7 @@ final Map<String, Map<String, dynamic>> _simulatedDatabase = {
     'passwordHash': 'password456',
     'nome': 'Luca',
     'cognome': 'Verdi',
-    'isVerified': 'false',
+    'isVerified': false,
     'otp': 'xxxx',
   },
 };
@@ -58,6 +58,38 @@ class UserRepository {
     return _simulatedDatabase.values.firstWhereOrNull(
       (user) => user['telefono'] == phone,
     );
+  }
+
+  //Restituisce true se l'utente è verificato, false altrimenti
+  Future<bool> isVerified({int? id, String? email}) async {
+    if (id == null && email == null) {
+      throw ArgumentError(
+        'Devi fornire un ID o un\'email per verificare lo stato.',
+      );
+    }
+
+    Map<String, dynamic>? userData;
+
+    if (email != null) {
+      userData = await findUserByEmail(email);
+    } else if (id != null) {
+      // In un DB reale, faremmo una query WHERE id == $id.
+      // Nella simulazione, cerchiamo tra i valori:
+      userData = _simulatedDatabase.values.firstWhereOrNull(
+        (user) => user['id'] == id,
+      );
+    }
+
+    if (userData == null) {
+      // L'utente non esiste
+      return false;
+    }
+
+    // Assumiamo che il campo 'isVerified' sia un booleano nel DB simulato
+    // (Ho corretto i dati simulati sopra per riflettere questo)
+    final isUserVerified = userData['isVerified'] as bool? ?? false;
+
+    return isUserVerified;
   }
 
   // Questo metodo riceve la mappa grezza creata nel LoginService,
@@ -93,7 +125,7 @@ class UserRepository {
 
   //Salva l'OTP nel DB (o in cache)
   Future<void> saveOtp(String telefono, String otp) async {
-    // In un ambiente reale: questo salverebbe OTP e scadenza su Firebase o Redis.
+    // In un ambiente reale: questo salverebbe OTP e scadenza su Firebase.
     print('OTP SALVATO IN CACHE per $telefono: $otp');
     // Nella simulazione, possiamo usare una mappa temporanea in memoria:
     _otpCache[telefono] = otp;
