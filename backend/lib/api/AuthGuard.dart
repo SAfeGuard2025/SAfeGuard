@@ -49,7 +49,7 @@ class AuthGuard {
     // accedere all'ID utente da un contesto globale simulato, se necessario.
 
     // --- SIMULAZIONE DI INIEZIONE DATI ---
-    //_SimulatedRequestContext.currentUserId = userId;
+    //  _SimulatedRequestContext.currentUserId = userId;
     // ------------------------------------
 
     try {

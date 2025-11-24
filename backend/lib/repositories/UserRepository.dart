@@ -43,6 +43,9 @@ final Map<String, Map<String, dynamic>> _simulatedDatabase = {
 };
 
 class UserRepository {
+  // Mappa temporanea in memoria per la simulazione dell'OTP
+  static final Map<String, String> _otpCache = {};
+
   // 1. Simula l'interazione con il DB per trovare un utente tramite email
   Future<Map<String, dynamic>?> findUserByEmail(String email) async {
     // La ricerca in un vero DB avverrebbe con una query WHERE email == $email
@@ -57,13 +60,43 @@ class UserRepository {
     );
   }
 
+  // Questo metodo riceve la mappa grezza creata nel LoginService,
+  // assegna un ID e salva nel DB simulato.
+  Future<Map<String, dynamic>> createUser(
+    Map<String, dynamic> userData, {
+    required String collection,
+  }) async {
+    final email = userData['email'] as String;
+
+    // Controllo di sicurezza base
+    if (_simulatedDatabase.containsKey(email)) {
+      throw Exception('Utente già esistente');
+    }
+
+    // 1. Simulazione generazione ID (in Firebase sarebbe automatico o un UUID)
+    final int newId = _simulatedDatabase.length + 300;
+
+    userData['id'] = newId;
+
+    // Nota: In Firebase reale:
+    // await FirebaseFirestore.instance.collection(collection).add(userData);
+
+    // 2. Salvataggio nella simulazione
+    _simulatedDatabase[email] = userData;
+
+    print(
+      'Nuovo utente Google creato: ${userData['nome']} ($email) con ID $newId nella collezione $collection',
+    );
+
+    return userData;
+  }
+
   //Salva l'OTP nel DB (o in cache)
   Future<void> saveOtp(String telefono, String otp) async {
     // In un ambiente reale: questo salverebbe OTP e scadenza su Firebase o Redis.
     print('OTP SALVATO IN CACHE per $telefono: $otp');
     // Nella simulazione, possiamo usare una mappa temporanea in memoria:
     _otpCache[telefono] = otp;
-    // Nota: La mappa _otpCache andrebbe dichiarata all'esterno del repository come statica.
   }
 
   // Verifica l'OTP
@@ -82,9 +115,6 @@ class UserRepository {
       print('Utente $email marcato come VERIFICATO.');
     }
   }
-
-  // Mappa temporanea in memoria per la simulazione dell'OTP
-  static final Map<String, String> _otpCache = {};
 
   Future<UtenteGenerico> saveUser(UtenteGenerico newUser) async {
     if (newUser.email == null) {

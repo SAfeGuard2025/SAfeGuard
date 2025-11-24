@@ -7,17 +7,15 @@ import 'package:data_models/UtenteGenerico.dart';
 class LoginController {
   final LoginService _loginService = LoginService();
 
+  // 1. Login classico (Email/Telefono + Password)
   Future<String> handleLoginRequest(String requestBodyJson) async {
     try {
       final Map<String, dynamic> credentials = jsonDecode(requestBodyJson);
 
-      // Estrae email e telefono (possono essere null)
       final email = credentials['email'] as String?;
       final telefono = credentials['telefono'] as String?;
       final password = credentials['password'] as String;
 
-      // Chiama il service con i parametri opzionali
-      // Il service ora ritorna una Map<String, dynamic> contenente 'user' e 'token'
       final result = await _loginService.login(
         email: email,
         telefono: telefono,
@@ -25,53 +23,76 @@ class LoginController {
       );
 
       if (result != null) {
-        // 1. Estrai l'oggetto utente e il token dal risultato del service
-        final user = result['user'] as UtenteGenerico;
-        final token = result['token'] as String;
-
-        // 2. Verifica il tipo concreto di utente e ottieni l'ID
-        String tipoUtente;
-        int assegnatoId =
-            user.id ?? 0; // L'ID non è nullo qui, ma usiamo ?? per sicurezza
-
-        if (user is Soccorritore) {
-          tipoUtente = 'Soccorritore';
-        } else if (user is Utente) {
-          tipoUtente = 'Utente Standard';
-        } else {
-          tipoUtente = 'Generico';
-        }
-
-        // 3. Costruisci la risposta con il token e le info utente
-        final responseBody = {
-          'success': true,
-          'message':
-              'Login avvenuto con successo. Tipo: $tipoUtente, ID: $assegnatoId',
-          'user': user.toJson()
-            ..remove('passwordHash'), // Invia i dati utente senza hash
-          'token': token, // Invia il Token JWT al client
-        };
-        return jsonEncode(responseBody);
+        return _buildSuccessResponse(result);
       } else {
-        final responseBody = {
-          'success': false,
-          'message':
-              'Credenziali non valide (combinazione errata o utente non trovato)',
-        };
-        return jsonEncode(responseBody);
+        return _buildErrorResponse(
+          'Credenziali non valide (combinazione errata o utente non trovato)',
+        );
       }
     } on ArgumentError catch (e) {
-      final responseBody = {
-        'success': false,
-        'message': e.message, // Cattura l'errore se mancano email E telefono
-      };
-      return jsonEncode(responseBody);
+      return _buildErrorResponse(e.message);
     } catch (e) {
-      final responseBody = {
-        'success': false,
-        'message': 'Errore interno del server: $e',
-      };
-      return jsonEncode(responseBody);
+      return _buildErrorResponse('Errore interno del server: $e');
     }
+  }
+
+  // 2. Login con Google
+  Future<String> handleGoogleLoginRequest(String requestBodyJson) async {
+    try {
+      final Map<String, dynamic> payload = jsonDecode(requestBodyJson);
+
+      // Il frontend deve inviare una chiave 'id_token'
+      final googleToken = payload['id_token'] as String?;
+
+      if (googleToken == null || googleToken.isEmpty) {
+        return _buildErrorResponse('Token Google mancante nella richiesta.');
+      }
+
+      // Chiama il service che gestisce la logica "Find or Create"
+      final result = await _loginService.loginWithGoogle(googleToken);
+
+      if (result != null) {
+        return _buildSuccessResponse(result);
+      } else {
+        // Teoricamente loginWithGoogle lancia eccezioni se fallisce, ma gestiamo il null per sicurezza
+        return _buildErrorResponse('Autenticazione Google fallita.');
+      }
+    } catch (e) {
+      // Cattura le eccezioni lanciate dal Service (es. "Token Google non valido")
+      return _buildErrorResponse('Errore durante il login Google: $e');
+    }
+  }
+
+  // Costruzione Risposta di Successo
+  // Centralizza la logica di formattazione della risposta per evitare duplicati
+  String _buildSuccessResponse(Map<String, dynamic> result) {
+    final user = result['user'] as UtenteGenerico;
+    final token = result['token'] as String;
+
+    String tipoUtente;
+    int assegnatoId = user.id ?? 0;
+
+    if (user is Soccorritore) {
+      tipoUtente = 'Soccorritore';
+    } else if (user is Utente) {
+      tipoUtente = 'Utente Standard';
+    } else {
+      tipoUtente = 'Generico';
+    }
+
+    final responseBody = {
+      'success': true,
+      'message':
+          'Login avvenuto con successo. Tipo: $tipoUtente, ID: $assegnatoId',
+      'user': user.toJson()..remove('passwordHash'), // Rimuove dati sensibili
+      'token': token,
+    };
+
+    return jsonEncode(responseBody);
+  }
+
+  //Costruzione Risposta di Errore ---
+  String _buildErrorResponse(String message) {
+    return jsonEncode({'success': false, 'message': message});
   }
 }
