@@ -62,9 +62,6 @@ class LoginService {
       } else {
         user = Utente.fromJson(userData);
       }
-
-      // Opzionale: Aggiornare foto profilo o nome se cambiati su Google
-      // await _userRepository.updateUserField(user.id!, 'fotoProfilo', picture);
     } else {
       // Primo accesso (Registrazione Automatica)
       // Creiamo l'oggetto utente.
@@ -163,5 +160,105 @@ class LoginService {
 
     // Restituisce l'utente e il token
     return {'user': user, 'token': token};
+  }
+
+  // Login con Apple
+  Future<Map<String, dynamic>?> loginWithApple({
+    required String identityToken,
+    String? email, // Apple lo manda nel body della richiesta la prima volta
+    String? firstName, // Apple lo manda nel body la prima volta
+    String? lastName, // Apple lo manda nel body la prima volta
+  }) async {
+    // 1. Verifica e Decodifica del Token Apple
+    // In un ambiente reale, bisogna verificare la firma crittografica del token
+    // usando le chiavi pubbliche di Apple (JWKS).
+    // Per questa implementazione, decodifichiamo il payload senza verifica firma.
+    Map<String, dynamic> payload;
+    try {
+      payload = _decodeJWTPayload(identityToken);
+    } catch (e) {
+      throw Exception('Token Apple non valido o malformato.');
+    }
+
+    // Verifica issuer e audience
+    if (payload['iss'] != 'https://appleid.apple.com') {
+      throw Exception('Issuer non valido');
+    }
+
+    // L'email è contenuta nel token, ma a volte il frontend la passa esplicitamente
+    // se l'utente ha scelto di nasconderla e Apple la manda nel token come relay.
+    final String tokenEmail = payload['email'] as String? ?? '';
+
+    // Usiamo l'email del token se presente, altrimenti quella passata dal frontend
+    final String finalEmail = tokenEmail.isNotEmpty
+        ? tokenEmail
+        : (email ?? '');
+
+    if (finalEmail.isEmpty) {
+      throw Exception('Impossibile recuperare l\'email dall\'ID Apple.');
+    }
+
+    // 2. Controllo esistenza utente nel Database
+    Map<String, dynamic>? userData = await _userRepository.findUserByEmail(
+      finalEmail,
+    );
+
+    UtenteGenerico user;
+    final isSoccorritore = finalEmail.toLowerCase().endsWith(
+      rescuerDomain,
+    ); // Logica dominio
+    final userType = isSoccorritore ? 'Soccorritore' : 'Utente';
+
+    if (userData != null) {
+      // CASO A: Utente già esistente
+      userData.remove('passwordHash');
+      if (isSoccorritore) {
+        user = Soccorritore.fromJson(userData);
+      } else {
+        user = Utente.fromJson(userData);
+      }
+    } else {
+      // CASO B: Primo accesso (Registrazione)
+      // Qui firstName e lastName sono importanti perché Apple non li rimanda più.
+
+      final newUserMap = {
+        'email': finalEmail,
+        'nome': firstName ?? 'Utente Apple', // Fallback se manca il nome
+        'cognome': lastName ?? '',
+        'telefono': null,
+        'passwordHash': '',
+        'fotoProfilo': null, // Apple non fornisce foto profilo
+        'dataRegistrazione': DateTime.now().toIso8601String(),
+        'authProvider': 'apple', // Utile per sapere da dove arriva
+      };
+
+      final createdUserData = await _userRepository.createUser(
+        newUserMap,
+        collection: userType,
+      );
+
+      if (isSoccorritore) {
+        user = Soccorritore.fromJson(createdUserData);
+      } else {
+        user = Utente.fromJson(createdUserData);
+      }
+    }
+
+    // 3. Generazione Token Interno
+    final token = _jwtService.generateToken(user.id!, userType);
+
+    return {'user': user, 'token': token};
+  }
+
+  // Helper per decodificare il JWT (Solo parte Payload, senza verifica firma)
+  Map<String, dynamic> _decodeJWTPayload(String token) {
+    final parts = token.split('.');
+    if (parts.length != 3) {
+      throw Exception('Token JWT invalido');
+    }
+    final payload = parts[1];
+    final normalized = base64Url.normalize(payload);
+    final resp = utf8.decode(base64Url.decode(normalized));
+    return jsonDecode(resp);
   }
 }

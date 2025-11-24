@@ -46,13 +46,13 @@ class UserRepository {
   // Mappa temporanea in memoria per la simulazione dell'OTP
   static final Map<String, String> _otpCache = {};
 
-  // 1. Simula l'interazione con il DB per trovare un utente tramite email
+  // Simula l'interazione con il DB per trovare un utente tramite email
   Future<Map<String, dynamic>?> findUserByEmail(String email) async {
     // La ricerca in un vero DB avverrebbe con una query WHERE email == $email
     return _simulatedDatabase[email];
   }
 
-  // 1. Simula l'interazione con il DB per trovare un utente tramite telefono
+  // Simula l'interazione con il DB per trovare un utente tramite telefono
   Future<Map<String, dynamic>?> findUserByPhone(String phone) async {
     // Restituisce il primo elemento o null se nessun elemento soddisfa la condizione.
     return _simulatedDatabase.values.firstWhereOrNull(

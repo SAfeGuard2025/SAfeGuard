@@ -63,6 +63,38 @@ class LoginController {
     }
   }
 
+  Future<String> handleAppleLoginRequest(String requestBodyJson) async {
+    try {
+      final Map<String, dynamic> payload = jsonDecode(requestBodyJson);
+
+      // Parametri inviati dal frontend (Flutter "sign_in_with_apple")
+      final identityToken = payload['identityToken'] as String?;
+      final email = payload['email'] as String?;
+      final firstName =
+          payload['givenName'] as String?; // Apple chiama così il nome
+      final lastName = payload['familyName'] as String?; // e così il cognome
+
+      if (identityToken == null || identityToken.isEmpty) {
+        return _buildErrorResponse('Token Apple (identityToken) mancante.');
+      }
+
+      final result = await _loginService.loginWithApple(
+        identityToken: identityToken,
+        email: email,
+        firstName: firstName,
+        lastName: lastName,
+      );
+
+      if (result != null) {
+        return _buildSuccessResponse(result);
+      } else {
+        return _buildErrorResponse('Autenticazione Apple fallita.');
+      }
+    } catch (e) {
+      return _buildErrorResponse('Errore durante il login Apple: $e');
+    }
+  }
+
   // Costruzione Risposta di Successo
   // Centralizza la logica di formattazione della risposta per evitare duplicati
   String _buildSuccessResponse(Map<String, dynamic> result) {
@@ -91,7 +123,7 @@ class LoginController {
     return jsonEncode(responseBody);
   }
 
-  //Costruzione Risposta di Errore ---
+  //Costruzione Risposta di Errore
   String _buildErrorResponse(String message) {
     return jsonEncode({'success': false, 'message': message});
   }
