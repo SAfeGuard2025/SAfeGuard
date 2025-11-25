@@ -1,15 +1,66 @@
 import 'package:flutter/material.dart';
-import 'package:prova2/screens/confirmEmergencyScreen.dart';
+import 'package:frontend/screens/confirmEmergencyScreen.dart';
+import 'package:frontend/widgets/navigationBarCittadino.dart';
 import 'dart:math';
 
-// Definiamo una HomePage (Stateless, visto che è una schermata statica)
-class HomePage extends StatelessWidget {
+// 1. CONVERTITA IN STATEFULWIDGET PER GESTIRE LO STATO DELLA NAV BAR
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
-  // Definizione dei colori usati nell'app per mantenere la coerenza
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  // Definizione dei colori usati nell'app
   static const Color darkBlue = Color(0xFF12345A);
   static const Color primaryRed = Color(0xFFE53935);
   static const Color amberOrange = Color(0xFFFF9800);
+
+  // Stato per l'indice del tab selezionato
+  int _selectedIndex = 0;
+
+  // Lista di Widget che rappresentano le pagine
+  final List<Widget> _pages = <Widget>[
+    // 0: HomePage Content (il contenuto originale)
+    const HomePageContent(),
+    // 1: Pagina Utente/Medication (Placeholder)
+    const Center(
+      child: Text(
+        "Pagina Utente",
+        style: TextStyle(color: Colors.white, fontSize: 24),
+      ),
+    ),
+    // 2: Pagina Mappa (Placeholder)
+    const Center(
+      child: Text(
+        "Pagina Mappa",
+        style: TextStyle(color: Colors.white, fontSize: 24),
+      ),
+    ),
+    // 3: Pagina Notifiche (Placeholder)
+    const Center(
+      child: Text(
+        "Pagina Notifiche",
+        style: TextStyle(color: Colors.white, fontSize: 24),
+      ),
+    ),
+    // 4: Pagina Impostazioni (Placeholder)
+    const Center(
+      child: Text(
+        "Pagina Impostazioni",
+        style: TextStyle(color: Colors.white, fontSize: 24),
+      ),
+    ),
+  ];
+
+  // Funzione chiamata dalla CustomBottomNavBar quando un'icona viene toccata
+  void _onItemTapped(int index) {
+    // Usiamo setState per aggiornare l'indice e forzare il ricaricamento del body
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,47 +68,67 @@ class HomePage extends StatelessWidget {
     return Container(
       color: darkBlue,
       child: Scaffold(
-        backgroundColor: Colors
-            .transparent, // Rende trasparente lo Scaffold per mostrare il Container scuro
-        // --- BODY: Il contenuto centrale della pagina ---
-        body: SafeArea(
-          child: SingleChildScrollView(
-            // Permette lo scroll se lo schermo è piccolo
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  //Separatore
-                  const SizedBox(height: 20),
-                  // 1. NOTIFICA DI EMERGENZA (IN ALTO)
-                  _buildEmergencyNotification(),
-                  //Separatore
-                  const SizedBox(height: 25),
-                  // 2. MAPPA
-                  _buildMapContainer(),
-                  //Altro separatore
-                  const SizedBox(height: 25),
+        backgroundColor: Colors.transparent,
 
-                  // 3. BOTTONE "CONTATTI DI EMERGENZA"
-                  _buildEmergencyContactsButton(),
-
-                  const SizedBox(height: 10),
-
-                  // 4. BOTTONE SOS GRANDE
-                  _buildSosButton(context),
-
-                  const SizedBox(
-                    height: 30,
-                  ), // Spazio extra prima della Bottom Nav Bar
-                ],
-              ),
-            ),
-          ),
-        ),
+        // --- BODY: Visualizza il contenuto della pagina selezionata ---
+        // Il body mostra il widget corrispondente all'indice _selectedIndex
+        body: _pages[_selectedIndex],
 
         // --- BOTTOM NAVIGATION BAR ---
-        bottomNavigationBar: _buildBottomNavBar(context),
+        // Integrazione della nuova CustomBottomNavBar
+        bottomNavigationBar: CustomBottomNavBar(
+          // Passiamo la funzione che aggiorna lo stato _selectedIndex
+          onIconTapped: _onItemTapped,
+        ),
+      ),
+    );
+  }
+}
+
+// 2. ESTRAZIONE DEL CONTENUTO DELLA HOME PAGE
+// Il contenuto originale della pagina è stato spostato qui.
+class HomePageContent extends StatelessWidget {
+  const HomePageContent({super.key});
+
+  // Definizione dei colori usati nell'app (Referenziati dallo State)
+  static const Color darkBlue = _HomePageState.darkBlue;
+  static const Color primaryRed = _HomePageState.primaryRed;
+  static const Color amberOrange = _HomePageState.amberOrange;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: SingleChildScrollView(
+        // Permette lo scroll se lo schermo è piccolo
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              //Separatore
+              const SizedBox(height: 0),
+              // 1. NOTIFICA DI EMERGENZA (IN ALTO)
+              _buildEmergencyNotification(),
+              //Separatore
+              const SizedBox(height: 25),
+              // 2. MAPPA
+              // *** MODIFICA QUI: Uso il nuovo placeholder vuoto ***
+              _buildMapPlaceholder(),
+              //Altro separatore
+              const SizedBox(height: 10),
+
+              // 3. BOTTONE "CONTATTI DI EMERGENZA"
+              _buildEmergencyContactsButton(),
+
+              const SizedBox(height: 10),
+
+              // 4. BOTTONE SOS GRANDE
+              _buildSosButton(context),
+
+              const SizedBox(height: 30), // Spazio extra
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -65,7 +136,7 @@ class HomePage extends StatelessWidget {
   // --- WIDGET PER LA NOTIFICA DI EMERGENZA (ROSSE) ---
   Widget _buildEmergencyNotification() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
       decoration: BoxDecoration(
         color: primaryRed, // Rosso
         borderRadius: BorderRadius.circular(15),
@@ -107,15 +178,16 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // --- WIDGET PER IL CONTAINER DELLA MAPPA (SIMULAZIONE) ---
-  Widget _buildMapContainer() {
-    // Ho usato un Container decorato con un gradiente e un'immagine placeholder
-    // per simulare l'aspetto della mappa centrata su Salerno.
+  // --- WIDGET PER IL CONTAINER DELLA MAPPA (VUOTO/PLACEHOLDER) ---
+  Widget _buildMapPlaceholder() {
     return Container(
-      height: 300,
+      height: 225,
       width: double.infinity,
+      alignment: Alignment.center, // Centra il testo
       decoration: BoxDecoration(
+        color: darkBlue.withOpacity(0.8), // Sfondo Blu Scuro
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white54, width: 2), // Bordo per visibilità
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.4),
@@ -124,26 +196,28 @@ class HomePage extends StatelessWidget {
             offset: const Offset(0, 5),
           ),
         ],
-        // Simulo un'immagine di sfondo per la mappa
-        image: const DecorationImage(
-          image: AssetImage('assets/salerno_map_placeholder.png'),
-          fit: BoxFit.cover,
-        ),
-        // Se non hai l'immagine, puoi usare questo per un blocco grigio:
-        // color: Colors.grey.shade300,
       ),
-      // Puoi aggiungere un widget `ClipRRect` e `Image.asset` se vuoi
-      // inserire l'immagine mostrata nel tuo screenshot in modo più preciso.
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        // Ho commentato l'Image.asset per non creare un errore
-        // se l'utente non ha l'asset: 'assets/salerno_map.png'
-        /* child: Image.asset(
-          'assets/salerno_map.png',
-          fit: BoxFit.cover,
-          errorBuilder: (c, e, s) => const Center(child: Text("Mappa Placeholder", style: TextStyle(color: Colors.black))),
-        ),
-        */
+      child: const Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.map_outlined, color: Colors.white70, size: 60),
+          SizedBox(height: 10),
+          Text(
+            "Placeholder Mappa",
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            "(Implementazione futura)",
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 14,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -183,70 +257,9 @@ class HomePage extends StatelessWidget {
     final double buttonSize = MediaQuery.of(context).size.width * 0.60;
     return SosButton(size: buttonSize);
   }
-
-  // --- WIDGET PER LA NAV BAR INFERIORE ---
-  Widget _buildBottomNavBar(BuildContext context) {
-    return BottomNavigationBar(
-      backgroundColor: darkBlue,
-      type: BottomNavigationBarType.fixed, // Per avere un background fisso
-      selectedItemColor: Colors.white,
-      unselectedItemColor: Colors.white.withOpacity(0.6),
-      currentIndex: 0, // Impostiamo la Home come selezionata
-      showSelectedLabels: false,
-      showUnselectedLabels: false,
-      elevation: 0, // Rimuove l'ombra della barra
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home_filled, size: 28),
-          label: 'Home',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.analytics_outlined, size: 28),
-          label: 'Analytics',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.map_outlined, size: 28),
-          label: 'Mappa',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.notifications_none, size: 28),
-          label: 'Notifiche',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.settings_outlined, size: 28),
-          label: 'Impostazioni',
-        ),
-      ],
-      onTap: (index) {
-        // Implementa la logica di navigazione qui
-        // Esempio: print("Toccata icona: $index");
-      },
-    );
-  }
 }
 
-// --- CLASSE MAIN PER TESTARE (OPZIONALE) ---
-/*
-void main() {
-  // Aggiungi questo in un file separato (o usa il tuo file main.dart)
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'SafeGuard App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const HomePage(),
-    );
-  }
-}
-*/
+// --- CLASSI SOS BUTTON e RingPainter (Mantenute) ---
 
 class SosButton extends StatefulWidget {
   final double size;
@@ -330,6 +343,8 @@ class _SosButtonState extends State<SosButton>
             height: widget.size,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
+              // *** ATTENZIONE: Se 'assets/sosbutton.png' non esiste, questo causerà un errore. ***
+              // Se vuoi sostituire anche questo con un placeholder Icon/Text, dovrai modificarlo qui.
               image: const DecorationImage(
                 image: AssetImage('assets/sosbutton.png'),
                 fit: BoxFit.cover,

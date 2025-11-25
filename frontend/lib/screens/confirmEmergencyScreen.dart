@@ -24,22 +24,22 @@ class ConfirmEmergencyScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   //Separatore
-                  const SizedBox(height: 25),
+                  const SizedBox(height: 10),
                   //Immagine SOS
                   _buildSosImage(),
-                  const SizedBox(height: 25),
+                  const SizedBox(height: 10),
                   //Scritta CONFERMA SOS
                   _buildConfirmText(),
-                  const SizedBox(height: 45),
+                  const SizedBox(height: 10),
                   //Scritta SWIPE PER MANDARE LA TUA POSIZIONE
                   _buildSwipeToText(),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 10),
                   //Slider
                   _buildSwipe(context),
-                  const SizedBox(height: 70),
+                  const SizedBox(height: 10),
                   //Scritta ricorda che il procurato allarme è reato
                   _buildReminderText(),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 10),
                   _buildGoBackButton(context),
                 ],
               ),
