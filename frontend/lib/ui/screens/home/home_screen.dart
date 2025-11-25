@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/ui/widgets/custom_bottom_nav_bar.dart';
 
-// --- 1. IMPORTA LE TUE PAGINE QUI ---
-// (Assicurati che i percorsi siano giusti in base a dove hai spostato i file)
-//import 'package:frontend/ui/screens/home/home_page_content.dart';
-//import 'package:frontend/ui/screens/medical/gestione_cartella_clinica_cittadino.dart';
-//import 'package:frontend/ui/screens/profile/gestione_notifiche_cittadino.dart';
-//import 'package:frontend/ui/screens/profile/profile_settings_screen.dart';
+// --- IMPORTA LE TUE PAGINE ---
+import 'package:frontend/ui/screens/home/home_page_content.dart';
+import 'package:frontend/ui/screens/medical/gestione_cartella_clinica_cittadino.dart';
+// import 'package:frontend/ui/screens/profile/gestione_notifiche_cittadino.dart';
+// import 'package:frontend/ui/screens/profile/profile_settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,27 +17,41 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-  // --- 2. INSERISCI LE CLASSI NELLA LISTA ---
-  // L'ordine DEVE essere lo stesso delle icone nella Navbar:
-  // 0: Home, 1: Utente, 2: Mappa, 3: Notifiche, 4: Impostazioni
+  // --- SOLUZIONE: RIEMPI I BUCHI CON PLACEHOLDER ---
+  // La lista deve avere 5 elementi esatti per corrispondere alle 5 icone.
   final List<Widget> _pages = [
-    // Indice 0: La Home (Contenuto centrale coi bottoni SOS)
-    //const HomePageContent(),
+    // 0. HOME (Esiste già)
+    const HomePageContent(),
 
-    // Indice 1: Sezione Medica (Cartella Clinica)
-    //const GestioneCartellaClinicaCittadino(),
+    // 1. UTENTE (Placeholder temporaneo)
+    const GestioneCartellaClinicaCittadino(),
 
-    // Indice 2: Mappa (Non ho visto il file, lascio un placeholder per ora)
+    // 2. MAPPA (Placeholder temporaneo)
     const Center(
-        child: Text("Qui andrà la Mappa", style: TextStyle(color: Colors.white, fontSize: 24))
+        child: Text(
+            "Mappa\n(In lavorazione)",
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white, fontSize: 24)
+        )
     ),
 
-    // Indice 3: Notifiche
-    //const GestioneNotificheCittadino(),
+    // 3. NOTIFICHE (Placeholder temporaneo)
+    const Center(
+      child: Text(
+        "Notifiche\n(Da implementare)",
+        textAlign: TextAlign.center,
+        style: TextStyle(color: Colors.white, fontSize: 24),
+      ),
+    ),
 
-    // Indice 4: Impostazioni Profilo
-    // (Passiamo isSoccorritore: false se è un cittadino)
-    //const ProfileSettingsScreen(isSoccorritore: false),
+    // 4. IMPOSTAZIONI (Placeholder temporaneo)
+    const Center(
+      child: Text(
+        "Impostazioni\n(Da implementare)",
+        textAlign: TextAlign.center,
+        style: TextStyle(color: Colors.white, fontSize: 24),
+      ),
+    ),
   ];
 
   void _onTabChange(int index) {
@@ -52,8 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF041528),
 
-      // Usa IndexedStack per mantenere lo stato delle pagine (es. scroll)
-      // quando cambi scheda.
+      // IndexedStack ora troverà sempre un widget per ogni indice (0-4)
       body: SafeArea(
         child: IndexedStack(
           index: _currentIndex,
