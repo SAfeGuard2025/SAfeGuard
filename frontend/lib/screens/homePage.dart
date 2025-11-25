@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/screens/confirmEmergencyScreen.dart';
 import 'package:frontend/widgets/navigationBarCittadino.dart';
-import 'dart:math';
 
 // 1. CONVERTITA IN STATEFULWIDGET PER GESTIRE LO STATO DELLA NAV BAR
 class HomePage extends StatefulWidget {
@@ -294,50 +293,16 @@ class _SosButtonState extends State<SosButton>
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onLongPressStart: (_) {
-        _controller.forward(from: 0); // Avvia animazione
-      },
-      onLongPressEnd: (_) {
-        if (_controller.value == 1.0) {
-          //Qui andrà il ridirezionamento alla schermata di sos effettiva
-          //Il push() sovrappone una pagina allo stack navigazionale, nella
-          //prossima schermata, il pop() lo farà tornare a questa
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const ConfirmEmergencyScreen(),
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Tieni premuto più a lungo per attivare l'SOS!"),
-              duration: Duration(seconds: 1),
-            ),
-          );
-        }
-        _controller.reset();
-      },
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Tieni premuto per attivare l'SOS!"),
-            duration: Duration(seconds: 1),
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const ConfirmEmergencyScreen(),
           ),
         );
       },
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // --- ANELLO ANIMATO ---
-          AnimatedBuilder(
-            animation: _controller,
-            builder: (context, _) {
-              return CustomPaint(
-                size: Size(widget.size + 10, widget.size + 10),
-                painter: RingPainter(progress: _controller.value),
-              );
-            },
-          ),
           Container(
             width: widget.size,
             height: widget.size,
@@ -355,41 +320,5 @@ class _SosButtonState extends State<SosButton>
         ],
       ),
     );
-  }
-}
-
-//Questa è la classe per il caricamento dell'SOS
-//import 'dart:math'; fa funzionare questa classe (definizione di pi)
-class RingPainter extends CustomPainter {
-  final double progress;
-
-  RingPainter({required this.progress});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final strokeWidth = 12.0;
-
-    final rect = Offset.zero & size;
-    final startAngle = -pi / 2;
-    final sweepAngle = 2 * pi * progress;
-
-    final paint = Paint()
-      ..color = Colors.red
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawArc(
-      rect.deflate(strokeWidth),
-      startAngle,
-      sweepAngle,
-      false,
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant RingPainter oldDelegate) {
-    return oldDelegate.progress != progress;
   }
 }
