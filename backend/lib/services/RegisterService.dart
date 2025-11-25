@@ -1,6 +1,10 @@
+import 'dart:convert';
+import 'dart:io'; // Per Platform.environment
+import 'package:crypto/crypto.dart'; // Importa crypto
+
 import 'package:data_models/UtenteGenerico.dart';
-import 'package:data_models/Utente.dart';
 import 'package:data_models/Soccorritore.dart';
+import 'package:data_models/Utente.dart';
 import '../repositories/UserRepository.dart';
 import 'VerificationService.dart';
 
@@ -12,56 +16,56 @@ class RegisterService {
 
   RegisterService(this._userRepository, this._verificationService);
 
-  Future<UtenteGenerico> register(
-    Map<String, dynamic> requestData,
-    String password,
-  ) async {
-    final email = requestData['email'] as String?;
-    final telefono =
-        requestData['telefono'] as String?; // Estrae anche il telefono
+  // Funzione privata per generare l'hash
+  String _hashPassword(String password) {
+    // 1. Recupera il segreto dalle Env (o usa un fallback per sicurezza in dev)
+    final secret = Platform.environment['HASH_SECRET'] ?? 'fallback_secret_dev';
 
-    // 1. Validazione Iniziale: Almeno email o telefono deve essere fornito
+    // 2. Unisce password + segreto
+    final bytes = utf8.encode(password + secret);
+
+    // 3. Calcola SHA-256 e restituisce la stringa esadecimale
+    return sha256.convert(bytes).toString();
+  }
+
+  Future<UtenteGenerico> register(
+      Map<String, dynamic> requestData,
+      String password,
+      ) async {
+    final email = requestData['email'] as String?;
+    final telefono = requestData['telefono'] as String?;
+
     if (password.isEmpty || (email == null && telefono == null)) {
       throw Exception('Devi fornire Password e almeno Email o Telefono.');
     }
 
-    // 2. Controllo di esistenza (per email e per telefono)
     if (email != null && await _userRepository.findUserByEmail(email) != null) {
       throw Exception('Utente con questa email è già registrato.');
     }
-    if (telefono != null &&
-        await _userRepository.findUserByPhone(telefono) != null) {
+    if (telefono != null && await _userRepository.findUserByPhone(telefono) != null) {
       throw Exception('Utente con questo telefono è già registrato.');
     }
 
-    // 3. Prepara il payload con la password
-    requestData['passwordHash'] = password;
+    // Invece di salvare la password in chiaro, salviamo l'hash
+    requestData['passwordHash'] = _hashPassword(password);
 
-    final UtenteGenerico newUser;
-
-    requestData['id'] = 0; // ID 0 temporaneo
+    requestData['id'] = 0;
     requestData['isVerified'] = false;
 
-    // 4. La determinazione del tipo deve usare l'email se disponibile,
-    // altrimenti assume che un utente registrato solo con telefono sia standard.
     bool isSoccorritore = false;
     if (email != null) {
       isSoccorritore = email.toLowerCase().endsWith(rescuerDomain);
     }
-    // NOTA: Se si registra solo con telefono, non è possibile discriminare il tipo,
-    // quindi verrà trattato come Utente standard a meno che non ci sia un campo discriminante nel requestData.
-    // Quindi assumiamo che la registrazione di Soccorritore debba sempre includere l'email.
 
+    final UtenteGenerico newUser;
     if (isSoccorritore) {
       newUser = Soccorritore.fromJson(requestData);
     } else {
       newUser = Utente.fromJson(requestData);
     }
 
-    // 5. Salva l'utente nel Database
     final savedUser = await _userRepository.saveUser(newUser);
 
-    //Se si usa il telefono, avvia la verifica OTP
     if (savedUser.telefono != null) {
       await _verificationService.startPhoneVerification(savedUser.telefono!);
     }

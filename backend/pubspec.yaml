@@ -17,6 +17,7 @@ dependencies:
   http_server: ^1.0.0
   http: ^1.1.0
   firedart: ^0.9.8   # Client Firestore per Dart puro (non-Flutter)
+  crypto: ^3.0.7
 
   # dipendenza comune
   data_models:

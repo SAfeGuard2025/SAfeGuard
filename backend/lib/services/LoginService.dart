@@ -1,12 +1,13 @@
 import 'dart:convert';
+import 'dart:io'; // Per Platform.environment
+import 'package:crypto/crypto.dart'; // Importa crypto
+import 'package:http/http.dart' as http;
 
 import 'package:data_models/Utente.dart';
 import 'package:data_models/Soccorritore.dart';
 import 'package:data_models/UtenteGenerico.dart';
 import '../repositories/UserRepository.dart';
 import 'JWTService.dart';
-
-import 'package:http/http.dart' as http;
 
 // Dominio speciale per i soccorritori da modificare poi
 const String rescuerDomain = '@soccorritore.com';
@@ -15,10 +16,19 @@ class LoginService {
   final UserRepository _userRepository = UserRepository();
   final JWTService _jwtService = JWTService();
 
-  // Simulazione: In un ambiente reale, si dovrebbe usare una libreria come 'bcrypt'
+  // Funzione privata per generare l'hash (Deve essere IDENTICA a quella del RegisterService)
+  String _hashPassword(String password) {
+    final secret = Platform.environment['HASH_SECRET'] ?? 'fallback_secret_dev';
+    final bytes = utf8.encode(password + secret);
+    return sha256.convert(bytes).toString();
+  }
+
   bool _verifyPassword(String providedPassword, String storedHash) {
-    // Per la simulazione, controlliamo solo l'hash simulato
-    return providedPassword == storedHash;
+    // Calcoliamo l'hash della password appena inserita
+    final generatedHash = _hashPassword(providedPassword);
+
+    // Confrontiamo l'hash calcolato con quello nel DB
+    return generatedHash == storedHash;
   }
 
   // Login con Google
