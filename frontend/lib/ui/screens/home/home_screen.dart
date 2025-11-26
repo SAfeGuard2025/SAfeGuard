@@ -31,18 +31,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // 2. MAPPA (Placeholder temporaneo)
     const Center(
-        child: Text(
-            "Mappa\n(In lavorazione)",
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white, fontSize: 24)
-        )
+      child: Text(
+        "Mappa\n(In lavorazione)",
+        textAlign: TextAlign.center,
+        style: TextStyle(color: Colors.white, fontSize: 24),
+      ),
     ),
 
     // 3. NOTIFICHE (Placeholder temporaneo)
     const GestioneNotificheCittadino(),
 
     // 4. IMPOSTAZIONI (Placeholder temporaneo)
-    const ProfileSettingsScreen(isSoccorritore: false)
+    const ProfileSettingsScreen(isSoccorritore: false),
   ];
 
   void _onTabChange(int index) {
@@ -58,15 +58,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // IndexedStack ora troverà sempre un widget per ogni indice (0-4)
       body: SafeArea(
-        child: IndexedStack(
-          index: _currentIndex,
-          children: _pages,
-        ),
+        child: IndexedStack(index: _currentIndex, children: _pages),
       ),
 
-      bottomNavigationBar: CustomBottomNavBar(
-        onIconTapped: _onTabChange,
-      ),
+      bottomNavigationBar: CustomBottomNavBar(onIconTapped: _onTabChange),
     );
   }
 }

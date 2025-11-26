@@ -1,54 +1,38 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/ui/widgets/sos_button.dart'; // Importiamo il widget separato
-// Importa qui la schermata dei contatti quando l'avrai creata/spostata
-// import 'package:frontend/ui/screens/medical/contatti_emergenza_screen.dart';
+import 'package:frontend/ui/screens/home/confirm_emergency_screen.dart';
+import 'package:frontend/ui/screens/medical/contatti_emergenza_screen.dart';
 
 class HomePageContent extends StatelessWidget {
   const HomePageContent({super.key});
 
-  // Definiamo i colori localmente o usiamo quelli del Theme
+  // Colori della pagina
   final Color darkBlue = const Color(0xFF041528);
   final Color primaryRed = const Color(0xFFE53935);
   final Color amberOrange = const Color(0xFFFF9800);
 
   @override
   Widget build(BuildContext context) {
+    // Permette lo scroll se lo schermo è piccolo
     return SingleChildScrollView(
-      // Permette lo scroll se lo schermo è piccolo
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 10),
-
-            // 1. NOTIFICA DI EMERGENZA
             _buildEmergencyNotification(),
-
             const SizedBox(height: 25),
-
-            // 2. MAPPA (Placeholder)
             _buildMapPlaceholder(),
-
             const SizedBox(height: 20),
-
-            // 3. BOTTONE "CONTATTI DI EMERGENZA"
             _buildEmergencyContactsButton(context),
-
             const SizedBox(height: 20),
-
-            // 4. BOTTONE SOS GRANDE
-            // Calcoliamo la dimensione in base alla larghezza dello schermo
             _buildSosSection(context),
-
-            const SizedBox(height: 30), // Spazio extra in fondo
+            const SizedBox(height: 30),
           ],
         ),
       ),
     );
   }
-
-  // --- WIDGET HELPER ---
 
   Widget _buildEmergencyNotification() {
     return Container(
@@ -58,7 +42,7 @@ class HomePageContent extends StatelessWidget {
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             spreadRadius: 2,
             blurRadius: 5,
             offset: const Offset(0, 3),
@@ -98,12 +82,14 @@ class HomePageContent extends StatelessWidget {
       width: double.infinity,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: const Color(0xFF0E2A48), // Un blu leggermente più chiaro dello sfondo
+        color: const Color(
+          0xFF0E2A48, // Un blu leggermente più chiaro dello sfondo
+        ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.white54, width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withValues(alpha: 0.4),
             spreadRadius: 2,
             blurRadius: 8,
             offset: const Offset(0, 5),
@@ -135,10 +121,11 @@ class HomePageContent extends StatelessWidget {
   Widget _buildEmergencyContactsButton(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
-        // Navigazione ai contatti (quando avrai spostato il file)
-        // Navigator.push(context, MaterialPageRoute(builder: (context) => const ContattiEmergenzaScreen()));
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Apertura contatti emergenza...")),
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ContattiEmergenzaScreen(),
+          ),
         );
       },
       style: ElevatedButton.styleFrom(
@@ -166,7 +153,23 @@ class HomePageContent extends StatelessWidget {
   }
 
   Widget _buildSosSection(BuildContext context) {
-    final double buttonSize = MediaQuery.of(context).size.width * 0.60;
-    return SosButton(size: buttonSize);
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const ConfirmEmergencyScreen()),
+        );
+      },
+      child: Container(
+        width: 250,
+        height: 250,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          image: const DecorationImage(
+            image: AssetImage('assets/sosbutton.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+    );
   }
 }
