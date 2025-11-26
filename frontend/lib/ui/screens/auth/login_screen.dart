@@ -11,25 +11,34 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final Color darkBlue = const Color(0xFF041528);
 
+    //HEADER DELL'APP
     return Scaffold(
+      //BARRA NAVIGAZIONALE SOPRA CON: REGISTRAZIONE - ICONA - SKIP
       appBar: AppBar(
         backgroundColor: darkBlue,
         elevation: 0,
         centerTitle: true,
         leadingWidth: 120,
-        leading: GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
-          child: const Row(
-            children: [
-              SizedBox(width: 10),
-              Text("Indietro", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-            ],
+        leading: const Padding(
+          padding: EdgeInsets.only(left: 10),
+          //ACCENTRA IL TESTO + ZONA TESTO REGISTRAZIONE
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              "Accesso",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
           ),
         ),
         title: Image.asset(
           'assets/logo.png',
           height: 40,
-          errorBuilder: (c, e, s) => const Icon(Icons.shield, color: Colors.white),
+          errorBuilder: (c, e, s) =>
+              const Icon(Icons.shield, color: Colors.white),
         ),
         actions: [
           TextButton(
@@ -38,10 +47,18 @@ class LoginScreen extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => const HomeScreen()),
               );
             },
-            child: const Text("Skip", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: const Text(
+              "Skip",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
+
+      //BODY
       body: Stack(
         children: [
           // SFONDO
@@ -69,7 +86,8 @@ class LoginScreen extends StatelessWidget {
                         'assets/stylizedMascot.png',
                         width: 100,
                         color: darkBlue,
-                        errorBuilder: (c, e, s) => Icon(Icons.shield, size: 80, color: darkBlue),
+                        errorBuilder: (c, e, s) =>
+                            Icon(Icons.shield, size: 80, color: darkBlue),
                       ),
                       const SizedBox(width: 20),
                       Expanded(
@@ -80,7 +98,12 @@ class LoginScreen extends StatelessWidget {
                             Text(
                               "Bentornato in\nSAfeGuard",
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: darkBlue, fontSize: 30, fontWeight: FontWeight.w900, height: 1.2),
+                              style: TextStyle(
+                                color: darkBlue,
+                                fontSize: 30,
+                                fontWeight: FontWeight.w900,
+                                height: 1.2,
+                              ),
                             ),
                             const SizedBox(height: 10),
                             Text(
@@ -94,13 +117,17 @@ class LoginScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                // BOTTONI
+
+
+                //ZONA PULSANTI
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 30.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
+
+                        //CONTINUA CON APPLE NON HA IL MEOTODO SU L'ON_TAP
                         _buildSocialButton(
                           text: "Continua con Apple",
                           icon: Icons.apple,
@@ -108,40 +135,76 @@ class LoginScreen extends StatelessWidget {
                           textColor: Colors.white,
                         ),
                         const SizedBox(height: 15),
+
+                        //CONTINUA CON GOOGLE NON HA IL MEOTODO SU L'ON_TAP
                         _buildSocialButton(
                           text: "Continua con Google",
-                          imagePath: 'assets/googleIcon.png', // Assicurati che esista
+                          imagePath:
+                              'assets/googleIcon.png', // Assicurati che esista
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
                           iconColor: Colors.red,
                         ),
                         const SizedBox(height: 15),
+
+                        //CONTINUA CON EMAIL FUNZIONA E CONTINUA SU email_register_screen
                         _buildSocialButton(
                           text: "Continua con Email",
                           icon: Icons.alternate_email,
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
                           iconColor: darkBlue,
-                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const EmailLoginScreen())),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const EmailLoginScreen(),
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 15),
+
+                        //CONTINUA CON TELEFONO FUNZIONA E CONTINUA SU phone_register_screen
                         _buildSocialButton(
                           text: "Continua con Telefono",
                           icon: Icons.phone,
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
                           iconColor: darkBlue,
-                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PhoneLoginScreen())),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const PhoneLoginScreen(),
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 50),
-                        // FOOTER
+
+
+                        //PARTE BASSA, HAI GIA' UN ACCOUNT - REINDIRIZZATO AL registration_screen
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text("Non hai un account? ", style: TextStyle(color: Colors.white)),
+                            const Text(
+                              "Non hai un account? ",
+                              style: TextStyle(color: Colors.white),
+                            ),
                             GestureDetector(
-                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const RegistrationScreen())),
-                              child: const Text("Registrati", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const RegistrationScreen(),
+                                ),
+                              ),
+
+                              //SCRITTA CLICCABILE
+                              child: const Text(
+                                "Registrati",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -158,6 +221,8 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
+
+  //DA METTERE IN UN ALTRO FILE
   Widget _buildSocialButton({
     required String text,
     required Color backgroundColor,
@@ -176,7 +241,9 @@ class LoginScreen extends StatelessWidget {
           backgroundColor: backgroundColor,
           foregroundColor: textColor,
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -188,7 +255,13 @@ class LoginScreen extends StatelessWidget {
               Icon(icon, color: iconColor ?? textColor, size: 24),
             Expanded(
               child: Center(
-                child: Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                child: Text(
+                  text,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: 24),

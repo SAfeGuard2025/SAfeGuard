@@ -11,7 +11,9 @@ class PhoneLoginScreen extends StatefulWidget {
 }
 
 class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
-  final TextEditingController _phoneController = TextEditingController(text: "+39 ");
+  final TextEditingController _phoneController = TextEditingController(
+    text: "+39 ",
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +22,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
+      //HEADER
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -28,6 +31,8 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
+
+      //BODY
       body: Stack(
         children: [
           Container(
@@ -35,7 +40,10 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
             width: double.infinity,
             decoration: const BoxDecoration(
               color: Color(0xFF041528),
-              image: DecorationImage(image: AssetImage('assets/backgroundBubbles3.png'), fit: BoxFit.cover),
+              image: DecorationImage(
+                image: AssetImage('assets/backgroundBubbles3.png'),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           SafeArea(
@@ -48,7 +56,12 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   const Text(
                     "Inserisci il tuo numero",
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900, height: 1.2),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                      height: 1.2,
+                    ),
                   ),
                   const SizedBox(height: 100),
 
@@ -59,33 +72,62 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
-                      hintText: "+39 ...",
+                      //hintText: "+39 ...",   ---> NON SO DA DOVE DERIVI E A COSA FACCIA RIFERIMENTO
                       hintStyle: const TextStyle(color: Colors.grey),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 25,
+                        vertical: 20,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                   ),
 
                   const Spacer(),
-
+                  //anche senza numero ti rimanda al codice OTP, visivamente funziona
                   SizedBox(
                     height: 55,
                     child: ElevatedButton(
-                      onPressed: authProvider.isLoading ? null : () async {
-                        bool success = await authProvider.sendPhoneCode(_phoneController.text);
-                        if (success && mounted) {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const VerificationScreen()));
-                        }
-                      },
+                      onPressed: authProvider.isLoading
+                          ? null
+                          : () async {
+                              bool success = await authProvider.sendPhoneCode(
+                                _phoneController.text,
+                              );
+
+                              //CONTROLLO, SE FUNZIONA TI RIMANDA AL OTP
+                              if (success && mounted) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const VerificationScreen(), //OTP
+                                  ),
+                                );
+                              }
+                            },
+
+                      //PULSANTE PER ANDARE AVANTI
                       style: ElevatedButton.styleFrom(
                         backgroundColor: buttonColor,
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
                         side: const BorderSide(color: Colors.white12, width: 1),
                       ),
                       child: authProvider.isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text("CONTINUA", style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                          : const Text(
+                              "CONTINUA",
+                              style: TextStyle(
+                                fontSize: 35,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(height: 100),

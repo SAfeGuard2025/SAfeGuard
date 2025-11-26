@@ -11,7 +11,9 @@ class PhoneRegisterScreen extends StatefulWidget {
 }
 
 class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
-  final TextEditingController _phoneController = TextEditingController(text: "+39 ");
+  final TextEditingController _phoneController = TextEditingController(
+    text: "+39 ",
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +22,7 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
+      //HEADER
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -28,6 +31,8 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
+
+      //BODY
       body: Stack(
         children: [
           Container(
@@ -35,7 +40,10 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
             width: double.infinity,
             decoration: const BoxDecoration(
               color: Color(0xFF041528),
-              image: DecorationImage(image: AssetImage('assets/backgroundBubbles3.png'), fit: BoxFit.cover),
+              image: DecorationImage(
+                image: AssetImage('assets/backgroundBubbles3.png'),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           SafeArea(
@@ -48,10 +56,17 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                   const Text(
                     "Registrati col numero",
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900, height: 1.2),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                      height: 1.2,
+                    ),
                   ),
                   const SizedBox(height: 100),
 
+
+                  //CAMPO PER INSERIRE IL NUMERO DI TELEFONO
                   TextField(
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
@@ -59,34 +74,63 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
-                      hintText: "+39 ...",
+                      hintText: "+39 ...", //PARTE INIZIALE PER IL PREFISSO ITALIANO
                       hintStyle: const TextStyle(color: Colors.grey),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 25,
+                        vertical: 20,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                   ),
 
                   const Spacer(),
-
+                  //anche senza numero ti rimanda al codice OTP, visivamente funziona
                   SizedBox(
                     height: 55,
                     child: ElevatedButton(
-                      onPressed: authProvider.isLoading ? null : () async {
-                        // In una app reale qui potresti chiamare un endpoint diverso per la registrazione
-                        bool success = await authProvider.sendPhoneCode(_phoneController.text);
-                        if (success && mounted) {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const VerificationScreen()));
-                        }
-                      },
+                      onPressed: authProvider.isLoading
+                          ? null
+                          : () async {
+                              // In una app reale qui potresti chiamare un endpoint diverso per la registrazione
+                              bool success = await authProvider.sendPhoneCode(
+                                _phoneController.text,
+                              );
+
+                              //SE FUNZIONA VIENI REINDIRIZZATO
+                              if (success && mounted) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const VerificationScreen(),
+                                  ),
+                                );
+                              }
+                            },
+
+                      //PULSANTE REGISTRATI
                       style: ElevatedButton.styleFrom(
                         backgroundColor: buttonColor,
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
                         side: const BorderSide(color: Colors.white12, width: 1),
                       ),
                       child: authProvider.isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text("REGISTRATI", style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                          : const Text(
+                              "REGISTRATI",
+                              style: TextStyle(
+                                fontSize: 35,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(height: 100),

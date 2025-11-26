@@ -1,3 +1,7 @@
+//OTP
+
+//PROBLEMI SULL'INSERIMENTO E SULLA CANCELLAZIONE DEI NUMERI INSERITI NEI RIQUADRI
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Serve per RawKeyboardListener
 import 'package:provider/provider.dart';
@@ -12,13 +16,16 @@ class VerificationScreen extends StatefulWidget {
 }
 
 class _VerificationScreenState extends State<VerificationScreen> {
-  // Colori definiti staticamente per coerenza
+  // COLORI
   static const Color darkBluePrimary = Color(0xFF12345A);
   static const Color darkBlueButton = Color(0xFF1B3C5E);
   static const Color textWhite = Colors.white;
 
   // I controller rimangono qui perché sono legati strettamente ai widget di input UI
-  final List<TextEditingController> _codeControllers = List.generate(6, (_) => TextEditingController());
+  final List<TextEditingController> _codeControllers = List.generate(
+    6,
+    (_) => TextEditingController(),
+  );
   final List<FocusNode> _codeFocusNodes = List.generate(6, (_) => FocusNode());
 
   @override
@@ -41,7 +48,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
 
     // Calcolo altezza view
-    final double viewHeight = MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top;
+    final double viewHeight =
+        MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top;
 
     return Scaffold(
       backgroundColor: darkBluePrimary,
@@ -49,7 +57,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
         // Sfondo con gradiente
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter, end: Alignment.bottomCenter,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
             colors: [darkBluePrimary, Color.fromARGB(255, 10, 30, 50)],
           ),
         ),
@@ -65,7 +74,11 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     const SizedBox(height: 10),
                     // Tasto Indietro
                     IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white, size: 30),
+                      icon: const Icon(
+                        Icons.arrow_back,
+                        color: Colors.white,
+                        size: 30,
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
 
@@ -74,65 +87,97 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     // Titoli
                     const Text(
                       "Codice di verifica",
-                      style: TextStyle(color: textWhite, fontSize: 34, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: textWhite,
+                        fontSize: 34,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 20),
                     const Text(
                       "Abbiamo inviato un codice.\nInseriscilo per verificare la tua identità.",
-                      style: TextStyle(color: textWhite, fontSize: 18, height: 1.5),
+                      style: TextStyle(
+                        color: textWhite,
+                        fontSize: 18,
+                        height: 1.5,
+                      ),
                     ),
                     const SizedBox(height: 60),
 
-                    // --- GRIGLIA DI INPUT (6 Cifre) ---
+                    //  GRIGLIA DI INPUT (6 Cifre)
                     _buildVerificationCodeInput(context),
 
                     const Spacer(),
 
-                    // --- BOTTONE VERIFICA ---
+                    // BOTTONE VERIFICA
                     SizedBox(
                       width: double.infinity,
                       height: 60,
                       child: ElevatedButton(
-                        onPressed: authProvider.isLoading ? null : () async {
-                          final code = _getVerificationCode();
+                        onPressed: authProvider.isLoading
+                            ? null
+                            : () async {
+                                final code = _getVerificationCode();
 
-                          if (code.length < 6) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Inserisci il codice completo")));
-                            return;
-                          }
+                                if (code.length < 6) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        "Inserisci il codice completo",
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
 
-                          // Chiamata al Provider
-                          bool success = await authProvider.verifyCode(code);
+                                // Chiamata al Provider
+                                bool success = await authProvider.verifyCode(
+                                  code,
+                                );
 
-                          if (success && mounted) {
-                            // Navigazione alla Home e rimozione della storia precedente
-                            Navigator.of(context).pushAndRemoveUntil(
-                                MaterialPageRoute(builder: (context) => const HomeScreen()),
-                                    (route) => false
-                            );
-                          }
-                        },
+                                if (success && mounted) {
+                                  // Navigazione alla Home e rimozione della storia precedente
+                                  Navigator.of(context).pushAndRemoveUntil(
+                                    MaterialPageRoute(
+                                      builder: (context) => const HomeScreen(),
+                                    ),
+                                    (route) => false,
+                                  );
+                                }
+                              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: darkBlueButton,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
                           elevation: 5,
                         ),
                         child: authProvider.isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
                             : const Text(
-                            "VERIFICA",
-                            style: TextStyle(color: textWhite, fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: 1.5)
-                        ),
+                                "VERIFICA",
+                                style: TextStyle(
+                                  color: textWhite,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.5,
+                                ),
+                              ),
                       ),
                     ),
 
                     const SizedBox(height: 20),
 
-                    // --- TESTO RINVIO CODICE (Gestito dal Provider) ---
+                    // TESTO RINVIO CODICE
                     Center(
                       child: Column(
                         children: [
-                          const Text("Non hai ricevuto il codice?", style: TextStyle(color: textWhite, fontSize: 14)),
+                          const Text(
+                            "Non hai ricevuto il codice?",
+                            style: TextStyle(color: textWhite, fontSize: 14),
+                          ),
                           const SizedBox(height: 5),
                           GestureDetector(
                             onTap: () {
@@ -141,10 +186,16 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                 // Qui dovresti passare il numero di telefono salvato o chiederlo di nuovo
                                 // Per ora simuliamo il rinvio
                                 authProvider.startTimer();
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Codice rinviato!")));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Codice rinviato!"),
+                                  ),
+                                );
 
                                 // Pulisci i campi e rimetti il focus al primo
-                                for (var c in _codeControllers) { c.clear(); }
+                                for (var c in _codeControllers) {
+                                  c.clear();
+                                }
                                 _codeFocusNodes[0].requestFocus();
                               }
                             },
@@ -153,11 +204,16 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                   ? "Invia di nuovo il codice"
                                   : "Rinvia il codice (0:${authProvider.secondsRemaining.toString().padLeft(2, '0')})",
                               style: TextStyle(
-                                color: authProvider.secondsRemaining == 0 ? textWhite : textWhite.withOpacity(0.5),
+                                color: authProvider.secondsRemaining == 0
+                                    ? textWhite
+                                    : textWhite.withValues(alpha: 0.5),
                                 fontSize: 14,
                                 fontStyle: FontStyle.italic,
                                 decoration: TextDecoration.underline,
-                                decorationColor: authProvider.secondsRemaining == 0 ? textWhite : textWhite.withOpacity(0.5),
+                                decorationColor:
+                                    authProvider.secondsRemaining == 0
+                                    ? textWhite
+                                    : textWhite.withValues(alpha: 0.5)
                               ),
                             ),
                           ),
@@ -176,19 +232,22 @@ class _VerificationScreenState extends State<VerificationScreen> {
     );
   }
 
-  // --- LOGICA DI INPUT VISIVA (Presa dal tuo output.txt originale) ---
+  // LOGICA DI INPUT VISIVA
 
   Widget _buildVerificationCodeInput(BuildContext context) {
     return Column(
       children: [
         Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: List.generate(3, (index) => _buildCodeBox(index, context))
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: List.generate(3, (index) => _buildCodeBox(index, context)),
         ),
         const SizedBox(height: 20),
         Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: List.generate(3, (index) => _buildCodeBox(index + 3, context))
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: List.generate(
+            3,
+            (index) => _buildCodeBox(index + 3, context),
+          ),
         ),
       ],
     );
@@ -198,11 +257,12 @@ class _VerificationScreenState extends State<VerificationScreen> {
     final boxSize = MediaQuery.of(context).size.width / 6;
 
     // RawKeyboardListener serve per intercettare il tasto Backspace anche quando il campo è vuoto
-    return RawKeyboardListener(
+    return KeyboardListener(
       focusNode: _codeFocusNodes[index],
-      onKey: (RawKeyEvent event) {
-        if (event is RawKeyDownEvent) {
-          if (event.logicalKey == LogicalKeyboardKey.backspace || event.logicalKey == LogicalKeyboardKey.delete) {
+      onKeyEvent: (KeyEvent event) {
+        if (event is KeyDownEvent) {
+          if (event.logicalKey == LogicalKeyboardKey.backspace ||
+              event.logicalKey == LogicalKeyboardKey.delete) {
             // Se premo backspace su un campo vuoto, vado a quello prima e cancello
             if (_codeControllers[index].text.isEmpty && index > 0) {
               _codeControllers[index - 1].clear();
@@ -212,12 +272,19 @@ class _VerificationScreenState extends State<VerificationScreen> {
         }
       },
       child: SizedBox(
-        width: boxSize, height: boxSize,
+        width: boxSize,
+        height: boxSize,
         child: Container(
           decoration: BoxDecoration(
-            color: textWhite.withOpacity(0.9),
+            color: textWhite.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(15),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 5, offset: const Offset(0, 3))],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 5,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
           child: Center(
             child: TextField(
@@ -225,21 +292,35 @@ class _VerificationScreenState extends State<VerificationScreen> {
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
               maxLength: 1,
-              style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: darkBluePrimary),
-              decoration: const InputDecoration(counterText: "", border: InputBorder.none, contentPadding: EdgeInsets.only(bottom: 2)),
+              style: const TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+                color: darkBluePrimary,
+              ),
+              decoration: const InputDecoration(
+                counterText: "",
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.only(bottom: 2),
+              ),
               onChanged: (value) {
-                // Avanzamento automatico
+                // AVANZAMENTO AUTOMATICO CHE NON FUNZIONA
                 if (value.length == 1) {
                   if (index < 5) {
-                    FocusScope.of(context).requestFocus(_codeFocusNodes[index + 1]);
+                    FocusScope.of(
+                      context,
+                    ).requestFocus(_codeFocusNodes[index + 1]);
                   } else {
-                    FocusScope.of(context).unfocus(); // Chiude tastiera all'ultimo
+                    FocusScope.of(
+                      context,
+                    ).unfocus(); // CHIUSURA DELLA TASTIERA ALLA FINE DELLA SCRITTURA DI OGNI CASELLA
                   }
                 }
-                // Cancellazione (per casi standard non gestiti da RawKeyboardListener)
+                // Cancellazione
                 else if (value.isEmpty && index > 0) {
                   _codeControllers[index - 1].clear();
-                  FocusScope.of(context).requestFocus(_codeFocusNodes[index - 1]);
+                  FocusScope.of(
+                    context,
+                  ).requestFocus(_codeFocusNodes[index - 1]);
                 }
               },
             ),

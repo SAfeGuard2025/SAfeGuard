@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; // <--- QUESTA RIGA È FONDAMENTALE
+import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/home/home_screen.dart';
 
@@ -16,12 +16,14 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Accesso al provider per stato caricamento/errori
+    //ACCESSO AL PROVIDER PER LO STATO DI CARICAMENTO O DI ERRORI
     final authProvider = Provider.of<AuthProvider>(context);
     final Color buttonColor = const Color(0xFF0A2540);
 
+    //HEADER DELL'APP
     return Scaffold(
       extendBodyBehindAppBar: true,
+      //BARRA SUPERIORE DOVE CI SONO: ACCESSO - ICONA - SKIP
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -30,6 +32,8 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
+
+      //BODY
       body: Stack(
         children: [
           Container(
@@ -37,7 +41,10 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
             width: double.infinity,
             decoration: const BoxDecoration(
               color: Color(0xFF041528),
-              image: DecorationImage(image: AssetImage('assets/backgroundBubbles3.png'), fit: BoxFit.cover),
+              image: DecorationImage(
+                image: AssetImage('assets/backgroundBubbles3.png'),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           SafeArea(
@@ -50,41 +57,82 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                   const Text(
                     "Inserisci i tuoi dati\nper accedere",
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900, height: 1.2),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                      height: 1.2,
+                    ),
                   ),
                   const SizedBox(height: 110),
 
+                  //CAMPO DI TESTO - EMAIL
                   _buildTextField("Email", _emailController),
                   const SizedBox(height: 20),
-                  _buildTextField("Password", _passController, isPassword: true),
 
-                  // Messaggio di errore (se presente nel provider)
+                  //CAMPO DI TESTO - PASSWORD
+                  _buildTextField(
+                    "Password",
+                    _passController,
+                    isPassword: true,
+                  ),
+
+                  // MESSAGGIO DI ERRORE
                   if (authProvider.errorMessage != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 15),
-                      child: Text(authProvider.errorMessage!, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                      child: Text(
+                        authProvider.errorMessage!,
+                        style: const TextStyle(
+                          color: Colors.redAccent,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
 
                   const Spacer(),
-
+                  // Funziona la parte visiva, ma anche se non ci sono mail e password reindirizza alla homepage
                   SizedBox(
                     height: 55,
                     child: ElevatedButton(
-                      onPressed: authProvider.isLoading ? null : () async {
-                        bool success = await authProvider.login(_emailController.text, _passController.text);
-                        if (success && mounted) {
-                          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomeScreen()), (route) => false);
-                        }
-                      },
+                      onPressed: authProvider.isLoading
+                          ? null
+                          : () async {
+                              bool success = await authProvider.login(
+                                _emailController.text,
+                                _passController.text,
+                              );
+
+                              //CONTROLLO, SE OK VA SU HOMESCREEN
+                              if (success && mounted) {
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const HomeScreen(),
+                                  ),
+                                  (route) => false,
+                                );
+                              }
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: buttonColor,
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
                         side: const BorderSide(color: Colors.white12, width: 1),
                       ),
                       child: authProvider.isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text("ACCEDI", style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                          : const Text(
+                              "ACCEDI",
+                              style: TextStyle(
+                                fontSize: 35,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(height: 100),
@@ -97,7 +145,13 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
     );
   }
 
-  Widget _buildTextField(String hint, TextEditingController controller, {bool isPassword = false}) {
+
+  //DA METTERE IN UN ALTRO FILE
+  Widget _buildTextField(
+    String hint,
+    TextEditingController controller, {
+    bool isPassword = false,
+  }) {
     return TextField(
       controller: controller,
       obscureText: isPassword,
@@ -107,8 +161,14 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
         fillColor: Colors.white,
         hintText: hint,
         hintStyle: const TextStyle(color: Colors.grey),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 25,
+          vertical: 20,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
+        ),
       ),
     );
   }

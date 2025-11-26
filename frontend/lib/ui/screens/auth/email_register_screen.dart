@@ -20,8 +20,10 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     final Color buttonColor = const Color(0xFF0A2540);
 
+    //HEADER DELL'APP
     return Scaffold(
       extendBodyBehindAppBar: true,
+      //BARRA SUPERIORE DOVE CI SONO: ACCESSO - ICONA - SKIP
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -30,6 +32,8 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
+
+      //BODY
       body: Stack(
         children: [
           Container(
@@ -37,7 +41,10 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
             width: double.infinity,
             decoration: const BoxDecoration(
               color: Color(0xFF041528),
-              image: DecorationImage(image: AssetImage('assets/backgroundBubbles3.png'), fit: BoxFit.cover),
+              image: DecorationImage(
+                image: AssetImage('assets/backgroundBubbles3.png'),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           SafeArea(
@@ -47,50 +54,105 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 50),
+
+                  //TESTO
                   const Text(
                     "Inserisci i tuoi dati",
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900, height: 1.2),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                      height: 1.2,
+                    ),
                   ),
                   const SizedBox(height: 100),
 
+                  //CAMPO DI TESTO -- EMAIL
                   _buildTextField("Email", _emailController),
                   const SizedBox(height: 20),
-                  _buildTextField("Password", _passController, isPassword: true),
-                  const SizedBox(height: 20),
-                  _buildTextField("Ripeti Password", _repeatPassController, isPassword: true),
 
+                  //CAMPO DI TESTO -- PASSWORD
+                  _buildTextField(
+                    "Password",
+                    _passController,
+                    isPassword: true,
+                  ),
+                  const SizedBox(height: 20),
+
+                  //CAMPO DI TESTO - RIPETI PASSWORD
+                  _buildTextField(
+                    "Ripeti Password",
+                    _repeatPassController,
+                    isPassword: true,
+                  ),
+
+                  //MESSAGGIO DI ERRORE
                   if (authProvider.errorMessage != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 15),
-                      child: Text(authProvider.errorMessage!, style: const TextStyle(color: Colors.redAccent), textAlign: TextAlign.center),
+                      child: Text(
+                        authProvider.errorMessage!,
+                        style: const TextStyle(color: Colors.redAccent),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
 
                   const Spacer(),
 
+                  //BOX DEL CONTROLLO CON MESSAGGI DI ERRORE
                   SizedBox(
                     height: 55,
                     child: ElevatedButton(
-                      onPressed: authProvider.isLoading ? null : () async {
-                        // Controllo base password
-                        if (_passController.text != _repeatPassController.text) {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Le password non coincidono")));
-                          return;
-                        }
-                        bool success = await authProvider.register(_emailController.text, _passController.text);
-                        if (success && mounted) {
-                          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomeScreen()), (route) => false);
-                        }
-                      },
+                      onPressed: authProvider.isLoading
+                          ? null
+                          : () async {
+                              // CONTROLLO BASE DELLA PASSWORD
+                              if (_passController.text !=
+                                  _repeatPassController.text) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Le password non coincidono"),
+                                  ),
+                                );
+                                return;
+                              }
+                              bool success = await authProvider.register(
+                                _emailController.text,
+                                _passController.text,
+                              );
+
+                              //REINDIRIZZAMENTO SE IL CONTROLLO VA BENE
+                              if (success && mounted) {
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const HomeScreen(),
+                                  ),
+                                  (route) => false,
+                                );
+                              }
+                            },
+
+                      //PULSANTE CONTINUA
                       style: ElevatedButton.styleFrom(
                         backgroundColor: buttonColor,
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
                         side: const BorderSide(color: Colors.white12, width: 1),
                       ),
                       child: authProvider.isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text("CONTINUA", style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                          : const Text(
+                              "CONTINUA",
+                              style: TextStyle(
+                                fontSize: 35,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(height: 100),
@@ -103,7 +165,14 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
     );
   }
 
-  Widget _buildTextField(String hint, TextEditingController controller, {bool isPassword = false}) {
+
+
+  //INSERIRE IN UN FILE A PARTE
+  Widget _buildTextField(
+    String hint,
+    TextEditingController controller, {
+    bool isPassword = false,
+  }) {
     return TextField(
       controller: controller,
       obscureText: isPassword,
@@ -113,8 +182,14 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
         fillColor: Colors.white,
         hintText: hint,
         hintStyle: const TextStyle(color: Colors.grey),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 25,
+          vertical: 20,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
+        ),
       ),
     );
   }

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/ui/screens/auth/loading_screen.dart';
+import 'package:frontend/ui/screens/auth/registration_screen.dart';
 import 'package:provider/provider.dart';
 
-// --- IMPORT DEI PROVIDER ---
+// IMPORT DEI PROVIDER
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/medical_provider.dart';
 import 'package:frontend/providers/emergency_provider.dart';
 
-// --- IMPORT DELLA SCHERMATA DI LOGIN ---
+// IMPORT DELLA SCHERMATA DI LOGIN
 import 'package:frontend/ui/screens/auth/login_screen.dart';
 
 void main() {
@@ -46,16 +48,16 @@ class SAfeGuard extends StatelessWidget {
           backgroundColor: Color(0xFF041528),
           iconTheme: IconThemeData(color: Colors.white),
           titleTextStyle: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
 
       // --- PUNTO DI INGRESSO ---
       // Impostiamo la LoginScreen come prima pagina
-      home: const LoginScreen(),
+      home: const LoadingScreen(),
     );
   }
 }
