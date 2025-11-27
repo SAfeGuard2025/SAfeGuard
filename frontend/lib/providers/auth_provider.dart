@@ -1,98 +1,127 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:frontend/repositories/auth_repository.dart';
 
 class AuthProvider extends ChangeNotifier {
-  // --- STATO DELLA UI ---
+  final AuthRepository _authRepository = AuthRepository();
+
   bool _isLoading = false;
   String? _errorMessage;
 
-  // --- STATO DEL TIMER (Specifico per la verifica OTP) ---
+  // Serve per ricordare l'email durante il flusso di verifica OTP
+  String? _tempEmail;
+  // Serve per ricordare la password nel caso dovessimo rifare la registrazione (opzionale)
+  String? _tempPassword;
+
+  // --- STATO DEL TIMER ---
   int _secondsRemaining = 30;
   Timer? _timer;
 
-  // --- GETTERS (Per leggere i dati dalla UI) ---
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   int get secondsRemaining => _secondsRemaining;
 
   // ----------------------------------------------------------------
-  // 1. LOGICA LOGIN & REGISTRAZIONE (FITTIZIA)
+  // LOGICA REALE CON IL SERVER
   // ----------------------------------------------------------------
 
   Future<bool> login(String email, String password) async {
     _setLoading(true);
+    try {
+      // Chiama /api/auth/login
+      // Nota: AuthRepository.login restituisce void o lancia eccezione se fallisce
+      await _authRepository.login(email, password);
 
-    // Simulo attesa di rete di 2 secondi
-    await Future.delayed(const Duration(seconds: 2));
+      // TODO: Quando il backend restituirà un token JWT, dovrai modificare
+      // il repository per restituirlo e salvarlo qui nelle SharedPreferences.
 
-    // LOGICA FINTA:
-    // Se l'email contiene "error", simulo un fallimento.
-    // Altrimenti faccio entrare l'utente.
-    if (email.contains("error")) {
-      _errorMessage = "Credenziali non valide (Simulazione)";
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _errorMessage = _cleanError(e);
       _setLoading(false);
       return false;
     }
-
-    _setLoading(false);
-    return true; // Successo
   }
 
   Future<bool> register(String email, String password) async {
     _setLoading(true);
+    try {
+      // Chiama /api/auth/register
+      // Se fallisce, lancia un'eccezione che viene catturata dal catch
+      await _authRepository.register(email, password);
 
-    // Simulo attesa
-    await Future.delayed(const Duration(seconds: 2));
+      // Salviamo le credenziali temporaneamente
+      _tempEmail = email;
+      _tempPassword = password;
 
-    // LOGICA FINTA:
-    if (password.length < 4) {
-      _errorMessage = "Password troppo corta (min 4 caratteri)";
+      // Avviamo il timer per l'inserimento del codice
+      startTimer();
+
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _errorMessage = _cleanError(e);
       _setLoading(false);
       return false;
     }
-
-    _setLoading(false);
-    return true;
   }
 
-  // ----------------------------------------------------------------
-  // 2. LOGICA OTP E TIMER (FITTIZIA)
-  // ----------------------------------------------------------------
-
-  // Invia il codice (o lo rinvia)
-  Future<bool> sendPhoneCode(String phone) async {
-    _setLoading(true);
-
-    // Simulo invio SMS
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Appena "inviato", faccio partire il timer
-    startTimer();
-    _setLoading(false);
-    return true;
-  }
-
-  // Verifica il codice inserito dall'utente
+  // Verifica il codice inserito dall'utente chiamando il server
   Future<bool> verifyCode(String code) async {
-    _setLoading(true);
-
-    // Simulo verifica server
-    await Future.delayed(const Duration(seconds: 2));
-
-    // LOGICA FINTA:
-    // Accetto il codice solo se è "123456" oppure se è lungo 6 cifre (per comodità)
-    // Cambia questa condizione come preferisci per i tuoi test.
-    bool isValid = code == "123456" || code.length == 6;
-
-    _setLoading(false);
-
-    if (isValid) {
-      stopTimer(); // Se è giusto, fermo il timer
-      return true;
-    } else {
-      _errorMessage = "Codice errato (Prova 123456)";
+    if (_tempEmail == null) {
+      _errorMessage = "Email non trovata. Riprova la registrazione.";
       notifyListeners();
       return false;
+    }
+
+    _setLoading(true);
+    try {
+      // Chiama /api/verify usando l'email salvata e il codice inserito
+      bool isValid = await _authRepository.verifyOtp(_tempEmail!, code);
+
+      _setLoading(false);
+
+      if (isValid) {
+        stopTimer();
+        // Pulizia dati temporanei dopo successo
+        _tempEmail = null;
+        _tempPassword = null;
+        return true;
+      } else {
+        _errorMessage = "Codice non valido.";
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = _cleanError(e);
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  /// Metodo per rinviare il codice
+  Future<void> resendOtp() async {
+    if (_tempEmail == null || _tempPassword == null) {
+      _errorMessage = "Dati scaduti. Registrati di nuovo.";
+      notifyListeners();
+      return;
+    }
+
+    _setLoading(true);
+    try {
+      // Nota: Poiché il tuo server non ha un endpoint specifico "resend",
+      // richiamiamo la registrazione. Il backend deve essere in grado di gestire
+      // un "aggiornamento" OTP se l'utente esiste ma non è verificato.
+      // Altrimenti, dovresti creare una rotta specifica server-side /api/resend-otp
+      await _authRepository.register(_tempEmail!, _tempPassword!);
+
+      startTimer(); // Riavvia il timer
+      _errorMessage = null; // Pulisce eventuali errori precedenti
+    } catch (e) {
+      _errorMessage = "Impossibile rinviare codice: ${_cleanError(e)}";
+    } finally {
+      _setLoading(false);
     }
   }
 
@@ -115,13 +144,18 @@ class AuthProvider extends ChangeNotifier {
   void stopTimer() {
     _timer?.cancel();
     _secondsRemaining = 0;
-    notifyListeners();
+    notifyListeners(); // Importante notificare per aggiornare la UI
   }
 
   void _setLoading(bool value) {
     _isLoading = value;
     if (value) _errorMessage = null; // Resetta errori vecchi
     notifyListeners();
+  }
+
+  // Helper per pulire i messaggi di errore
+  String _cleanError(Object e) {
+    return e.toString().replaceAll("Exception: ", "");
   }
 
   @override
