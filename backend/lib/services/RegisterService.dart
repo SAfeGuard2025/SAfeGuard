@@ -8,7 +8,14 @@ import 'package:data_models/Utente.dart';
 import '../repositories/UserRepository.dart';
 import 'VerificationService.dart';
 
-const String rescuerDomain = '@soccorritore.gmail';
+// --- Lista dei domini abilitati come Soccorritore ---
+const List<String> rescuerDomains = [
+  '@soccorritore.gmail',
+  '@crocerossa.it',
+  '@118.it',
+  '@protezionecivile.it',
+  // Aggiungi qui altri domini se necessario
+];
 
 class RegisterService {
   final UserRepository _userRepository;
@@ -53,14 +60,19 @@ class RegisterService {
     requestData['isVerified'] = false;
 
     bool isSoccorritore = false;
+
+    // --- MODIFICA LOGICA SOCCORRITORE ---
     if (email != null) {
-      isSoccorritore = email.toLowerCase().endsWith(rescuerDomain);
+      // Controlla se l'email finisce con UNO QUALSIASI dei domini nella lista
+      isSoccorritore = rescuerDomains.any((domain) => email.toLowerCase().endsWith(domain));
     }
 
     final UtenteGenerico newUser;
     if (isSoccorritore) {
+      // Se è soccorritore, istanzia la classe corretta
       newUser = Soccorritore.fromJson(requestData);
     } else {
+      // Altrimenti è un utente standard
       newUser = Utente.fromJson(requestData);
     }
 

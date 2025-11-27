@@ -51,8 +51,21 @@ class UserRepository {
     // Salvataggio su Firestore usando l'email come Document ID per unicità facile
     await _usersCollection.document(newUser.email!).set(userData);
 
-    // Ricostruzione oggetto
-    if (userData['email'].toString().toLowerCase().endsWith('@soccorritore.gmail')) {
+
+    // Lista locale o importata (se vuoi puoi metterla in cima al file o in un file SharedConstants.dart)
+    const List<String> rescuerDomains = [
+      '@soccorritore.gmail',
+      '@crocerossa.it',
+      '@118.it',
+      '@protezionecivile.it',
+    ];
+
+
+    // Ricostruzione oggetto con controllo sulla lista
+    final String email = userData['email'].toString().toLowerCase();
+    final bool isSoccorritore = rescuerDomains.any((domain) => email.endsWith(domain));
+
+    if (isSoccorritore) {
       return Soccorritore.fromJson(userData);
     } else {
       return Utente.fromJson(userData);
