@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:frontend/providers/auth_provider.dart';
 
 class CustomBottomNavBar extends StatefulWidget {
   // Funzione di callback: comunica alla Home quale icona è stata premuta
   final Function(int) onIconTapped;
 
-  // Parametro opzionale per cambiare stile se l'utente è un soccorritore
-  final bool isSoccorritore;
+
 
   const CustomBottomNavBar({
     super.key,
     required this.onIconTapped,
-    this.isSoccorritore = false, // Di default è Cittadino (Blu)
   });
 
   @override
@@ -22,9 +22,9 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
 
   @override
   Widget build(BuildContext context) {
+    final isRescuer = context.watch<AuthProvider>().isRescuer;
     // --- 1. CONFIGURAZIONE STILE IN BASE AL RUOLO ---
-    // Colori presi dai tuoi file originali
-    final Color backgroundColor = widget.isSoccorritore
+    final Color backgroundColor = isRescuer
         ? const Color(0xFF995618) // Marrone/Arancio (Soccorritore)
         : const Color(0xFF16273F); // Blu Scuro (Cittadino)
 
@@ -32,23 +32,21 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
     final Color unselectedItemColor = Colors.white;
 
     // --- 2. LISTA ICONE ---
-    // Cambia l'icona centrale in base al ruolo (Medicina vs Persona)
     final List<IconData> navIcons = [
       Icons.home_outlined,
-      widget.isSoccorritore ? Icons.person_outline : Icons.medication_liquid_sharp,
+      isRescuer ? Icons.person_outline : Icons.medication_liquid_sharp,
       Icons.map_outlined,
       Icons.notifications_none,
       Icons.settings_outlined,
     ];
 
     return Container(
-      // Altezza e Margini per l'effetto "Fluttuante"
       height: 70,
       margin: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white12, width: 1), // Bordo sottile
+        border: Border.all(color: Colors.white12, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.3),
@@ -70,7 +68,6 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
               // Avvisa la pagina padre (Home) del cambio
               widget.onIconTapped(index);
             },
-            // Effetto tocco circolare
             borderRadius: BorderRadius.circular(30),
             child: Container(
               padding: const EdgeInsets.all(10),
@@ -79,7 +76,6 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
                 children: [
                   Icon(
                     navIcons[index],
-                    // Se selezionato usa l'arancione, altrimenti bianco
                     color: isSelected ? selectedItemColor : unselectedItemColor,
                     size: 28,
                   ),

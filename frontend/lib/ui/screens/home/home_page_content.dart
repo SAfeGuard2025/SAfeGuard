@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/ui/screens/home/confirm_emergency_screen.dart';
 import 'package:frontend/ui/screens/medical/contatti_emergenza_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:frontend/providers/auth_provider.dart';
+import 'package:frontend/ui/widgets/emergency_item.dart';
 
 class HomePageContent extends StatelessWidget {
   const HomePageContent({super.key});
@@ -12,6 +15,9 @@ class HomePageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isRescuer = context
+        .watch<AuthProvider>()
+        .isRescuer;
     // Permette lo scroll se lo schermo è piccolo
     return SingleChildScrollView(
       child: Padding(
@@ -25,17 +31,21 @@ class HomePageContent extends StatelessWidget {
             _buildEmergencyNotification(),
              */
             const SizedBox(height: 25),
-            _buildMapPlaceholder(),
+            _buildMapPlaceholder(isRescuer),
             const SizedBox(height: 20),
-            _buildEmergencyContactsButton(context),
+            if(!isRescuer) _buildEmergencyContactsButton(context),
             const SizedBox(height: 20),
             _buildSosSection(context),
+
+            const SizedBox(height: 20),
+            if(isRescuer) _buildSpecificEmergency(context),
             const SizedBox(height: 30),
           ],
         ),
       ),
     );
   }
+
   /*// costruzione della notifica
   Widget _buildEmergencyNotification() {
     return Container(
@@ -81,9 +91,9 @@ class HomePageContent extends StatelessWidget {
 
  */
 
-  Widget _buildMapPlaceholder() {
+  Widget _buildMapPlaceholder(bool isRescuer) {
     return Container(
-      height: 225,
+      height: isRescuer ? 300 : 225,
       width: double.infinity,
       alignment: Alignment.center,
       decoration: BoxDecoration(
@@ -177,4 +187,26 @@ class HomePageContent extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildSpecificEmergency(BuildContext context) {
+    return EmergencyDropdownMenu(
+        items: [
+          EmergencyItem(label: "Terremoto", icon: Icons.waves),
+          EmergencyItem(label: "Incendio", icon: Icons.local_fire_department),
+          EmergencyItem(label: "Tsunami", icon: Icons.water),
+          EmergencyItem(label: "Alluvione", icon: Icons.flood),
+          EmergencyItem(label: "Malessere", icon: Icons.medical_services),
+          EmergencyItem(label: "Bomba", icon: Icons.warning),
+        ],
+        onSelected: (item) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Hai selezionato: ${item.label}"),
+              backgroundColor: Colors.black,
+            ),
+          );
+        }
+    );
+  }
 }
+

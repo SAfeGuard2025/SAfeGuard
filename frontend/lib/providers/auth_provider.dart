@@ -17,6 +17,7 @@ class AuthProvider extends ChangeNotifier {
   // Dati utente loggato
   UtenteGenerico? _currentUser;
   String? _authToken;
+  bool _isRescuer = false;
 
   // Dati temporanei per OTP
   String? _tempEmail;
@@ -26,6 +27,7 @@ class AuthProvider extends ChangeNotifier {
 
   // Getters
   bool get isLoading => _isLoading;
+  bool get isRescuer => _isRescuer;
   String? get errorMessage => _errorMessage;
   int get secondsRemaining => _secondsRemaining;
   UtenteGenerico? get currentUser => _currentUser;
