@@ -4,7 +4,7 @@ class UtenteGenerico {
   final int? id;
   final String? email;
   final String? telefono;
-  final String? passwordHash; // Ora campo pubblico (gestito manualmente)
+  final String? passwordHash;
 
   final String? nome;
   final String? cognome;
@@ -12,71 +12,78 @@ class UtenteGenerico {
   final String? cittaDiNascita;
   final String? iconaProfilo;
 
-  // Costruttore principale NON NOMINATO (Accetta tutti i campi)
+  // NUOVO CAMPO BOOLEANO
+  final bool isSoccorritore;
+
+  // Costruttore principale
   UtenteGenerico({
     this.id,
     this.email,
     this.telefono,
-    required this.passwordHash, // Obbligatorio per login
+    required this.passwordHash,
     this.nome,
     this.cognome,
     this.dataDiNascita,
     this.cittaDiNascita,
     this.iconaProfilo,
+    this.isSoccorritore = false, // Default: Utente normale (false)
   }) : assert(
-         email != null || telefono != null,
-         'Devi fornire almeno email o telefono per UtenteGenerico',
-       );
+  email != null || telefono != null,
+  'Devi fornire almeno email o telefono per UtenteGenerico',
+  );
 
   // Costruttore 1: Autenticazione tramite Email
   UtenteGenerico.conEmail(
       int? id,
       String email,
-    String passwordHash, {
-    String? telefono,
-    String? nome,
-    String? cognome,
-    DateTime? dataDiNascita,
-    String? cittaDiNascita,
-    String? iconaProfilo,
-  }) : this(
-          id: id,
-         passwordHash: passwordHash,
-         email: email,
-         telefono: telefono,
-         nome: nome,
-         cognome: cognome,
-         dataDiNascita: dataDiNascita,
-         cittaDiNascita: cittaDiNascita,
-         iconaProfilo: iconaProfilo,
-       );
+      String passwordHash, {
+        String? telefono,
+        String? nome,
+        String? cognome,
+        DateTime? dataDiNascita,
+        String? cittaDiNascita,
+        String? iconaProfilo,
+        bool isSoccorritore = false, // Parametro opzionale
+      }) : this(
+    id: id,
+    passwordHash: passwordHash,
+    email: email,
+    telefono: telefono,
+    nome: nome,
+    cognome: cognome,
+    dataDiNascita: dataDiNascita,
+    cittaDiNascita: cittaDiNascita,
+    iconaProfilo: iconaProfilo,
+    isSoccorritore: isSoccorritore,
+  );
 
   // Costruttore 2: Autenticazione tramite Telefono
   UtenteGenerico.conTelefono(
       int? id,
-    String telefono,
-    String passwordHash, {
-    String? email,
-    String? nome,
-    String? cognome,
-    DateTime? dataDiNascita,
-    String? cittaDiNascita,
-    String? iconaProfilo,
-  }) : this(
-          id: id,
-         passwordHash: passwordHash,
-         email: email,
-         telefono: telefono,
-         nome: nome,
-         cognome: cognome,
-         dataDiNascita: dataDiNascita,
-         cittaDiNascita: cittaDiNascita,
-         iconaProfilo: iconaProfilo,
-       );
+      String telefono,
+      String passwordHash, {
+        String? email,
+        String? nome,
+        String? cognome,
+        DateTime? dataDiNascita,
+        String? cittaDiNascita,
+        String? iconaProfilo,
+        bool isSoccorritore = false, // Parametro opzionale
+      }) : this(
+    id: id,
+    passwordHash: passwordHash,
+    email: email,
+    telefono: telefono,
+    nome: nome,
+    cognome: cognome,
+    dataDiNascita: dataDiNascita,
+    cittaDiNascita: cittaDiNascita,
+    iconaProfilo: iconaProfilo,
+    isSoccorritore: isSoccorritore,
+  );
 
-  //  DESERIALIZZAZIONE MANUALE (JSON -> Oggetto)
+  // DESERIALIZZAZIONE (JSON -> Oggetto)
   factory UtenteGenerico.fromJson(Map<String, dynamic> json) {
-    // Si assume che passwordHash non sia inviato dal Backend al Frontend
     return UtenteGenerico(
       id: json['id'] as int?,
       email: json['email'] as String?,
@@ -89,10 +96,12 @@ class UtenteGenerico {
           : null,
       cittaDiNascita: json['cittaDiNascita'] as String?,
       iconaProfilo: json['iconaProfilo'] as String?,
+      // Lettura del booleano, default false se manca
+      isSoccorritore: json['isSoccorritore'] as bool? ?? false,
     );
   }
 
-  // SERIALIZZAZIONE MANUALE (Oggetto -> JSON)
+  // SERIALIZZAZIONE (Oggetto -> JSON)
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -104,6 +113,7 @@ class UtenteGenerico {
       'dataDiNascita': dataDiNascita?.toIso8601String(),
       'cittaDiNascita': cittaDiNascita,
       'iconaProfilo': iconaProfilo,
+      'isSoccorritore': isSoccorritore, // Salva il booleano
     };
   }
 }

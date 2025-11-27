@@ -94,11 +94,11 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                           : () async {
                               final navigator = Navigator.of(context);
 
-                              bool success = await authProvider.sendPhoneCode(
+                              /*bool success = await authProvider.sendPhoneCode(
                                 _phoneController.text,
-                              );
+                              );*/ //DECOMMETARE
 
-                              if (success) {
+                              if (false) { //DA SUCCESS
                                 navigator.push(
                                   MaterialPageRoute(
                                     builder: (context) =>

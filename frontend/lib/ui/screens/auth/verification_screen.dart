@@ -1,9 +1,5 @@
-//OTP
-
-//PROBLEMI SULL'INSERIMENTO E SULLA CANCELLAZIONE DEI NUMERI INSERITI NEI RIQUADRI
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Serve per RawKeyboardListener
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/home/home_screen.dart';
@@ -21,10 +17,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
   static const Color darkBlueButton = Color(0xFF1B3C5E);
   static const Color textWhite = Colors.white;
 
-  // I controller rimangono qui perché sono legati strettamente ai widget di input UI
+  // Controller e FocusNode
   final List<TextEditingController> _codeControllers = List.generate(
     6,
-    (_) => TextEditingController(),
+        (_) => TextEditingController(),
   );
   final List<FocusNode> _codeFocusNodes = List.generate(6, (_) => FocusNode());
 
@@ -39,22 +35,18 @@ class _VerificationScreenState extends State<VerificationScreen> {
     super.dispose();
   }
 
-  // Helper per unire i 6 numeri in una stringa unica
+  // Unisce i 6 numeri in una stringa unica
   String _getVerificationCode() => _codeControllers.map((c) => c.text).join();
 
   @override
   Widget build(BuildContext context) {
-    // Colleghiamo il provider per leggere Timer e Stato Caricamento
     final authProvider = Provider.of<AuthProvider>(context);
-
-    // Calcolo altezza view
     final double viewHeight =
         MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top;
 
     return Scaffold(
       backgroundColor: darkBluePrimary,
       body: Container(
-        // Sfondo con gradiente
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -74,11 +66,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     const SizedBox(height: 10),
                     // Tasto Indietro
                     IconButton(
-                      icon: const Icon(
-                        Icons.arrow_back,
-                        color: Colors.white,
-                        size: 30,
-                      ),
+                      icon: const Icon(Icons.arrow_back, color: Colors.white, size: 30),
                       onPressed: () => Navigator.pop(context),
                     ),
 
@@ -95,17 +83,26 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     ),
                     const SizedBox(height: 20),
                     const Text(
-                      "Abbiamo inviato un codice.\nInseriscilo per verificare la tua identità.",
-                      style: TextStyle(
-                        color: textWhite,
-                        fontSize: 18,
-                        height: 1.5,
-                      ),
+                      "Abbiamo inviato un codice OTP.\nInseriscilo per verificare la tua identità.",
+                      style: TextStyle(color: textWhite, fontSize: 18, height: 1.5),
                     ),
                     const SizedBox(height: 60),
 
-                    //  GRIGLIA DI INPUT (6 Cifre)
+                    // GRIGLIA DI INPUT (6 Cifre)
                     _buildVerificationCodeInput(context),
+
+                    // Messaggio di Errore dal Provider (se il codice server è errato)
+                    if (authProvider.errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: Center(
+                          child: Text(
+                            authProvider.errorMessage!,
+                            style: const TextStyle(color: Colors.redAccent, fontSize: 16),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
 
                     const Spacer(),
 
@@ -117,59 +114,59 @@ class _VerificationScreenState extends State<VerificationScreen> {
                         onPressed: authProvider.isLoading
                             ? null
                             : () async {
-                                final code = _getVerificationCode();
-                                if (code.length < 6) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        "Inserisci il codice completo",
-                                      ),
-                                    ),
-                                  );
-                                  return;
-                                }
+                          final code = _getVerificationCode();
+                          if (code.length < 6) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Inserisci il codice completo a 6 cifre"),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                            return;
+                          }
 
-                                final navigator = Navigator.of(context);
+                          final navigator = Navigator.of(context);
+                          final messenger = ScaffoldMessenger.of(context);
 
-                                bool success = await authProvider.verifyCode(
-                                  code,
-                                );
+                          // Chiamata al Provider -> Server
+                          bool success = await authProvider.verifyCode(code);
 
-                                if (success) {
-                                  navigator.pushAndRemoveUntil(
-                                    MaterialPageRoute(
-                                      builder: (context) => const HomeScreen(),
-                                    ),
-                                    (route) => false,
-                                  );
-                                }
-                              },
+                          if (success && context.mounted) {
+                            messenger.showSnackBar(
+                              const SnackBar(content: Text("Verifica riuscita!")),
+                            );
+                            navigator.pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                builder: (context) => const HomeScreen(),
+                              ),
+                                  (route) => false,
+                            );
+                          }
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: darkBlueButton,
+                          foregroundColor: textWhite,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
                           elevation: 5,
                         ),
                         child: authProvider.isLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
+                            ? const CircularProgressIndicator(color: Colors.white)
                             : const Text(
-                                "VERIFICA",
-                                style: TextStyle(
-                                  color: textWhite,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.5,
-                                ),
-                              ),
+                          "VERIFICA",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
                       ),
                     ),
 
                     const SizedBox(height: 20),
 
-                    // TESTO RINVIO CODICE
+                    // TIMER RINVIO CODICE
                     Center(
                       child: Column(
                         children: [
@@ -180,28 +177,20 @@ class _VerificationScreenState extends State<VerificationScreen> {
                           const SizedBox(height: 5),
                           GestureDetector(
                             onTap: () {
-                              // Permetti il rinvio solo se il timer è a 0
                               if (authProvider.secondsRemaining == 0) {
-                                // Qui dovresti passare il numero di telefono salvato o chiederlo di nuovo
-                                // Per ora simuliamo il rinvio
                                 authProvider.startTimer();
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("Codice rinviato!"),
-                                  ),
+                                  const SnackBar(content: Text("Nuovo codice inviato!")),
                                 );
-
-                                // Pulisci i campi e rimetti il focus al primo
-                                for (var c in _codeControllers) {
-                                  c.clear();
-                                }
+                                // Resetta i campi
+                                for (var c in _codeControllers) c.clear();
                                 _codeFocusNodes[0].requestFocus();
                               }
                             },
                             child: Text(
                               authProvider.secondsRemaining == 0
                                   ? "Invia di nuovo il codice"
-                                  : "Rinvia il codice (0:${authProvider.secondsRemaining.toString().padLeft(2, '0')})",
+                                  : "Rinvia il codice in (0:${authProvider.secondsRemaining.toString().padLeft(2, '0')})",
                               style: TextStyle(
                                 color: authProvider.secondsRemaining == 0
                                     ? textWhite
@@ -209,8 +198,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                 fontSize: 14,
                                 fontStyle: FontStyle.italic,
                                 decoration: TextDecoration.underline,
-                                decorationColor:
-                                    authProvider.secondsRemaining == 0
+                                decorationColor: authProvider.secondsRemaining == 0
                                     ? textWhite
                                     : textWhite.withValues(alpha: 0.5),
                               ),
@@ -231,7 +219,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
     );
   }
 
-  // LOGICA DI INPUT VISIVA
+  // --- LOGICA INPUT MIGLIORATA ---
 
   Widget _buildVerificationCodeInput(BuildContext context) {
     return Column(
@@ -243,10 +231,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
         const SizedBox(height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: List.generate(
-            3,
-            (index) => _buildCodeBox(index + 3, context),
-          ),
+          children: List.generate(3, (index) => _buildCodeBox(index + 3, context)),
         ),
       ],
     );
@@ -255,17 +240,17 @@ class _VerificationScreenState extends State<VerificationScreen> {
   Widget _buildCodeBox(int index, BuildContext context) {
     final boxSize = MediaQuery.of(context).size.width / 6;
 
-    // RawKeyboardListener serve per intercettare il tasto Backspace anche quando il campo è vuoto
-    return KeyboardListener(
-      focusNode: _codeFocusNodes[index],
-      onKeyEvent: (KeyEvent event) {
-        if (event is KeyDownEvent) {
-          if (event.logicalKey == LogicalKeyboardKey.backspace ||
-              event.logicalKey == LogicalKeyboardKey.delete) {
-            // Se premo backspace su un campo vuoto, vado a quello prima e cancello
+    // Usiamo RawKeyboardListener per intercettare il Backspace anche a campo vuoto
+    return RawKeyboardListener(
+      focusNode: FocusNode(), // Nodo fittizio per il listener (non quello del TextField)
+      onKey: (RawKeyEvent event) {
+        if (event is RawKeyDownEvent) {
+          if (event.logicalKey == LogicalKeyboardKey.backspace) {
+            // Se premo backspace e il campo attuale è vuoto, sposto il focus indietro
             if (_codeControllers[index].text.isEmpty && index > 0) {
-              _codeControllers[index - 1].clear();
-              FocusScope.of(context).requestFocus(_codeFocusNodes[index - 1]);
+              _codeFocusNodes[index - 1].requestFocus();
+              // Opzionale: cancella anche il valore precedente se vuoi essere aggressivo
+              // _codeControllers[index - 1].clear(); 
             }
           }
         }
@@ -288,9 +273,16 @@ class _VerificationScreenState extends State<VerificationScreen> {
           child: Center(
             child: TextField(
               controller: _codeControllers[index],
+              focusNode: _codeFocusNodes[index], // FONDAMENTALE: Collega il nodo
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
-              maxLength: 1,
+
+              // Impedisce caratteri non numerici (., - space)
+              inputFormatters: [
+                LengthLimitingTextInputFormatter(1),
+                FilteringTextInputFormatter.digitsOnly,
+              ],
+
               style: const TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.bold,
@@ -299,27 +291,23 @@ class _VerificationScreenState extends State<VerificationScreen> {
               decoration: const InputDecoration(
                 counterText: "",
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.only(bottom: 2),
+                // Centra verticalmente il cursore/testo
+                contentPadding: EdgeInsets.symmetric(vertical: 10),
               ),
+
               onChanged: (value) {
-                // AVANZAMENTO AUTOMATICO CHE NON FUNZIONA
                 if (value.length == 1) {
+                  // Inserimento: Passa al prossimo
                   if (index < 5) {
-                    FocusScope.of(
-                      context,
-                    ).requestFocus(_codeFocusNodes[index + 1]);
+                    FocusScope.of(context).requestFocus(_codeFocusNodes[index + 1]);
                   } else {
-                    FocusScope.of(
-                      context,
-                    ).unfocus(); // CHIUSURA DELLA TASTIERA ALLA FINE DELLA SCRITTURA DI OGNI CASELLA
+                    FocusScope.of(context).unfocus(); // Fine inserimento
                   }
-                }
-                // Cancellazione
-                else if (value.isEmpty && index > 0) {
-                  _codeControllers[index - 1].clear();
-                  FocusScope.of(
-                    context,
-                  ).requestFocus(_codeFocusNodes[index - 1]);
+                } else if (value.isEmpty) {
+                  // Cancellazione (Backspace su campo pieno): Passa al precedente
+                  if (index > 0) {
+                    FocusScope.of(context).requestFocus(_codeFocusNodes[index - 1]);
+                  }
                 }
               },
             ),

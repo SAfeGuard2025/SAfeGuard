@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
-import 'package:frontend/ui/screens/home/home_screen.dart';
+// Rimuovi HomeScreen perché non ci andiamo subito dopo la registrazione
+// import 'package:frontend/ui/screens/home/home_screen.dart';
+import 'package:frontend/ui/screens/auth/verification_screen.dart'; // Assicurati che il percorso sia corretto
 
 class EmailRegisterScreen extends StatefulWidget {
   const EmailRegisterScreen({super.key});
@@ -20,10 +22,8 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     final Color buttonColor = const Color(0xFF0A2540);
 
-    //HEADER DELL'APP
     return Scaffold(
       extendBodyBehindAppBar: true,
-      //BARRA SUPERIORE DOVE CI SONO: ACCESSO - ICONA - SKIP
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -33,7 +33,6 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
         ),
       ),
 
-      //BODY
       body: Stack(
         children: [
           Container(
@@ -55,7 +54,6 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                 children: [
                   const SizedBox(height: 50),
 
-                  //TESTO
                   const Text(
                     "Inserisci i tuoi dati",
                     textAlign: TextAlign.center,
@@ -68,11 +66,9 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                   ),
                   const SizedBox(height: 100),
 
-                  //CAMPO DI TESTO -- EMAIL
                   _buildTextField("Email", _emailController),
                   const SizedBox(height: 20),
 
-                  //CAMPO DI TESTO -- PASSWORD
                   _buildTextField(
                     "Password",
                     _passController,
@@ -80,14 +76,13 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  //CAMPO DI TESTO - RIPETI PASSWORD
                   _buildTextField(
                     "Ripeti Password",
                     _repeatPassController,
                     isPassword: true,
                   ),
 
-                  //MESSAGGIO DI ERRORE
+                  // Visualizzazione Errori dal Provider
                   if (authProvider.errorMessage != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 15),
@@ -100,42 +95,42 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
 
                   const Spacer(),
 
-                  //BOX DEL CONTROLLO CON MESSAGGI DI ERRORE
                   SizedBox(
                     height: 55,
                     child: ElevatedButton(
                       onPressed: authProvider.isLoading
                           ? null
                           : () async {
-                              final navigator = Navigator.of(context);
-                              final messenger = ScaffoldMessenger.of(context);
+                        final navigator = Navigator.of(context);
+                        final messenger = ScaffoldMessenger.of(context);
 
-                              if (_passController.text !=
-                                  _repeatPassController.text) {
-                                messenger.showSnackBar(
-                                  const SnackBar(
-                                    content: Text("Le password non coincidono"),
-                                  ),
-                                );
-                                return;
-                              }
+                        // Controllo Password coincidenti
+                        if (_passController.text !=
+                            _repeatPassController.text) {
+                          messenger.showSnackBar(
+                            const SnackBar(
+                              content: Text("Le password non coincidono"),
+                            ),
+                          );
+                          return;
+                        }
 
-                              bool success = await authProvider.register(
-                                _emailController.text,
-                                _passController.text,
-                              );
+                        // Chiamata al backend tramite Provider
+                        bool success = await authProvider.register(
+                          _emailController.text.trim(), // .trim() rimuove spazi accidentali
+                          _passController.text,
+                        );
 
-                              if (success) {
-                                navigator.pushAndRemoveUntil(
-                                  MaterialPageRoute(
-                                    builder: (context) => const HomeScreen(),
-                                  ),
-                                  (route) => false,
-                                );
-                              }
-                            },
+                        // Se la registrazione ha successo, andiamo alla verifica OTP
+                        if (success && context.mounted) {
+                          navigator.push(
+                            MaterialPageRoute(
+                              builder: (context) => const VerificationScreen(),
+                            ),
+                          );
+                        }
+                      },
 
-                      //PULSANTE CONTINUA
                       style: ElevatedButton.styleFrom(
                         backgroundColor: buttonColor,
                         foregroundColor: Colors.white,
@@ -147,13 +142,13 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                       child: authProvider.isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : const Text(
-                              "CONTINUA",
-                              style: TextStyle(
-                                fontSize: 35,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.0,
-                              ),
-                            ),
+                        "CONTINUA",
+                        style: TextStyle(
+                          fontSize: 35,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 100),
@@ -166,12 +161,11 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
     );
   }
 
-  //INSERIRE IN UN FILE A PARTE
   Widget _buildTextField(
-    String hint,
-    TextEditingController controller, {
-    bool isPassword = false,
-  }) {
+      String hint,
+      TextEditingController controller, {
+        bool isPassword = false,
+      }) {
     return TextField(
       controller: controller,
       obscureText: isPassword,

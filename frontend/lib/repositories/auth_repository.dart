@@ -1,6 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
 
 class AuthRepository {
+
+  static const String baseUrl = "http://10.0.2.2:8080";
+
   /// Simula il Login con Email e Password
   /// In futuro qui userai: http.post('api/login', body: {...})
   Future<void> login(String email, String password) async {
@@ -17,15 +23,32 @@ class AuthRepository {
     return;
   }
 
-  /// Simula la Registrazione
+  /// Registrazione: Chiama /api/auth/register definita in server.dart
   Future<void> register(String email, String password) async {
-    await Future.delayed(const Duration(seconds: 2));
+    final url = Uri.parse('$baseUrl/api/auth/register');
 
-    if (password.length < 6) {
-      throw Exception("Password troppo corta (min 6 caratteri)");
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+          'confermaPassword': password, // AGGIUNGI QUESTO
+        }),
+      );
+
+      print(response.statusCode);
+      print(response.body);
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        final errorData = jsonDecode(response.body);
+        throw Exception(errorData['message'] ?? "Errore registrazione");
+      }
+      // Se 200/201, successo.
+    } catch (e) {
+      throw Exception("Errore di connessione: $e");
     }
-
-    return;
   }
 
   /// Simula l'invio del codice SMS (OTP)
@@ -36,15 +59,26 @@ class AuthRepository {
   }
 
   /// Simula la verifica del codice OTP inserito
-  Future<bool> verifyOtp(String code) async {
-    await Future.delayed(const Duration(seconds: 2));
+  Future<bool> verifyOtp(String email, String code) async {
+    final url = Uri.parse('$baseUrl/api/verify');
 
-    // Simuliamo che il codice corretto sia "123456"
-    // Oppure accettiamo qualsiasi codice di 6 cifre per facilitare i test
-    if (code.length == 6) {
-      return true;
-    } else {
-      return false; // Codice errato
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email, // Ora usiamo l'email passata come argomento
+          'code': code,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      throw Exception("Errore verifica: $e");
     }
   }
 }
