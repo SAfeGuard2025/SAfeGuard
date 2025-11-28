@@ -30,6 +30,9 @@ class RegisterController {
       String? password = requestData['password'] as String?;
       final confermaPassword = requestData['confermaPassword'] as String?;
 
+      final nome = requestData['nome'] as String?;
+      final cognome = requestData['cognome'] as String?;
+
       requestData.remove('password');
       requestData.remove('confermaPassword');
 
@@ -38,10 +41,10 @@ class RegisterController {
         return _badRequest('Inserisci Email o Numero di Telefono.');
       }
 
-      // Generazione Password fittizia per telefono
+      /* Generazione Password fittizia per telefono
       if (telefono != null && (password == null || password.isEmpty)) {
         password = _generateRandomPassword();
-      }
+      }*/
 
       if (password == null || password.isEmpty) {
         return _badRequest('Password obbligatoria.');
@@ -49,6 +52,10 @@ class RegisterController {
 
       if (confermaPassword != null && password != confermaPassword) {
         return _badRequest('Le password non coincidono');
+      }
+
+      if (nome == null || nome.isEmpty || cognome == null || cognome.isEmpty) {
+        return _badRequest('Nome e Cognome sono obbligatori.');
       }
 
       // 2. CHIAMATA AL SERVICE
@@ -90,7 +97,7 @@ class RegisterController {
     return (Random().nextInt(900000) + 100000).toString();
   }
 
-  String _generateRandomPassword() {
+  /*String _generateRandomPassword() {
     return 'PhoneUser_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(999)}!';
-  }
+  }*/
 }

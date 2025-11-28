@@ -16,20 +16,20 @@ class AuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
-  // Dati utente loggato
   UtenteGenerico? _currentUser;
   String? _authToken;
   bool _isRescuer = false;
 
-  // Dati temporanei per OTP (Email o Telefono)
   String? _tempEmail;
   String? _tempPhone; // Variabile per il numero di telefono
   String? _tempPassword;
 
+  String? _tempNome;
+  String? _tempCognome;
+
   int _secondsRemaining = 30;
   Timer? _timer;
 
-  // Getters
   bool get isLoading => _isLoading;
   bool get isRescuer => _isRescuer; // se è soccorritore è true se no è false
   String? get errorMessage => _errorMessage;
@@ -37,14 +37,11 @@ class AuthProvider extends ChangeNotifier {
   UtenteGenerico? get currentUser => _currentUser;
   bool get isLogged => _authToken != null;
 
-  // --- AUTO LOGIN ---
   Future<void> tryAutoLogin() async {
     final prefs = await SharedPreferences.getInstance();
     if (!prefs.containsKey('auth_token')) return;
-
     final token = prefs.getString('auth_token');
     final userDataString = prefs.getString('user_data');
-
     if (token != null && userDataString != null) {
       _authToken = token;
       try {
@@ -61,7 +58,6 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> login(String email, String password) async {
     _setLoading(true);
     try {
-      // Chiama il nuovo metodo con i parametri nominati
       final response = await _authRepository.login(email: email, password: password);
       await _saveSession(response);
       _setLoading(false);
@@ -73,7 +69,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // --- AGGIUNTA: LOGIN TELEFONO ---
   Future<bool> loginPhone(String phone, String password) async {
     _setLoading(true);
     try {
@@ -89,13 +84,17 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // --- REGISTRAZIONE EMAIL ---
-  Future<bool> register(String email, String password) async {
+  Future<bool> register(String email, String password, String nome, String cognome) async {
     _setLoading(true);
     try {
-      await _authRepository.register(email, password);
+      await _authRepository.register(email, password, nome, cognome);
+
       _tempEmail = email;
       _tempPhone = null;
       _tempPassword = password;
+      _tempNome = nome;
+      _tempCognome = cognome;
+
       startTimer();
       _setLoading(false);
       return true;
@@ -106,17 +105,17 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-// --- MODIFICA: START PHONE AUTH (REGISTRAZIONE) ---
-  // Aggiungi il parametro password
-  Future<bool> startPhoneAuth(String phoneNumber, {String? password}) async {
+  // --- REGISTRAZIONE TELEFONO ---
+  Future<bool> startPhoneAuth(String phoneNumber, {String? password, String? nome, String? cognome}) async {
     _setLoading(true);
     try {
-      // Passiamo la password al repository così viene salvata nel DB!
-      await _authRepository.sendPhoneOtp(phoneNumber, password: password);
+      await _authRepository.sendPhoneOtp(phoneNumber, password: password, nome: nome, cognome: cognome);
 
       _tempPhone = phoneNumber;
       _tempEmail = null;
-      _tempPassword = password; // Salviamo temporaneamente
+      _tempPassword = password;
+      _tempNome = nome;
+      _tempCognome = cognome;
 
       startTimer();
       _setLoading(false);
@@ -131,30 +130,26 @@ class AuthProvider extends ChangeNotifier {
   // --- VERIFICA OTP (Gestisce sia Email che Telefono) ---
   Future<bool> verifyCode(String code) async {
     if (_tempEmail == null && _tempPhone == null) {
-      _errorMessage = "Nessun contatto trovato. Ricomincia.";
+      _errorMessage = "Errore sessione. Riprova la registrazione.";
       notifyListeners();
       return false;
     }
 
     _setLoading(true);
     try {
-      // Passiamo i parametri corretti al repository
       final response = await _authRepository.verifyOtp(
         email: _tempEmail,
         phone: _tempPhone,
         code: code,
       );
 
-      // Se la risposta contiene un token, l'utente è loggato (flusso tipico telefono)
       if (response.containsKey('token')) {
         await _saveSession(response);
       }
 
       stopTimer();
-      // Pulizia dati temporanei
-      _tempEmail = null;
-      _tempPhone = null;
-      _tempPassword = null;
+      _tempEmail = null; _tempPhone = null; _tempPassword = null;
+      _tempNome = null; _tempCognome = null;
 
       _setLoading(false);
       return true;
@@ -169,18 +164,23 @@ class AuthProvider extends ChangeNotifier {
   Future<void> resendOtp() async {
     _setLoading(true);
     try {
-      if (_tempEmail != null && _tempPassword != null) {
-        // Rinvia Email (richiamando register)
-        await _authRepository.register(_tempEmail!, _tempPassword!);
+      if (_tempEmail != null && _tempPassword != null && _tempNome != null && _tempCognome != null) {
+        await _authRepository.register(_tempEmail!, _tempPassword!, _tempNome!, _tempCognome!);
+        startTimer();
+        _errorMessage = null;
       } else if (_tempPhone != null) {
-        // Rinvia SMS (richiamando sendPhoneOtp)
-        await _authRepository.sendPhoneOtp(_tempPhone!);
+        // Se ho tutti i dati, uso sendPhoneOtp con password e anagrafica
+        await _authRepository.sendPhoneOtp(
+            _tempPhone!,
+            password: _tempPassword,
+            nome: _tempNome,
+            cognome: _tempCognome
+        );
+        startTimer();
+        _errorMessage = null;
       } else {
         throw Exception("Dati mancanti per rinviare codice.");
       }
-
-      startTimer(); // Riavvia il timer
-      _errorMessage = null; // Pulisce eventuali errori precedenti
     } catch (e) {
       _errorMessage = "Impossibile rinviare codice: ${_cleanError(e)}";
     } finally {
@@ -188,7 +188,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // --- LOGOUT ---
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
@@ -198,20 +197,16 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- HELPER: SALVATAGGIO SESSIONE ---
   Future<void> _saveSession(Map<String, dynamic> response) async {
     final token = response['token'];
     final userMap = response['user'];
-
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
     await prefs.setString('user_data', jsonEncode(userMap));
-
     _authToken = token;
     _currentUser = _parseUser(userMap);
   }
 
-  // --- UTILS ---
   UtenteGenerico _parseUser(Map<String, dynamic> json) {
     final isSoccorritore = (json['isSoccorritore'] == true);
     _isRescuer = isSoccorritore;

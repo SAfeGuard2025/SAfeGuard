@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
-// Rimuovi HomeScreen perché non ci andiamo subito dopo la registrazione
-// import 'package:frontend/ui/screens/home/home_screen.dart';
-import 'package:frontend/ui/screens/auth/verification_screen.dart'; // Assicurati che il percorso sia corretto
+import 'package:frontend/ui/screens/auth/verification_screen.dart';
 
 class EmailRegisterScreen extends StatefulWidget {
   const EmailRegisterScreen({super.key});
@@ -16,6 +14,8 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
   final TextEditingController _repeatPassController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _surnameController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -49,110 +49,94 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 50),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 30),
 
-                  const Text(
-                    "Inserisci i tuoi dati",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.w900,
-                      height: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 100),
-
-                  _buildTextField("Email", _emailController),
-                  const SizedBox(height: 20),
-
-                  _buildTextField(
-                    "Password",
-                    _passController,
-                    isPassword: true,
-                  ),
-                  const SizedBox(height: 20),
-
-                  _buildTextField(
-                    "Ripeti Password",
-                    _repeatPassController,
-                    isPassword: true,
-                  ),
-
-                  // Visualizzazione Errori dal Provider
-                  if (authProvider.errorMessage != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 15),
-                      child: Text(
-                        authProvider.errorMessage!,
-                        style: const TextStyle(color: Colors.redAccent),
-                        textAlign: TextAlign.center,
+                    const Text(
+                      "Inserisci i tuoi dati",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
+                    const SizedBox(height: 40),
 
-                  const Spacer(),
+                    // NOME E COGNOME
+                    _buildTextField("Nome", _nameController),
+                    const SizedBox(height: 15),
+                    _buildTextField("Cognome", _surnameController),
+                    const SizedBox(height: 15),
 
-                  SizedBox(
-                    height: 55,
-                    child: ElevatedButton(
-                      onPressed: authProvider.isLoading
-                          ? null
-                          : () async {
-                        final navigator = Navigator.of(context);
-                        final messenger = ScaffoldMessenger.of(context);
+                    _buildTextField("Email", _emailController),
+                    const SizedBox(height: 15),
 
-                        // Controllo Password coincidenti
-                        if (_passController.text !=
-                            _repeatPassController.text) {
-                          messenger.showSnackBar(
-                            const SnackBar(
-                              content: Text("Le password non coincidono"),
-                            ),
-                          );
-                          return;
-                        }
+                    _buildTextField("Password", _passController, isPassword: true),
+                    const SizedBox(height: 15),
 
-                        // Chiamata al backend tramite Provider
-                        bool success = await authProvider.register(
-                          _emailController.text.trim(), // .trim() rimuove spazi accidentali
-                          _passController.text,
-                        );
+                    _buildTextField("Ripeti Password", _repeatPassController, isPassword: true),
 
-                        // Se la registrazione ha successo, andiamo alla verifica OTP
-                        if (success && context.mounted) {
-                          navigator.push(
-                            MaterialPageRoute(
-                              builder: (context) => const VerificationScreen(),
-                            ),
-                          );
-                        }
-                      },
-
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: buttonColor,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        side: const BorderSide(color: Colors.white12, width: 1),
-                      ),
-                      child: authProvider.isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text(
-                        "CONTINUA",
-                        style: TextStyle(
-                          fontSize: 35,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.0,
+                    if (authProvider.errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 15),
+                        child: Text(
+                          authProvider.errorMessage!,
+                          style: const TextStyle(color: Colors.redAccent),
+                          textAlign: TextAlign.center,
                         ),
                       ),
+
+                    const SizedBox(height: 30),
+
+                    SizedBox(
+                      height: 55,
+                      child: ElevatedButton(
+                        onPressed: authProvider.isLoading
+                            ? null
+                            : () async {
+                          final navigator = Navigator.of(context);
+                          final messenger = ScaffoldMessenger.of(context);
+
+                          if (_passController.text != _repeatPassController.text) {
+                            messenger.showSnackBar(const SnackBar(content: Text("Le password non coincidono")));
+                            return;
+                          }
+
+                          if (_nameController.text.isEmpty || _surnameController.text.isEmpty) {
+                            messenger.showSnackBar(const SnackBar(content: Text("Nome e Cognome obbligatori")));
+                            return;
+                          }
+
+                          bool success = await authProvider.register(
+                              _emailController.text.trim(),
+                              _passController.text,
+                              _nameController.text.trim(),
+                              _surnameController.text.trim()
+                          );
+
+                          if (success && context.mounted) {
+                            navigator.push(MaterialPageRoute(builder: (context) => const VerificationScreen()));
+                          }
+                        },
+
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: buttonColor,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                          side: const BorderSide(color: Colors.white12, width: 1),
+                        ),
+                        child: authProvider.isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text("CONTINUA", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 100),
-                ],
+                    const SizedBox(height: 100),
+                  ],
+                ),
               ),
             ),
           ),
@@ -161,11 +145,7 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
     );
   }
 
-  Widget _buildTextField(
-      String hint,
-      TextEditingController controller, {
-        bool isPassword = false,
-      }) {
+  Widget _buildTextField(String hint, TextEditingController controller, {bool isPassword = false}) {
     return TextField(
       controller: controller,
       obscureText: isPassword,
@@ -175,14 +155,8 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
         fillColor: Colors.white,
         hintText: hint,
         hintStyle: const TextStyle(color: Colors.grey),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 25,
-          vertical: 20,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide.none,
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
       ),
     );
   }

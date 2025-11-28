@@ -47,18 +47,29 @@ class AuthRepository {
   }
 
   // --- REGISTRAZIONE EMAIL ---
-  Future<void> register(String email, String password) async {
-    final url = Uri.parse('$_baseUrl/api/auth/register'); // Usa _baseUrl
+  Future<void> register(String identifier, String password, String nome, String cognome) async {
+    final url = Uri.parse('$_baseUrl/api/auth/register');
+
+    final bool isPhone = RegExp(r'^[+0-9]').hasMatch(identifier);
+
+    final Map<String, dynamic> bodyMap = {
+      'password': password,
+      'confermaPassword': password,
+      'nome': nome,
+      'cognome': cognome,
+    };
+
+    if (isPhone) {
+      bodyMap['telefono'] = identifier;
+    } else {
+      bodyMap['email'] = identifier;
+    }
 
     try {
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-          'confermaPassword': password, // AGGIUNGI QUESTO
-        }),
+        body: jsonEncode(bodyMap),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -71,16 +82,15 @@ class AuthRepository {
   }
 
   // --- INVIO OTP TELEFONO ---
-  // Usa l'endpoint di registrazione perché il tuo RegisterController gestisce anche il solo telefono
-// --- MODIFICA: INVIO OTP TELEFONO (REGISTRAZIONE) ---
-  // Aggiungi il parametro password opzionale
-  Future<void> sendPhoneOtp(String phoneNumber, {String? password}) async {
+  Future<void> sendPhoneOtp(String phoneNumber, {String? password, String? nome, String? cognome}) async {
     final url = Uri.parse('$_baseUrl/api/auth/register');
     try {
-      final Map<String, dynamic> body = {'telefono': phoneNumber};
+      final Map<String, dynamic> body = {
+        'telefono': phoneNumber,
+        'nome': nome,
+        'cognome': cognome,
+      };
 
-      // Se c'è una password (registrazione), inviala!
-      // Altrimenti il backend ne genererà una random
       if (password != null) {
         body['password'] = password;
         body['confermaPassword'] = password; // Per validazione backend
@@ -105,8 +115,6 @@ class AuthRepository {
   // Restituisce una Map perché in caso di telefono potremmo ricevere il token login
   Future<Map<String, dynamic>> verifyOtp({String? email, String? phone, required String code}) async {
     final url = Uri.parse('$_baseUrl/api/verify');
-
-    // Costruiamo il body dinamico
     final Map<String, dynamic> requestBody = {'code': code};
     if (email != null) requestBody['email'] = email;
     if (phone != null) requestBody['telefono'] = phone;
@@ -117,7 +125,6 @@ class AuthRepository {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(requestBody),
       );
-
       final Map<String, dynamic> body = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
