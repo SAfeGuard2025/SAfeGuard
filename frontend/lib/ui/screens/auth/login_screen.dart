@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/ui/screens/auth/email_login_screen.dart';
 import 'package:frontend/ui/screens/auth/phone_login_screen.dart';
+import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/auth/registration_screen.dart';
 import 'package:frontend/ui/screens/home/home_screen.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+
+    final authProvider = Provider.of<AuthProvider>(context);
+
     final Color darkBlue = const Color(0xFF041528);
 
     //HEADER DELL'APP
@@ -125,23 +130,38 @@ class LoginScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        //CONTINUA CON APPLE NON HA IL MEOTODO SU L'ON_TAP
+                        // CONTINUA CON APPLE
                         _buildSocialButton(
                           text: "Continua con Apple",
                           icon: Icons.apple,
                           backgroundColor: Colors.black,
                           textColor: Colors.white,
+                          onTap: () async {
+                            final success = await authProvider.signInWithApple();
+                            if (success && context.mounted) {
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                              );
+                            }
+                          },
                         ),
                         const SizedBox(height: 15),
 
-                        //CONTINUA CON GOOGLE NON HA IL MEOTODO SU L'ON_TAP
+// CONTINUA CON GOOGLE
                         _buildSocialButton(
                           text: "Continua con Google",
-                          imagePath:
-                              'assets/googleIcon.png', // Assicurati che esista
+                          imagePath: 'assets/googleIcon.png',
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
                           iconColor: Colors.red,
+                          onTap: () async {
+                            final success = await authProvider.signInWithGoogle();
+                            if (success && context.mounted) {
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                              );
+                            }
+                          },
                         ),
                         const SizedBox(height: 15),
 

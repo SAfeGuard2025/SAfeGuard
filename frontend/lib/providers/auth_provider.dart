@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:frontend/repositories/auth_repository.dart';
 import 'package:data_models/UtenteGenerico.dart';
 import 'package:data_models/Utente.dart';
@@ -317,6 +318,73 @@ class AuthProvider extends ChangeNotifier {
       }
 
       notifyListeners();
+    }
+  }
+
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+
+  // --- GESTIONE GOOGLE ---
+  Future<bool> signInWithGoogle() async {
+    _setLoading(true);
+    try {
+      // 1. Apre il popup nativo di Google
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        _setLoading(false);
+        return false; // Utente ha annullato
+      }
+
+      // 2. Ottiene i token (idToken e accessToken)
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final String? idToken = googleAuth.idToken;
+
+      if (idToken == null) throw Exception("Impossibile recuperare ID Token Google");
+
+      // 3. Chiama il Backend
+      final response = await _authRepository.loginWithGoogle(idToken);
+
+      // 4. Salva la sessione (usa il tuo metodo esistente _saveSession)
+      await _saveSession(response);
+
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _errorMessage = _cleanError(e);
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  // --- GESTIONE APPLE ---
+  Future<bool> signInWithApple() async {
+    _setLoading(true);
+    try {
+      // 1. Apre il popup nativo Apple
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      // 2. Chiama il Backend
+      // Nota: email e nomi sono presenti solo al PRIMO login su Apple, poi sono null.
+      final response = await _authRepository.loginWithApple(
+        identityToken: credential.identityToken!,
+        email: credential.email,
+        firstName: credential.givenName,
+        lastName: credential.familyName,
+      );
+
+      // 3. Salva sessione
+      await _saveSession(response);
+
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _errorMessage = _cleanError(e);
+      _setLoading(false);
+      return false;
     }
   }
 }
