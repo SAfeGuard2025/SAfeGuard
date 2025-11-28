@@ -14,7 +14,7 @@ class PhoneLoginScreen extends StatefulWidget {
 
 class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
   final TextEditingController _phoneController = TextEditingController(
-    text: "+39 ",
+    text: "+39",
   );
   final TextEditingController _passController = TextEditingController();
 
