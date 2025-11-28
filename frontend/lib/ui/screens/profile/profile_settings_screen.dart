@@ -23,27 +23,7 @@ class ProfileSettingsScreen extends StatefulWidget {
 class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   // Dati simulati delle richieste (In futuro verranno dal Backend/Provider)
   final List<HelpRequestItem> requests = [
-    HelpRequestItem(
-      title: "Richiesta ambulanza",
-      time: "02:00 AM",
-      status: "Incompleta",
-      isComplete: false,
-      type: "ambulance",
-    ),
-    HelpRequestItem(
-      title: "Terremoto",
-      time: "12:30 AM",
-      status: "Completata",
-      isComplete: true,
-      type: "earthquake",
-    ),
-    HelpRequestItem(
-      title: "Incendio",
-      time: "3:50 PM",
-      status: "Completata",
-      isComplete: true,
-      type: "fire",
-    ),
+
   ];
 
   // --- FUNZIONE DI LOGOUT INTEGRATA (CHIAMA IL PROVIDER) ---
@@ -284,9 +264,12 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         ],
                       ),
                       const SizedBox(height: 10),
-
+                      Text(
+                        "Futura implementazione",
+                        style: TextStyle(color: Colors.white),
+                      ),
                       // Generazione dinamica della lista
-                      ...requests.map((req) => _buildRequestItem(req)).toList(),
+                      // ...requests.map((req) => _buildRequestItem(req)).toList(),
                     ],
                   ),
                 ),
