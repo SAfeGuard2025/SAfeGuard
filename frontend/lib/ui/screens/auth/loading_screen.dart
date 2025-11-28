@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/auth/registration_screen.dart';
+import 'package:frontend/ui/screens/home/home_screen.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -9,9 +12,20 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
+  // Variabile per attendere il completamento del controllo login
+  late Future<void> _autoLoginFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    // Avviamo il tentativo di auto-login appena il widget viene inizializzato.
+    // listen: false è fondamentale qui perché siamo fuori dal build.
+    _autoLoginFuture = Provider.of<AuthProvider>(context, listen: false).tryAutoLogin();
+  }
+
   @override
   Widget build(BuildContext context) {
-    //COLORI GENERALI
+    // COLORI GENERALI
     final Color darkBackground = const Color(0xFF12345A);
     final Color progressCyan = const Color(0xFF00B0FF);
 
@@ -41,7 +55,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
                 'assets/logo.png',
                 width: 200,
                 errorBuilder: (c, e, s) =>
-                    const Icon(Icons.security, size: 150, color: Colors.orange),
+                const Icon(Icons.security, size: 150, color: Colors.orange),
               ),
 
               const Spacer(),
@@ -81,7 +95,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
               // ANIMAZIONE BARRA - IL CARICAMENTO è PREIMPOSTATO A 3 SECONDI
               TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0.0, end: 1.0),
-                duration: const Duration(seconds: 3), //PREIMPOSTAZIONE SECONDI
+                duration: const Duration(seconds: 3), // PREIMPOSTAZIONE SECONDI
                 builder: (context, value, _) {
                   return LinearProgressIndicator(
                     value: value,
@@ -91,13 +105,30 @@ class _LoadingScreenState extends State<LoadingScreen> {
                     borderRadius: BorderRadius.circular(10),
                   );
                 },
-                onEnd: () {
-                  // NAVIGAZIONE ALLA PAGINA DI REGISTRAZIONE
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (context) => const RegistrationScreen(),
-                    ),
-                  );
+                onEnd: () async {
+                  // 1. Assicuriamoci che il controllo dello storage sia terminato
+                  await _autoLoginFuture;
+
+                  if (!context.mounted) return;
+
+                  // 2. Controlliamo lo stato di login dal Provider
+                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+                  if (authProvider.isLogged) {
+                    // SE LOGGATO -> HOME SCREEN
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const HomeScreen(),
+                      ),
+                    );
+                  } else {
+                    // SE NON LOGGATO -> REGISTRATION SCREEN (o Login)
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const RegistrationScreen(),
+                      ),
+                    );
+                  }
                 },
               ),
               const SizedBox(height: 20),
