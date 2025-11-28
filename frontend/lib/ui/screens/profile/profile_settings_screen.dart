@@ -129,9 +129,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                           backgroundColor: kAccentOrange,
                           child: const CircleAvatar(
                             radius: 42,
-                            backgroundImage: NetworkImage(
-                              'https://i.pravatar.cc/300?img=11',
-                            ),
+                            backgroundImage: AssetImage("assets/cavalluccio.png"),
                           ),
                         ),
                         Positioned(
