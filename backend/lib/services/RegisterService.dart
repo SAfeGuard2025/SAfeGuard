@@ -33,10 +33,16 @@ class RegisterService {
       ) async {
     final email = requestData['email'] as String?;
     final telefono = requestData['telefono'] as String?;
+    final nome = requestData['nome'] as String?;
+    final cognome = requestData['cognome'] as String?;
 
     // 1. Validazione: Almeno uno dei due deve esistere
     if (password.isEmpty || (email == null && telefono == null)) {
       throw Exception('Devi fornire Password e almeno Email o Telefono.');
+    }
+
+    if (nome == null || cognome == null) {
+      throw Exception('Nome e Cognome sono obbligatori.');
     }
 
     if (email != null && await _userRepository.findUserByEmail(email) != null) {

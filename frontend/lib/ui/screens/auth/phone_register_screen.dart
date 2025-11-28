@@ -11,10 +11,12 @@ class PhoneRegisterScreen extends StatefulWidget {
 }
 
 class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
-  // Controller inizializzato col prefisso
   final TextEditingController _phoneController = TextEditingController(text: "+39");
   final TextEditingController _passController = TextEditingController();
   final TextEditingController _repeatPassController = TextEditingController();
+
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _surnameController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -59,10 +61,15 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                         color: Colors.white,
                         fontSize: 32,
                         fontWeight: FontWeight.w900,
-                        height: 1.2,
                       ),
                     ),
-                    const SizedBox(height: 80),
+                    const SizedBox(height: 40),
+
+                    _buildTextField("Nome", _nameController),
+                    const SizedBox(height: 15),
+
+                    _buildTextField("Cognome", _surnameController),
+                    const SizedBox(height: 15),
 
                     // INPUT TELEFONO
                     TextField(
@@ -111,37 +118,33 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                             : () async {
                           final navigator = Navigator.of(context);
                           final phone = _phoneController.text.trim();
+                          final nome = _nameController.text.trim();
+                          final cognome = _surnameController.text.trim();
 
                           if (phone.isEmpty || phone.length < 5) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Inserisci un numero valido")),
-                            );
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Inserisci un numero valido")));
                             return;
                           }
-
-                          // Controllo Password coincidenti
+                          if (nome.isEmpty || cognome.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Nome e Cognome obbligatori")));
+                            return;
+                          }
                           if (_passController.text != _repeatPassController.text) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Le password non coincidono")),
-                            );
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Le password non coincidono")));
                             return;
                           }
-
                           if (_passController.text.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Inserisci una password")),
-                            );
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Inserisci una password")));
                             return;
                           }
 
-                          // CHIAMATA AL PROVIDER
-                          // NOTA: Aggiorna il metodo nel provider per accettare anche la password
                           bool success = await authProvider.startPhoneAuth(
                               phone,
-                              password: _passController.text // Passiamo la password!
+                              password: _passController.text, // Passiamo la password!
+                              nome: _passController.text,
+                              cognome: _passController.text
                           );
 
-                          // Se successo, vai alla verifica OTP
                           if (success && mounted) {
                             navigator.push(
                               MaterialPageRoute(
