@@ -21,7 +21,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   @override
   Widget build(BuildContext context) {
     final isRescuer = context.watch<AuthProvider>().isRescuer;
-    final isLogged = true;
+    final isLogged = context.watch<AuthProvider>().isLogged;
     // --- 1. CONFIGURAZIONE STILE IN BASE AL RUOLO ---
     final Color backgroundColor = isRescuer
         ? const Color(0xFF995618) // Marrone/Arancio (Soccorritore)

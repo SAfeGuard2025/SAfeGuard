@@ -142,7 +142,7 @@ class HomePageContent extends StatelessWidget {
 
   Widget _buildEmergencyContactsButton(BuildContext context) {
     // controllo se l'utente è loggato, se lo è mostro i contatti di emergenza se no mostra il tasto per andare alla registrazione
-    final isLogged = true;
+    final isLogged = context.watch<AuthProvider>().isLogged;
     if(!isLogged){
 
       //return Text("");
@@ -216,7 +216,7 @@ class HomePageContent extends StatelessWidget {
 
   Widget _buildSosSection(BuildContext context) {
     // controllo se l'utente è loggato, se lo è mostro il pulsante di SOS se no niente
-    final isLogged = true;
+    final isLogged = context.watch<AuthProvider>().isLogged;
     if(!isLogged){
       return Text("");
     }
