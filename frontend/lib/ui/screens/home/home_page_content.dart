@@ -17,9 +17,7 @@ class HomePageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isRescuer = context
-        .watch<AuthProvider>()
-        .isRescuer;
+    final isRescuer = context.watch<AuthProvider>().isRescuer;
 
 
     // Permette lo scroll se lo schermo è piccolo

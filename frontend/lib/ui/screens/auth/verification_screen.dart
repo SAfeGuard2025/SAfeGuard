@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:frontend/ui/screens/auth/login_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/home/home_screen.dart';
@@ -137,7 +138,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                             );
                             navigator.pushAndRemoveUntil(
                               MaterialPageRoute(
-                                builder: (context) => const HomeScreen(),
+                                builder: (context) => const LoginScreen(),
                               ),
                                   (route) => false,
                             );

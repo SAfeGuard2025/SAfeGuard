@@ -17,6 +17,7 @@ class AuthProvider extends ChangeNotifier {
   // Dati utente loggato
   UtenteGenerico? _currentUser;
   String? _authToken;
+  bool _isRescuer = false;
 
   // Dati temporanei per OTP (Email o Telefono)
   String? _tempEmail;
@@ -28,7 +29,7 @@ class AuthProvider extends ChangeNotifier {
 
   // Getters
   bool get isLoading => _isLoading;
-  bool get isRescuer => _currentUser is Soccorritore; // se è soccorritore è true se no è false
+  bool get isRescuer => _isRescuer; // se è soccorritore è true se no è false
   String? get errorMessage => _errorMessage;
   int get secondsRemaining => _secondsRemaining;
   UtenteGenerico? get currentUser => _currentUser;
@@ -191,6 +192,7 @@ class AuthProvider extends ChangeNotifier {
     await prefs.clear();
     _currentUser = null;
     _authToken = null;
+    _isRescuer = false;
     notifyListeners();
   }
 
@@ -209,7 +211,10 @@ class AuthProvider extends ChangeNotifier {
 
   // --- UTILS ---
   UtenteGenerico _parseUser(Map<String, dynamic> json) {
-    if (json['isSoccorritore'] == true) {
+    final isSoccorritore = (json['isSoccorritore'] == true);
+    _isRescuer = isSoccorritore;
+
+    if (isSoccorritore) {
       return Soccorritore.fromJson(json);
     } else {
       return Utente.fromJson(json);
