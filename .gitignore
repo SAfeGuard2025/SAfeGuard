@@ -400,3 +400,4 @@ $RECYCLE.BIN/
 # Custom
 /.idea/runConfigurations/
 **/pubspec_overrides.yaml
+google-services.json
