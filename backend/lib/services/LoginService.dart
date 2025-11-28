@@ -55,7 +55,12 @@ class LoginService {
     // 2. Estrazione Dati Utente dal Token
     final payload = jsonDecode(response.body);
     final String email = payload['email'];
-    final String? name = payload['name'];
+
+// Google fornisce spesso 'given_name' e 'family_name'
+    final String? firstName = payload['given_name'];
+    final String? lastName = payload['family_name'];
+// Fallback sul nome completo se i parziali mancano
+    final String fullName = payload['name'] ?? 'Utente Google';
 
     // 3. Controllo esistenza utente nel Database
     Map<String, dynamic>? userData = await _userRepository.findUserByEmail(email);
@@ -65,8 +70,7 @@ class LoginService {
 
     // Determina il tipo in base alla lista dei domini
     final isSoccorritore = _isSoccorritore(email);
-    userType = isSoccorritore ? 'Soccorritore' : 'Utente';
-
+    userType = isSoccorritore ? 'Soccorritore' : 'users';
     if (userData != null) {
       // Caso A: L'utente esiste già
       userData.remove('passwordHash'); // Pulizia sicurezza
@@ -80,7 +84,10 @@ class LoginService {
       // Caso B: Primo accesso (Registrazione Automatica)
       final newUserMap = {
         'email': email,
-        'nome': name ?? 'Utente Google',
+        // Usa il first name, oppure spacca il full name, oppure usa l'intero nome come fallback
+        'nome': firstName ?? fullName.split(' ').first,
+        // Usa il last name, oppure prova a prendere l'ultima parte del full name
+        'cognome': lastName ?? (fullName.contains(' ') ? fullName.split(' ').last : ''),
         'telefono': null,
         'passwordHash': '',
         'dataRegistrazione': DateTime.now().toIso8601String(),
@@ -203,7 +210,7 @@ class LoginService {
 
     // Controllo domini multipli
     final isSoccorritore = _isSoccorritore(finalEmail);
-    final userType = isSoccorritore ? 'Soccorritore' : 'Utente';
+    final userType = isSoccorritore ? 'Soccorritore' : 'users';
 
     if (userData != null) {
       // CASO A: Utente già esistente
