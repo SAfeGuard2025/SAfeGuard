@@ -27,6 +27,17 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Variabili di responsività
+    final Size screenSize = MediaQuery.of(context).size;
+    final double screenHeight = screenSize.height;
+    final double screenWidth = screenSize.width;
+    final double referenceSize = screenHeight < screenWidth ? screenHeight : screenWidth;
+    final double titleFontSize = referenceSize * 0.075;
+    final double contentFontSize = referenceSize * 0.045;
+    final double verticalPadding = screenHeight * 0.04;
+    final double smallSpacing = screenHeight * 0.015;
+    final double largeSpacing = screenHeight * 0.05;
+
     final authProvider = Provider.of<AuthProvider>(context);
     final Color buttonColor = const Color(0xFF0A2540);
 
@@ -60,51 +71,52 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 30),
-                    const Text(
+                    SizedBox(height: verticalPadding),
+
+                    Text(
                       "Registrazione",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 32,
+                        fontSize: titleFontSize,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    SizedBox(height: largeSpacing),
 
-                    // CAMPO NOME
-                    _buildTextField("Nome", _nameController, isPassword: false),
-                    const SizedBox(height: 15),
+                    // Campo nome
+                    _buildTextField("Nome", _nameController, isPassword: false, contentVerticalPadding: 12, fontSize: contentFontSize),
+                    SizedBox(height: smallSpacing),
 
-                    // CAMPO COGNOME
-                    _buildTextField("Cognome", _surnameController, isPassword: false),
-                    const SizedBox(height: 15),
+                    // Campo cognome
+                    _buildTextField("Cognome", _surnameController, isPassword: false, contentVerticalPadding: 12, fontSize: contentFontSize),
+                    SizedBox(height: smallSpacing),
 
-                    // INPUT TELEFONO (non ha suffix icon)
+                    // Input telefono
                     TextField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
-                      style: const TextStyle(color: Colors.black),
+                      style: TextStyle(color: Colors.black, fontSize: contentFontSize),
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: Colors.white,
                         hintText: "+39 ...",
-                        hintStyle: const TextStyle(color: Colors.grey),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+                        hintStyle: TextStyle(color: Colors.grey, fontSize: contentFontSize),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
                           borderSide: BorderSide.none,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 15),
+                    SizedBox(height: smallSpacing),
 
-                    // INPUT PASSWORD (Ora usa _buildTextField modificato)
-                    _buildTextField("Password", _passController, isPassword: true),
-                    const SizedBox(height: 15),
+                    // Input password
+                    _buildTextField("Password", _passController, isPassword: true, contentVerticalPadding: 12, fontSize: contentFontSize),
+                    SizedBox(height: smallSpacing),
 
-                    // INPUT RIPETI PASSWORD (Ora usa _buildTextField modificato)
-                    _buildTextField("Ripeti Password", _repeatPassController, isPassword: true),
+                    // Input ripeti password
+                    _buildTextField("Ripeti Password", _repeatPassController, isPassword: true, contentVerticalPadding: 12, fontSize: contentFontSize),
 
                     if (authProvider.errorMessage != null)
                       Padding(
@@ -116,35 +128,36 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                         ),
                       ),
 
-                    const SizedBox(height: 30),
+                    SizedBox(height: largeSpacing),
 
-                    // BOTTONE REGISTRATI
+                    // Bottone registrati
                     SizedBox(
-                      height: 55,
+                      height: referenceSize * 0.12,
                       child: ElevatedButton(
                         onPressed: authProvider.isLoading
                             ? null
                             : () async {
                           final navigator = Navigator.of(context);
-                          final phone = _phoneController.text.trim().replaceAll(' ', ''); // Pulizia spazi
+                          final messenger = ScaffoldMessenger.of(context);
+                          final phone = _phoneController.text.trim().replaceAll(' ', '');
                           final nome = _nameController.text.trim();
                           final cognome = _surnameController.text.trim();
                           final password = _passController.text;
 
                           if (phone.isEmpty || phone.length < 5) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Inserisci un numero valido")));
+                            messenger.showSnackBar(const SnackBar(content: Text("Inserisci un numero valido")));
                             return;
                           }
                           if (nome.isEmpty || cognome.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Nome e Cognome obbligatori")));
+                            messenger.showSnackBar(const SnackBar(content: Text("Nome e Cognome obbligatori")));
                             return;
                           }
                           if (password != _repeatPassController.text) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Le password non coincidono")));
+                            messenger.showSnackBar(const SnackBar(content: Text("Le password non coincidono")));
                             return;
                           }
                           if (password.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Inserisci una password")));
+                            messenger.showSnackBar(const SnackBar(content: Text("Inserisci una password")));
                             return;
                           }
 
@@ -167,10 +180,16 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                         ),
                         child: authProvider.isLoading
                             ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text("REGISTRATI", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
+                            : Text(
+                            "REGISTRATI",
+                            style: TextStyle(
+                                fontSize: referenceSize * 0.05,
+                                fontWeight: FontWeight.bold
+                            )
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 50),
+                    SizedBox(height: verticalPadding),
                   ],
                 ),
               ),
@@ -181,20 +200,20 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
     );
   }
 
-  // WIDGET CAMPO DI TESTO
-  Widget _buildTextField(String hint, TextEditingController controller, {required bool isPassword}) {
+  // Widget campo di testo
+  Widget _buildTextField(String hint, TextEditingController controller, {required bool isPassword, double contentVerticalPadding = 20, required double fontSize}) {
     bool obscureText = isPassword ? !_isPasswordVisible : false;
 
     return TextField(
       controller: controller,
       obscureText: obscureText,
-      style: const TextStyle(color: Colors.black),
+      style: TextStyle(color: Colors.black, fontSize: fontSize),
       decoration: InputDecoration(
         filled: true,
         fillColor: Colors.white,
         hintText: hint,
-        hintStyle: const TextStyle(color: Colors.grey),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+        hintStyle: TextStyle(color: Colors.grey, fontSize: fontSize),
+        contentPadding: EdgeInsets.symmetric(horizontal: 25, vertical: contentVerticalPadding),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
 
         suffixIcon: isPassword
@@ -202,8 +221,9 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
           icon: Icon(
             _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
             color: Colors.grey,
+            size: fontSize * 1.5,
           ),
-          onPressed: _togglePasswordVisibility, // Chiama la funzione che fa setState
+          onPressed: _togglePasswordVisibility,
         )
             : null,
       ),

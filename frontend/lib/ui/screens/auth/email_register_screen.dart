@@ -26,11 +26,15 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // VARIABILI PER LA RESPONSIVITÀ
     final Size screenSize = MediaQuery.of(context).size;
-    final double verticalPadding = screenSize.height * 0.04;
-    final double smallSpacing = screenSize.height * 0.015;
-    final double largeSpacing = screenSize.height * 0.04;
+    final double screenHeight = screenSize.height;
+    final double screenWidth = screenSize.width;
+    final double referenceSize = screenHeight < screenWidth ? screenHeight : screenWidth;
+    final double titleFontSize = referenceSize * 0.075;
+    final double contentFontSize = referenceSize * 0.045;
+    final double verticalPadding = screenHeight * 0.04;
+    final double smallSpacing = screenHeight * 0.015;
+    final double largeSpacing = screenHeight * 0.05;
 
     final authProvider = Provider.of<AuthProvider>(context);
     final Color buttonColor = const Color(0xFF0A2540);
@@ -68,34 +72,31 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                   children: [
                     SizedBox(height: verticalPadding),
 
-                    const Text(
-                      "Inserisci i tuoi dati",
+                    Text(
+                      "Registrazione",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 32,
+                        fontSize: titleFontSize,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
 
                     SizedBox(height: largeSpacing),
 
-                    // NOME E COGNOME
-                    _buildTextField("Nome", _nameController, isPassword: false),
+                    // Campi di testo
+                    _buildTextField("Nome", _nameController, isPassword: false, contentVerticalPadding: 12, fontSize: contentFontSize),
                     SizedBox(height: smallSpacing),
-                    _buildTextField("Cognome", _surnameController, isPassword: false),
-                    SizedBox(height: smallSpacing),
-
-                    // MAIL
-                    _buildTextField("Email", _emailController, isPassword: false),
+                    _buildTextField("Cognome", _surnameController, isPassword: false, contentVerticalPadding: 12, fontSize: contentFontSize),
                     SizedBox(height: smallSpacing),
 
-                    // CAMPO PASSWORD
-                    _buildTextField("Password", _passController, isPassword: true),
+                    _buildTextField("Email", _emailController, isPassword: false, contentVerticalPadding: 12, fontSize: contentFontSize),
                     SizedBox(height: smallSpacing),
 
-                    // CAMPO RIPETI PASSWORD
-                    _buildTextField("Ripeti Password", _repeatPassController, isPassword: true),
+                    _buildTextField("Password", _passController, isPassword: true, contentVerticalPadding: 12, fontSize: contentFontSize),
+                    SizedBox(height: smallSpacing),
+
+                    _buildTextField("Ripeti Password", _repeatPassController, isPassword: true, contentVerticalPadding: 12, fontSize: contentFontSize),
 
                     if (authProvider.errorMessage != null)
                       Padding(
@@ -110,7 +111,7 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                     SizedBox(height: largeSpacing),
 
                     SizedBox(
-                      height: 55,
+                      height: referenceSize * 0.12,
                       child: ElevatedButton(
                         onPressed: authProvider.isLoading
                             ? null
@@ -148,7 +149,13 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                         ),
                         child: authProvider.isLoading
                             ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text("CONTINUA", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
+                            : Text(
+                          "CONTINUA",
+                          style: TextStyle(
+                              fontSize: referenceSize * 0.05,
+                              fontWeight: FontWeight.bold
+                          ),
+                        ),
                       ),
                     ),
 
@@ -163,20 +170,20 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
     );
   }
 
-  // WIDGET CAMPO DI TESTO
-  Widget _buildTextField(String hint, TextEditingController controller, {required bool isPassword}) {
+  // Widget campo di testo
+  Widget _buildTextField(String hint, TextEditingController controller, {required bool isPassword, double contentVerticalPadding = 20, required double fontSize}) {
     bool obscureText = isPassword ? !_isPasswordVisible : false;
 
     return TextField(
       controller: controller,
       obscureText: obscureText,
-      style: const TextStyle(color: Colors.black),
+      style: TextStyle(color: Colors.black, fontSize: fontSize),
       decoration: InputDecoration(
         filled: true,
         fillColor: Colors.white,
         hintText: hint,
-        hintStyle: const TextStyle(color: Colors.grey),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+        hintStyle: TextStyle(color: Colors.grey, fontSize: fontSize),
+        contentPadding: EdgeInsets.symmetric(horizontal: 25, vertical: contentVerticalPadding),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
 
         suffixIcon: isPassword
@@ -184,6 +191,7 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
           icon: Icon(
             _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
             color: Colors.grey,
+            size: fontSize * 1.5,
           ),
           onPressed: _togglePasswordVisibility,
         )

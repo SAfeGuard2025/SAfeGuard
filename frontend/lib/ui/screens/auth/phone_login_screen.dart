@@ -25,12 +25,23 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Variabili per la responsività
+    final Size screenSize = MediaQuery.of(context).size;
+    final double screenHeight = screenSize.height;
+    final double screenWidth = screenSize.width;
+    final double referenceSize = screenHeight < screenWidth ? screenHeight : screenWidth;
+
+    final double titleFontSize = referenceSize * 0.075;
+    final double contentFontSize = referenceSize * 0.045;
+    final double verticalPadding = screenHeight * 0.04;
+    final double smallSpacing = screenHeight * 0.015;
+
     final authProvider = Provider.of<AuthProvider>(context);
     final Color buttonColor = const Color(0xFF0A2540);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      //HEADER
+      //Header
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -40,7 +51,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
         ),
       ),
 
-      //BODY
+      //Body
       body: Stack(
         children: [
           Container(
@@ -57,35 +68,36 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30.0),
-              child: SingleChildScrollView( // Evita overflow tastiera
+              child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 50),
-                    const Text(
-                      "Inserisci i tuoi dati",
+                    SizedBox(height: verticalPadding),
+
+                    Text(
+                      "Accedi",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 32,
+                        fontSize: titleFontSize,
                         fontWeight: FontWeight.w900,
                         height: 1.2,
                       ),
                     ),
-                    const SizedBox(height: 80),
+                    SizedBox(height: screenHeight * 0.10),
 
-                    // INPUT TELEFONO
+                    // Input telefono
                     TextField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
-                      style: const TextStyle(color: Colors.black),
+                      style: TextStyle(color: Colors.black, fontSize: contentFontSize),
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: Colors.white,
-                        hintStyle: const TextStyle(color: Colors.grey),
+                        hintStyle: TextStyle(color: Colors.grey, fontSize: contentFontSize),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 25,
-                          vertical: 20,
+                          vertical: 16,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
@@ -93,10 +105,16 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: smallSpacing),
 
-                    // INPUT PASSWORD
-                    _buildTextField("Password", _passController, isPassword: true),
+                    // Input password
+                    _buildTextField(
+                        "Password",
+                        _passController,
+                        isPassword: true,
+                        contentVerticalPadding: 16,
+                        fontSize: contentFontSize
+                    ),
 
                     if (authProvider.errorMessage != null)
                       Padding(
@@ -108,10 +126,10 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                         ),
                       ),
 
-                    const SizedBox(height: 40), // Spazio prima del bottone
+                    SizedBox(height: screenHeight * 0.15),
 
                     SizedBox(
-                      height: 55,
+                      height: referenceSize * 0.12,
                       child: ElevatedButton(
                         onPressed: authProvider.isLoading
                             ? null
@@ -141,7 +159,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                           }
                         },
 
-                        //PULSANTE PER ANDARE AVANTI
+                        //Pulsante per andare avanti
                         style: ElevatedButton.styleFrom(
                           backgroundColor: buttonColor,
                           foregroundColor: Colors.white,
@@ -152,17 +170,17 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                         ),
                         child: authProvider.isLoading
                             ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text(
+                            : Text(
                           "CONTINUA",
                           style: TextStyle(
-                            fontSize: 35,
+                            fontSize: referenceSize * 0.07,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1.0,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 50),
+                    SizedBox(height: verticalPadding),
                   ],
                 ),
               ),
@@ -173,25 +191,28 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     );
   }
 
+  // Widget campo di testo
   Widget _buildTextField(
       String hint,
       TextEditingController controller, {
         required bool isPassword,
+        double contentVerticalPadding = 20,
+        required double fontSize
       }) {
     bool obscureText = isPassword ? !_isPasswordVisible : false;
 
     return TextField(
       controller: controller,
       obscureText: obscureText,
-      style: const TextStyle(color: Colors.black),
+      style: TextStyle(color: Colors.black, fontSize: fontSize),
       decoration: InputDecoration(
         filled: true,
         fillColor: Colors.white,
         hintText: hint,
-        hintStyle: const TextStyle(color: Colors.grey),
-        contentPadding: const EdgeInsets.symmetric(
+        hintStyle: TextStyle(color: Colors.grey, fontSize: fontSize),
+        contentPadding: EdgeInsets.symmetric(
           horizontal: 25,
-          vertical: 20,
+          vertical: contentVerticalPadding,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
@@ -203,6 +224,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
           icon: Icon(
             _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
             color: Colors.grey,
+            size: fontSize * 1.5,
           ),
           onPressed: _togglePasswordVisibility,
         )

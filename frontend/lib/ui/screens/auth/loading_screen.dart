@@ -25,7 +25,16 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // COLORI GENERALI
+    // Variabili per la responsività
+    final Size screenSize = MediaQuery.of(context).size;
+    final double screenHeight = screenSize.height;
+    final double screenWidth = screenSize.width;
+    final double referenceSize = screenHeight < screenWidth ? screenHeight : screenWidth;
+    final double titleFontSize = referenceSize * 0.08;
+    final double logoSize = referenceSize * 0.45;
+    final double mainTextFontSize = referenceSize * 0.055;
+    final double secondaryTextFontSize = referenceSize * 0.035;
+
     final Color darkBackground = const Color(0xFF12345A);
     final Color progressCyan = const Color(0xFF00B0FF);
 
@@ -36,72 +45,72 @@ class _LoadingScreenState extends State<LoadingScreen> {
           padding: const EdgeInsets.all(30.0),
           child: Column(
             children: [
-              const SizedBox(height: 20),
+              SizedBox(height: screenHeight * 0.04),
 
-              // TITOLO
-              const Text(
+              // Titolo
+              Text(
                 'SAfeGuard',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 35,
+                  fontSize: titleFontSize,
                   fontWeight: FontWeight.bold,
                 ),
               ),
 
               const Spacer(),
 
-              // LOGO
+              // Logo
               Image.asset(
                 'assets/logo.png',
-                width: 200,
+                width: logoSize,
                 errorBuilder: (c, e, s) =>
-                const Icon(Icons.security, size: 150, color: Colors.orange),
+                    Icon(Icons.security, size: logoSize, color: Colors.orange),
               ),
 
               const Spacer(),
 
-              // TESTO PRINCIPALE
-              const Text(
+              // Testo principale
+              Text(
                 'Preparazione del\nsistema in corso...',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 22,
+                  fontSize: mainTextFontSize,
                   fontWeight: FontWeight.bold,
                 ),
               ),
 
-              // SCRITTE SECONDARIE
-              const SizedBox(height: 20),
-              const Text(
+              // Scritte secondarie
+              SizedBox(height: screenHeight * 0.02),
+              Text(
                 'Accedo alla tua posizione...\nResta al sicuro.\nConnessione ai servizi di emergenza...',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.white70,
-                  fontSize: 14,
+                  fontSize: secondaryTextFontSize,
                   height: 1.5,
                 ),
               ),
 
               const Spacer(),
 
-              // CONSIGLIO
-              const Text(
+              // Consiglio
+              Text(
                 'Consiglio: non andare nel panico.',
-                style: TextStyle(color: Colors.white70, fontSize: 12),
+                style: TextStyle(color: Colors.white70, fontSize: secondaryTextFontSize),
               ),
-              const SizedBox(height: 15),
+              SizedBox(height: screenHeight * 0.015),
 
-              // ANIMAZIONE BARRA - IL CARICAMENTO è PREIMPOSTATO A 3 SECONDI
+              // Animazione barra - il caricamento è preimpostato a 3 secondi
               TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0.0, end: 1.0),
-                duration: const Duration(seconds: 3), // PREIMPOSTAZIONE SECONDI
+                duration: const Duration(seconds: 3),
                 builder: (context, value, _) {
                   return LinearProgressIndicator(
                     value: value,
                     backgroundColor: Colors.white24,
                     color: progressCyan,
-                    minHeight: 6,
+                    minHeight: referenceSize * 0.015,
                     borderRadius: BorderRadius.circular(10),
                   );
                 },
@@ -114,15 +123,16 @@ class _LoadingScreenState extends State<LoadingScreen> {
                   // 2. Controlliamo lo stato di login dal Provider
                   final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
+                  // Utilizziamo pushReplacement per impedire all'utente di tornare alla schermata di caricamento
                   if (authProvider.isLogged) {
-                    // SE LOGGATO -> HOME SCREEN
+                    // Se loggato -> home screen
                     Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
                         builder: (context) => const HomeScreen(),
                       ),
                     );
                   } else {
-                    // SE NON LOGGATO -> REGISTRATION SCREEN (o Login)
+                    // Se non loggato -> registration screen (o Login)
                     Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
                         builder: (context) => const RegistrationScreen(),
@@ -131,7 +141,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
                   }
                 },
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: screenHeight * 0.04),
             ],
           ),
         ),

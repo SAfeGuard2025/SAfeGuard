@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:frontend/ui/screens/auth/login_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
-import 'package:frontend/ui/screens/home/home_screen.dart';
 
 class VerificationScreen extends StatefulWidget {
   const VerificationScreen({super.key});
@@ -13,7 +12,6 @@ class VerificationScreen extends StatefulWidget {
 }
 
 class _VerificationScreenState extends State<VerificationScreen> {
-  // COLORI
   static const Color darkBluePrimary = Color(0xFF12345A);
   static const Color darkBlueButton = Color(0xFF1B3C5E);
   static const Color textWhite = Colors.white;
@@ -41,6 +39,21 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Variabili per la responsività
+    final Size screenSize = MediaQuery.of(context).size;
+    final double screenHeight = screenSize.height;
+    final double screenWidth = screenSize.width;
+    final double referenceSize = screenHeight < screenWidth ? screenHeight : screenWidth;
+    final double titleFontSize = referenceSize * 0.075;
+    final double subtitleFontSize = referenceSize * 0.04;
+    final double inputCodeFontSize = referenceSize * 0.06;
+    final double buttonFontSize = referenceSize * 0.05;
+
+    final double verticalSpacing = screenHeight * 0.02;
+    final double largeSpacing = screenHeight * 0.04;
+    final double buttonHeight = referenceSize * 0.12;
+
+
     final authProvider = Provider.of<AuthProvider>(context);
     final double viewHeight =
         MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top;
@@ -57,6 +70,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
         ),
         child: SafeArea(
           child: SingleChildScrollView(
+            // Usato il viewHeight per garantire che lo scroll sia corretto anche con la tastiera
             child: SizedBox(
               height: viewHeight,
               child: Padding(
@@ -64,33 +78,33 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 10),
+                    SizedBox(height: verticalSpacing / 2),
                     // Tasto Indietro
                     IconButton(
                       icon: const Icon(Icons.arrow_back, color: Colors.white, size: 30),
                       onPressed: () => Navigator.pop(context),
                     ),
 
-                    const SizedBox(height: 20),
+                    SizedBox(height: verticalSpacing),
 
                     // Titoli
-                    const Text(
+                    Text(
                       "Codice di verifica",
                       style: TextStyle(
                         color: textWhite,
-                        fontSize: 34,
+                        fontSize: titleFontSize,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    const Text(
+                    SizedBox(height: verticalSpacing),
+                    Text(
                       "Abbiamo inviato un codice OTP.\nInseriscilo per verificare la tua identità.",
-                      style: TextStyle(color: textWhite, fontSize: 18, height: 1.5),
+                      style: TextStyle(color: textWhite, fontSize: subtitleFontSize, height: 1.5),
                     ),
-                    const SizedBox(height: 60),
+                    SizedBox(height: largeSpacing),
 
-                    // GRIGLIA DI INPUT (6 Cifre)
-                    _buildVerificationCodeInput(context),
+                    // Griglia di input (6 Cifre)
+                    _buildVerificationCodeInput(context, inputCodeFontSize),
 
                     // Messaggio di Errore dal Provider (se il codice server è errato)
                     if (authProvider.errorMessage != null)
@@ -107,10 +121,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
                     const Spacer(),
 
-                    // BOTTONE VERIFICA
+                    // Bottone verifica
                     SizedBox(
                       width: double.infinity,
-                      height: 60,
+                      height: buttonHeight,
                       child: ElevatedButton(
                         onPressed: authProvider.isLoading
                             ? null
@@ -154,10 +168,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
                         ),
                         child: authProvider.isLoading
                             ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text(
+                            : Text(
                           "VERIFICA",
                           style: TextStyle(
-                            fontSize: 20,
+                            fontSize: buttonFontSize,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1.5,
                           ),
@@ -165,26 +179,28 @@ class _VerificationScreenState extends State<VerificationScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    SizedBox(height: verticalSpacing),
 
-                    // TIMER RINVIO CODICE
+                    // Timer rinvio codice
                     Center(
                       child: Column(
                         children: [
-                          const Text(
+                          Text(
                             "Non hai ricevuto il codice?",
-                            style: TextStyle(color: textWhite, fontSize: 14),
+                            style: TextStyle(color: textWhite, fontSize: subtitleFontSize * 0.8),
                           ),
-                          const SizedBox(height: 5),
+                          SizedBox(height: verticalSpacing / 4),
                           GestureDetector(
                             onTap: () {
                               if (authProvider.secondsRemaining == 0) {
-                                authProvider.startTimer();
+                                authProvider.resendOtp(); // Usato resendOtp dal provider
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text("Nuovo codice inviato!")),
                                 );
                                 // Resetta i campi
-                                for (var c in _codeControllers) c.clear();
+                                for (var c in _codeControllers) {
+                                  c.clear();
+                                }
                                 _codeFocusNodes[0].requestFocus();
                               }
                             },
@@ -196,7 +212,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                 color: authProvider.secondsRemaining == 0
                                     ? textWhite
                                     : textWhite.withValues(alpha: 0.5),
-                                fontSize: 14,
+                                fontSize: subtitleFontSize * 0.8,
                                 fontStyle: FontStyle.italic,
                                 decoration: TextDecoration.underline,
                                 decorationColor: authProvider.secondsRemaining == 0
@@ -205,11 +221,11 @@ class _VerificationScreenState extends State<VerificationScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 5),
+                          SizedBox(height: verticalSpacing / 4),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: verticalSpacing / 2),
                   ],
                 ),
               ),
@@ -220,38 +236,34 @@ class _VerificationScreenState extends State<VerificationScreen> {
     );
   }
 
-  // --- LOGICA INPUT MIGLIORATA ---
-
-  Widget _buildVerificationCodeInput(BuildContext context) {
+  Widget _buildVerificationCodeInput(BuildContext context, double inputCodeFontSize) {
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: List.generate(3, (index) => _buildCodeBox(index, context)),
+          children: List.generate(3, (index) => _buildCodeBox(index, context, inputCodeFontSize)),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: List.generate(3, (index) => _buildCodeBox(index + 3, context)),
+          children: List.generate(3, (index) => _buildCodeBox(index + 3, context, inputCodeFontSize)),
         ),
       ],
     );
   }
 
-  Widget _buildCodeBox(int index, BuildContext context) {
-    final boxSize = MediaQuery.of(context).size.width / 6;
+  Widget _buildCodeBox(int index, BuildContext context, double inputCodeFontSize) {
+    final boxSize = (MediaQuery.of(context).size.width - 40) / 7;
 
     // Usiamo RawKeyboardListener per intercettare il Backspace anche a campo vuoto
     return RawKeyboardListener(
-      focusNode: FocusNode(), // Nodo fittizio per il listener (non quello del TextField)
+      focusNode: FocusNode(), // Nodo fittizio per il listener
       onKey: (RawKeyEvent event) {
         if (event is RawKeyDownEvent) {
           if (event.logicalKey == LogicalKeyboardKey.backspace) {
             // Se premo backspace e il campo attuale è vuoto, sposto il focus indietro
             if (_codeControllers[index].text.isEmpty && index > 0) {
               _codeFocusNodes[index - 1].requestFocus();
-              // Opzionale: cancella anche il valore precedente se vuoi essere aggressivo
-              // _codeControllers[index - 1].clear(); 
             }
           }
         }
@@ -261,7 +273,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
         height: boxSize,
         child: Container(
           decoration: BoxDecoration(
-            color: textWhite.withValues(alpha: 0.5),
+            color: textWhite.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
@@ -274,25 +286,23 @@ class _VerificationScreenState extends State<VerificationScreen> {
           child: Center(
             child: TextField(
               controller: _codeControllers[index],
-              focusNode: _codeFocusNodes[index], // FONDAMENTALE: Collega il nodo
+              focusNode: _codeFocusNodes[index],
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
 
-              // Impedisce caratteri non numerici (., - space)
               inputFormatters: [
                 LengthLimitingTextInputFormatter(1),
                 FilteringTextInputFormatter.digitsOnly,
               ],
 
-              style: const TextStyle(
-                fontSize: 30,
+              style: TextStyle(
+                fontSize: inputCodeFontSize,
                 fontWeight: FontWeight.bold,
                 color: darkBluePrimary,
               ),
               decoration: const InputDecoration(
                 counterText: "",
                 border: InputBorder.none,
-                // Centra verticalmente il cursore/testo
                 contentPadding: EdgeInsets.symmetric(vertical: 10),
               ),
 
@@ -305,9 +315,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     FocusScope.of(context).unfocus(); // Fine inserimento
                   }
                 } else if (value.isEmpty) {
-                  // Cancellazione (Backspace su campo pieno): Passa al precedente
+                  // Cancellazione: Sposta il focus al campo precedente
                   if (index > 0) {
-                    FocusScope.of(context).requestFocus(_codeFocusNodes[index - 1]);
+                    // Questa logica viene gestita dal RawKeyboardListener
+                    // ma la manteniamo qui per il comportamento standard di Android/iOS
                   }
                 }
               },

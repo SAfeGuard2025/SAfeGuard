@@ -23,14 +23,24 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    //ACCESSO AL PROVIDER PER LO STATO DI CARICAMENTO O DI ERRORI
+    // Variabili per la responsività
+    final Size screenSize = MediaQuery.of(context).size;
+    final double screenHeight = screenSize.height;
+    final double screenWidth = screenSize.width;
+    final double referenceSize = screenHeight < screenWidth ? screenHeight : screenWidth;
+
+    final double titleFontSize = referenceSize * 0.075;
+    final double contentFontSize = referenceSize * 0.045;
+    final double verticalPadding = screenHeight * 0.04;
+    final double smallSpacing = screenHeight * 0.015;
+    final double _ = screenHeight * 0.04;
+
     final authProvider = Provider.of<AuthProvider>(context);
     final Color buttonColor = const Color(0xFF0A2540);
 
-    //HEADER DELL'APP
     return Scaffold(
       extendBodyBehindAppBar: true,
-      //BARRA SUPERIORE DOVE CI SONO: ACCESSO - ICONA - SKIP
+      //Header
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -40,7 +50,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
         ),
       ),
 
-      //BODY
+      //Body
       body: Stack(
         children: [
           Container(
@@ -57,98 +67,106 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 50),
-                  const Text(
-                    "Inserisci i tuoi dati\nper accedere",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.w900,
-                      height: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 110),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(height: verticalPadding),
 
-                  //CAMPO DI TESTO - EMAIL
-                  _buildTextField("Email", _emailController, isPassword: false),
-                  const SizedBox(height: 20),
-
-                  //CAMPO DI TESTO - PASSWORD (MODIFICATO)
-                  _buildTextField(
-                    "Password",
-                    _passController,
-                    isPassword: true,
-                  ),
-
-                  // MESSAGGIO DI ERRORE
-                  if (authProvider.errorMessage != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 15),
-                      child: Text(
-                        authProvider.errorMessage!,
-                        style: const TextStyle(
-                          color: Colors.redAccent,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
+                    Text(
+                      "Accedi",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: titleFontSize,
+                        fontWeight: FontWeight.w900,
+                        height: 1.2,
                       ),
                     ),
+                    SizedBox(height: screenHeight * 0.10),
 
-                  const Spacer(),
-                  // Funziona la parte visiva, ma anche se non ci sono mail e password reindirizza alla homepage
-                  SizedBox(
-                    height: 55,
-                    child: ElevatedButton(
-                      onPressed: authProvider.isLoading
-                          ? null
-                          : () async {
-                        if (_emailController.text.isEmpty || _passController.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Inserisci email e password")),
+                    //Campo di testo - email
+                    _buildTextField("Email", _emailController, isPassword: false, contentVerticalPadding: 16, fontSize: contentFontSize),
+                    SizedBox(height: smallSpacing),
+
+                    //Campo di testo - password
+                    _buildTextField(
+                        "Password",
+                        _passController,
+                        isPassword: true,
+                        contentVerticalPadding: 16,
+                        fontSize: contentFontSize
+                    ),
+
+                    // Messaggio di errore
+                    if (authProvider.errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 15),
+                        child: Text(
+                          authProvider.errorMessage!,
+                          style: const TextStyle(
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+
+                    SizedBox(height: screenHeight * 0.15),
+
+                    SizedBox(
+                      height: referenceSize * 0.12,
+                      child: ElevatedButton(
+                        onPressed: authProvider.isLoading
+                            ? null
+                            : () async {
+                          final navigator = Navigator.of(context);
+                          final messenger = ScaffoldMessenger.of(context);
+
+                          if (_emailController.text.isEmpty || _passController.text.isEmpty) {
+                            messenger.showSnackBar(
+                              const SnackBar(content: Text("Inserisci email e password")),
+                            );
+                            return;
+                          }
+
+                          bool success = await authProvider.login(
+                            _emailController.text,
+                            _passController.text,
                           );
-                          return;
-                        }
-
-                        final navigator = Navigator.of(context);
-                        bool success = await authProvider.login(
-                          _emailController.text,
-                          _passController.text,
-                        );
-                        if (success) {
-                          navigator.pushAndRemoveUntil(
-                            MaterialPageRoute(
-                              builder: (context) => const HomeScreen(),
-                            ),
-                                (route) => false,
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: buttonColor,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                          if (success) {
+                            navigator.pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                builder: (context) => const HomeScreen(),
+                              ),
+                                  (route) => false,
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: buttonColor,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          side: const BorderSide(color: Colors.white12, width: 1),
                         ),
-                        side: const BorderSide(color: Colors.white12, width: 1),
-                      ),
-                      child: authProvider.isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text(
-                        "ACCEDI",
-                        style: TextStyle(
-                          fontSize: 35,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.0,
+                        child: authProvider.isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : Text(
+                          "ACCEDI",
+                          style: TextStyle(
+                            fontSize: referenceSize * 0.07,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.0,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 100),
-                ],
+
+                    SizedBox(height: verticalPadding),
+                  ],
+                ),
               ),
             ),
           ),
@@ -157,26 +175,28 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
     );
   }
 
-  // WIDGET CAMPO DI TESTO (MODIFICATO)
+  // Widget campo di testo
   Widget _buildTextField(
       String hint,
       TextEditingController controller, {
         required bool isPassword,
+        double contentVerticalPadding = 20,
+        required double fontSize
       }) {
     bool obscureText = isPassword ? !_isPasswordVisible : false;
 
     return TextField(
       controller: controller,
       obscureText: obscureText,
-      style: const TextStyle(color: Colors.black),
+      style: TextStyle(color: Colors.black, fontSize: fontSize),
       decoration: InputDecoration(
         filled: true,
         fillColor: Colors.white,
         hintText: hint,
-        hintStyle: const TextStyle(color: Colors.grey),
-        contentPadding: const EdgeInsets.symmetric(
+        hintStyle: TextStyle(color: Colors.grey, fontSize: fontSize),
+        contentPadding: EdgeInsets.symmetric(
           horizontal: 25,
-          vertical: 20,
+          vertical: contentVerticalPadding,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
@@ -188,6 +208,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
           icon: Icon(
             _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
             color: Colors.grey,
+            size: fontSize * 1.5,
           ),
           onPressed: _togglePasswordVisibility,
         )

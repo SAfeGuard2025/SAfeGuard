@@ -9,16 +9,77 @@ import 'package:provider/provider.dart';
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
+  // Widget pulsante social
+  Widget _buildSocialButton({
+    required String text,
+    required Color backgroundColor,
+    required Color textColor,
+    IconData? icon,
+    String? imagePath,
+    Color? iconColor,
+    VoidCallback? onTap,
+    required double fontSize,
+  }) {
+    final double buttonHeight = fontSize * 3.5;
+
+    return SizedBox(
+      width: double.infinity,
+      height: buttonHeight,
+      child: ElevatedButton(
+        onPressed: onTap ?? () {},
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor,
+          foregroundColor: textColor,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            const SizedBox(width: 10),
+            if (imagePath != null)
+              Image.asset(imagePath, height: fontSize * 1.5)
+            else if (icon != null)
+              Icon(icon, color: iconColor ?? textColor, size: fontSize * 1.5),
+            Expanded(
+              child: Center(
+                child: Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-
     final authProvider = Provider.of<AuthProvider>(context);
-
     final Color darkBlue = const Color(0xFF041528);
 
-    //HEADER DELL'APP
+    // Variabili per la responsività
+    final Size screenSize = MediaQuery.of(context).size;
+    final double screenHeight = screenSize.height;
+    final double screenWidth = screenSize.width;
+    final double referenceSize = screenHeight < screenWidth ? screenHeight : screenWidth;
+    final double verticalSpacing = screenHeight * 0.015;
+    final double mascotSize = referenceSize * 0.22;
+    final double titleFontSize = referenceSize * 0.065;
+    final double subtitleFontSize = referenceSize * 0.035;
+    final double buttonTextFontSize = referenceSize * 0.04;
+
+    //Header
     return Scaffold(
-      //BARRA NAVIGAZIONALE SOPRA CON: REGISTRAZIONE - ICONA - SKIP
+      //Barra navigazionale sopra con: Accesso - Icona - Skip
       appBar: AppBar(
         backgroundColor: darkBlue,
         elevation: 0,
@@ -26,7 +87,6 @@ class LoginScreen extends StatelessWidget {
         leadingWidth: 120,
         leading: const Padding(
           padding: EdgeInsets.only(left: 10),
-          //ACCENTRA IL TESTO + ZONA TESTO REGISTRAZIONE
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
@@ -41,7 +101,7 @@ class LoginScreen extends StatelessWidget {
         ),
         title: Image.asset(
           'assets/logo.png',
-          height: 40,
+          height: screenHeight * 0.05,
           errorBuilder: (c, e, s) =>
           const Icon(Icons.shield, color: Colors.white),
         ),
@@ -63,10 +123,10 @@ class LoginScreen extends StatelessWidget {
         ],
       ),
 
-      //BODY
+      //Body
       body: Stack(
         children: [
-          // SFONDO
+          // Sfondo
           Container(
             height: double.infinity,
             width: double.infinity,
@@ -77,18 +137,17 @@ class LoginScreen extends StatelessWidget {
               ),
             ),
           ),
-          // CONTENUTO
+          // Contenuto
           SafeArea(
             child: Column(
               children: [
-                const SizedBox(height: 20),
-                // HEADER - SEZIONE MODIFICATA
+                SizedBox(height: screenHeight * 0.04),
+                // Header - Sezione mascotte e testo
                 Padding(
                   padding: const EdgeInsets.fromLTRB(25, 5, 25, 10),
                   child: Row(
-                    // === MODIFICA QUI: Inverti l'ordine per specchiare ===
                     children: [
-                      // 1. Blocco Testo (Precedentemente 2° elemento)
+                      // 1. Blocco Testo
                       Expanded(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -99,54 +158,63 @@ class LoginScreen extends StatelessWidget {
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: darkBlue,
-                                fontSize: 30,
+                                fontSize: titleFontSize,
                                 fontWeight: FontWeight.w900,
                                 height: 1.2,
                               ),
                             ),
-                            const SizedBox(height: 10),
-                            Text(
-                              "Accedi per connetterti alla rete di emergenza",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: darkBlue, fontSize: 16),
+                            SizedBox(height: verticalSpacing),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                "Accedi per connetterti alla rete di emergenza",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: darkBlue,
+                                    fontSize: subtitleFontSize,
+                                    fontWeight: FontWeight.bold
+                                ),
+                              ),
                             ),
                           ],
                         ),
                       ),
 
-                      const SizedBox(width: 20), // Spaziatura
+                      const SizedBox(width: 20),
 
-                      // 2. Mascot (Precedentemente 1° elemento)
-                      // === APPLICAZIONE DELLA ROTAZIONE SPECCHIATA ALLA MASCOT ===
+                      // 2. Mascotte specchiata
                       Transform.flip(
-                        flipX: true, // Specchia orizzontalmente
+                        flipX: true,
                         child: Image.asset(
                           'assets/stylizedMascot.png',
-                          width: 100,
+                          width: mascotSize,
                           color: darkBlue,
                           errorBuilder: (c, e, s) =>
-                              Icon(Icons.shield, size: 80, color: darkBlue),
+                              Icon(Icons.shield, size: mascotSize, color: darkBlue),
                         ),
                       ),
-                      // ====================================================
                     ],
-                    // ====================================================
                   ),
                 ),
 
-                //ZONA PULSANTI
+                //Zona pulsanti
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 30.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        // CONTINUA CON APPLE
+                        // Continua con apple
                         _buildSocialButton(
                           text: "Continua con Apple",
                           icon: Icons.apple,
                           backgroundColor: Colors.black,
                           textColor: Colors.white,
+                          fontSize: buttonTextFontSize,
                           onTap: () async {
                             final success = await authProvider.signInWithApple();
                             if (success && context.mounted) {
@@ -156,15 +224,16 @@ class LoginScreen extends StatelessWidget {
                             }
                           },
                         ),
-                        const SizedBox(height: 15),
+                        SizedBox(height: verticalSpacing),
 
-// CONTINUA CON GOOGLE
+                        // Continua con google
                         _buildSocialButton(
                           text: "Continua con Google",
                           imagePath: 'assets/googleIcon.png',
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
                           iconColor: Colors.red,
+                          fontSize: buttonTextFontSize,
                           onTap: () async {
                             final success = await authProvider.signInWithGoogle();
                             if (success && context.mounted) {
@@ -174,15 +243,16 @@ class LoginScreen extends StatelessWidget {
                             }
                           },
                         ),
-                        const SizedBox(height: 15),
+                        SizedBox(height: verticalSpacing),
 
-                        //CONTINUA CON EMAIL FUNZIONA E CONTINUA SU email_register_screen
+                        // Continua con email
                         _buildSocialButton(
                           text: "Continua con Email",
                           icon: Icons.alternate_email,
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
                           iconColor: darkBlue,
+                          fontSize: buttonTextFontSize,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -190,15 +260,16 @@ class LoginScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 15),
+                        SizedBox(height: verticalSpacing),
 
-                        //CONTINUA CON TELEFONO FUNZIONA E CONTINUA SU phone_register_screen
+                        // Continua con telefono
                         _buildSocialButton(
                           text: "Continua con Telefono",
                           icon: Icons.phone,
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
                           iconColor: darkBlue,
+                          fontSize: buttonTextFontSize,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -206,9 +277,10 @@ class LoginScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 50),
 
-                        //PARTE BASSA, HAI GIA' UN ACCOUNT - REINDIRIZZATO AL registration_screen
+                        SizedBox(height: screenHeight * 0.05),
+
+                        // Parte bassa, vai a registrazione
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -225,7 +297,7 @@ class LoginScreen extends StatelessWidget {
                                 ),
                               ),
 
-                              //SCRITTA CLICCABILE
+                              //Scritta cliccabile
                               child: const Text(
                                 "Registrati",
                                 style: TextStyle(
@@ -236,7 +308,7 @@ class LoginScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 30),
+                        SizedBox(height: verticalSpacing * 2),
                       ],
                     ),
                   ),
@@ -245,55 +317,6 @@ class LoginScreen extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  //DA METTERE IN UN ALTRO FILE
-  Widget _buildSocialButton({
-    required String text,
-    required Color backgroundColor,
-    required Color textColor,
-    IconData? icon,
-    String? imagePath,
-    Color? iconColor,
-    VoidCallback? onTap,
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      height: 55,
-      child: ElevatedButton(
-        onPressed: onTap ?? () {},
-        style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor,
-          foregroundColor: textColor,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            const SizedBox(width: 10),
-            if (imagePath != null)
-              Image.asset(imagePath, height: 24)
-            else if (icon != null)
-              Icon(icon, color: iconColor ?? textColor, size: 24),
-            Expanded(
-              child: Center(
-                child: Text(
-                  text,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 24),
-          ],
-        ),
       ),
     );
   }
