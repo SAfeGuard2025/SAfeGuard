@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:data_models/ContattoEmergenza.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart'; // Per kIsWeb
@@ -137,6 +138,68 @@ class ProfileRepository {
 
     if (response.statusCode != 200) {
       throw Exception('Errore rimozione medicinale');
+    }
+  }
+
+  // --- GET CONTATTI ---
+  Future<List<ContattoEmergenza>> fetchContacts() async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/api/profile/');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final list = data['contattiEmergenza'] as List<dynamic>? ?? [];
+      return list.map((e) => ContattoEmergenza.fromJson(e)).toList();
+    } else {
+      throw Exception('Impossibile caricare i contatti');
+    }
+  }
+
+  // --- AGGIUNGI CONTATTO ---
+  Future<void> addContatto(ContattoEmergenza contatto) async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/api/profile/contatti');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(contatto.toJson()),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception('Errore aggiunta contatto: ${response.body}');
+    }
+  }
+
+  // --- RIMUOVI CONTATTO ---
+  Future<void> removeContatto(ContattoEmergenza contatto) async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/api/profile/contatti');
+
+    // Nelle chiamate DELETE con body, a volte è necessario specificare bene il client,
+    // ma con http standard di Dart funziona passando il body.
+    final response = await http.delete(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(contatto.toJson()),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Errore rimozione contatto');
     }
   }
 }

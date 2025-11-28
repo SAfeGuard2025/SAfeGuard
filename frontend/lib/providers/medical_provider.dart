@@ -1,3 +1,4 @@
+import 'package:data_models/ContattoEmergenza.dart';
 import 'package:flutter/material.dart';
 import 'package:data_models/medical_item.dart';
 import '../repositories/profile_repository.dart'; // Importa il repo creato sopra
@@ -105,6 +106,58 @@ class MedicalProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _errorMessage = "Errore rimozione: $e";
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // ... dentro MedicalProvider ...
+
+  List<ContattoEmergenza> _contatti = [];
+  List<ContattoEmergenza> get contatti => _contatti;
+
+  // Carica contatti
+  Future<void> loadContacts() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      _contatti = await _profileRepository.fetchContacts();
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Aggiungi contatto
+  Future<bool> addContatto(String nome, String numero) async {
+    try {
+      final nuovoContatto = ContattoEmergenza(nome: nome, numero: numero);
+      await _profileRepository.addContatto(nuovoContatto);
+
+      _contatti.add(nuovoContatto);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = "Errore aggiunta contatto: $e";
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Rimuovi contatto
+  Future<bool> removeContatto(int index) async {
+    try {
+      final contatto = _contatti[index];
+      await _profileRepository.removeContatto(contatto);
+
+      _contatti.removeAt(index);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = "Errore rimozione contatto: $e";
       notifyListeners();
       return false;
     }

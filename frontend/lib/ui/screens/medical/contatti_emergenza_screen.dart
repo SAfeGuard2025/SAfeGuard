@@ -1,30 +1,27 @@
 import 'package:flutter/material.dart';
-// --- IMPORTA IL MODELLO ESTERNO ---
-import 'package:data_models/contact_item.dart';
+import 'package:provider/provider.dart';
+// IMPORT MODELLO UFFICIALE E PROVIDER
+import 'package:data_models/ContattoEmergenza.dart';
+import 'package:frontend/providers/medical_provider.dart';
 
 class ContattiEmergenzaScreen extends StatefulWidget {
   const ContattiEmergenzaScreen({super.key});
-
   @override
-  State<ContattiEmergenzaScreen> createState() =>
-      _ContattiEmergenzaScreenState();
+  State<ContattiEmergenzaScreen> createState() => _ContattiEmergenzaScreenState();
 }
 
 class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
-  // Ora la lista usa la classe importata da /models
-  List<ContactItem> contacts = [
-    ContactItem(
-      number: "+39 333 1234567",
-      nameAndRole: "Giovanna Lamberti (madre)",
-    ),
-    ContactItem(
-      number: "+39 333 1234566",
-      nameAndRole: "Lorenzo Lamberti (padre)",
-    ),
-  ];
-
   final TextEditingController _numberController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Carica i dati dal server all'avvio
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<MedicalProvider>(context, listen: false).loadContacts();
+    });
+  }
 
   @override
   void dispose() {
@@ -47,18 +44,11 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
           children: [
             // HEADER
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 10.0,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(
-                      Icons.arrow_back_ios_new,
-                      color: Colors.white,
-                      size: 28,
-                    ),
+                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 28),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -78,11 +68,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
                       color: Color(0xFFE08E50),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.phone_in_talk,
-                      color: Colors.blueAccent,
-                      size: 40,
-                    ),
+                    child: const Icon(Icons.phone_in_talk, color: Colors.blueAccent, size: 40),
                   ),
                   const SizedBox(width: 20),
                   const Text(
@@ -99,7 +85,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
             ),
             const SizedBox(height: 30),
 
-            // LISTA
+            // LISTA COLLEGATA AL PROVIDER
             Expanded(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -108,25 +94,32 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
                   borderRadius: BorderRadius.circular(25.0),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 10.0,
-                    horizontal: 5.0,
-                  ),
-                  child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 15.0,
-                      vertical: 10.0,
-                    ),
-                    itemCount: contacts.length,
-                    separatorBuilder: (context, index) =>
-                        Divider(color: Colors.white.withValues(alpha: 0.1)),
-                    itemBuilder: (context, index) {
-                      return _buildItem(
-                        item: contacts[index],
-                        onEdit: () => _openDialog(isEdit: true, index: index),
-                        onDelete: () =>
-                            setState(() => contacts.removeAt(index)),
-                        deleteColor: deleteColor,
+                  padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
+                  child: Consumer<MedicalProvider>(
+                    builder: (context, provider, child) {
+                      if (provider.isLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (provider.contatti.isEmpty) {
+                        return const Center(child: Text("Nessun contatto aggiunto", style: TextStyle(color: Colors.white)));
+                      }
+
+                      return ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
+                        itemCount: provider.contatti.length,
+                        separatorBuilder: (context, index) =>
+                            Divider(color: Colors.white.withValues(alpha: 0.1)),
+                        itemBuilder: (context, index) {
+                          return _buildItem(
+                            item: provider.contatti[index],
+                            // Edit disabilitato: richiederebbe logica "rimuovi vecchio -> aggiungi nuovo" o API PUT specifica
+                            onEdit: () => _openDialog(isEdit: false),
+                            onDelete: () async {
+                              await provider.removeContatto(index);
+                            },
+                            deleteColor: deleteColor,
+                          );
+                        },
                       );
                     },
                   ),
@@ -135,13 +128,9 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
             ),
             const SizedBox(height: 20),
 
-            // AGGIUNGI (Form Finto che apre dialog)
+            // AGGIUNGI
             Padding(
-              padding: const EdgeInsets.only(
-                left: 20.0,
-                right: 20.0,
-                bottom: 30.0,
-              ),
+              padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 30.0),
               child: InkWell(
                 onTap: () => _openDialog(isEdit: false),
                 child: Container(
@@ -193,8 +182,9 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
     );
   }
 
+  // WIDGET ITEM
   Widget _buildItem({
-    required ContactItem item,
+    required ContattoEmergenza item,
     required VoidCallback onEdit,
     required VoidCallback onDelete,
     required Color deleteColor,
@@ -209,7 +199,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.number,
+                  item.numero, // Usa i campi di ContattoEmergenza
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -218,7 +208,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  item.nameAndRole,
+                  item.nome, // Usa i campi di ContattoEmergenza
                   style: const TextStyle(color: Colors.white70, fontSize: 14),
                 ),
               ],
@@ -241,23 +231,19 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
     );
   }
 
+  // DIALOGO
   void _openDialog({required bool isEdit, int? index}) {
-    if (isEdit && index != null) {
-      _numberController.text = contacts[index].number;
-      _nameController.text = contacts[index].nameAndRole;
-    } else {
-      _numberController.clear();
-      _nameController.clear();
-    }
+    _numberController.clear();
+    _nameController.clear();
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           backgroundColor: const Color(0xFF0E2A48),
-          title: Text(
-            isEdit ? "Modifica contatto" : "Nuovo contatto",
-            style: const TextStyle(color: Colors.white),
+          title: const Text(
+            "Nuovo contatto",
+            style: TextStyle(color: Colors.white),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -291,28 +277,19 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text(
-                "Annulla",
-                style: TextStyle(color: Colors.white70),
-              ),
+              child: const Text("Annulla", style: TextStyle(color: Colors.white70)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-              onPressed: () {
-                if (_numberController.text.isNotEmpty &&
-                    _nameController.text.isNotEmpty) {
-                  setState(() {
-                    final item = ContactItem(
-                      number: _numberController.text,
-                      nameAndRole: _nameController.text,
-                    );
-                    if (isEdit && index != null) {
-                      contacts[index] = item;
-                    }else{
-                      contacts.add(item);
-                    }
-                  });
-                  Navigator.pop(context);
+              onPressed: () async {
+                if (_numberController.text.isNotEmpty && _nameController.text.isNotEmpty) {
+
+                  final success = await Provider.of<MedicalProvider>(context, listen: false)
+                      .addContatto(_nameController.text, _numberController.text);
+
+                  if (success && context.mounted) {
+                    Navigator.pop(context);
+                  }
                 }
               },
               child: const Text("Salva", style: TextStyle(color: Colors.white)),
