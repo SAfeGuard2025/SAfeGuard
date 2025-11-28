@@ -136,4 +136,58 @@ class AuthRepository {
       throw Exception("Errore verifica: $e");
     }
   }
+
+  // --- LOGIN GOOGLE ---
+  Future<Map<String, dynamic>> loginWithGoogle(String idToken) async {
+    final url = Uri.parse('$_baseUrl/api/auth/google');
+
+    try {
+      final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'id_token': idToken}),
+    );
+
+    final Map<String, dynamic> body = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+    return body;
+    } else {
+    throw Exception(body['message'] ?? "Errore login Google");
+    }
+    } catch (e) {
+    throw Exception("Errore connessione: $e");
+    }
+  }
+
+  // --- LOGIN APPLE ---
+  Future<Map<String, dynamic>> loginWithApple({
+    required String identityToken,
+    String? email,
+    String? firstName,
+    String? lastName,
+  }) async {
+    final url = Uri.parse('$_baseUrl/api/auth/apple');
+
+    try {
+      final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+      'identityToken': identityToken,
+      'email': email,
+      'givenName': firstName,
+      'familyName': lastName,
+      }),
+    );
+
+    final Map<String, dynamic> body = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+    return body;
+    } else {
+    throw Exception(body['message'] ?? "Errore login Apple");
+    }
+    } catch (e) {
+    throw Exception("Errore connessione: $e");
+    }
+  }
 }

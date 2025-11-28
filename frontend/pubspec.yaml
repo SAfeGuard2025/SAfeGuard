@@ -42,6 +42,9 @@ dependencies:
   # Per salvare il token e i dati login sul telefono
   shared_preferences: ^2.3.2
 
+  google_sign_in: ^6.1.0
+  sign_in_with_apple: ^6.1.0
+
   # dipendenza comune
   data_models:
     path: ../data_models
