@@ -19,9 +19,11 @@ class AuthProvider extends ChangeNotifier {
   String? _authToken;
   bool _isRescuer = false;
 
-  // Dati temporanei per OTP
+  // Dati temporanei per OTP (Email o Telefono)
   String? _tempEmail;
+  String? _tempPhone; // Variabile per il numero di telefono
   String? _tempPassword;
+
   int _secondsRemaining = 30;
   Timer? _timer;
 
@@ -31,14 +33,11 @@ class AuthProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   int get secondsRemaining => _secondsRemaining;
   UtenteGenerico? get currentUser => _currentUser;
-
-  // Getter fondamentale per la UI
   bool get isLogged => _authToken != null;
 
-  // --- AUTO LOGIN (Al lancio dell'app) ---
+  // --- AUTO LOGIN ---
   Future<void> tryAutoLogin() async {
     final prefs = await SharedPreferences.getInstance();
-
     if (!prefs.containsKey('auth_token')) return;
 
     final token = prefs.getString('auth_token');
@@ -56,22 +55,12 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // --- LOGIN ---
+  // --- LOGIN EMAIL ---
   Future<bool> login(String email, String password) async {
     _setLoading(true);
     try {
       final response = await _authRepository.login(email, password);
-
-      final token = response['token'];
-      final userMap = response['user'];
-
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('auth_token', token);
-      await prefs.setString('user_data', jsonEncode(userMap));
-
-      _authToken = token;
-      _currentUser = _parseUser(userMap);
-
+      await _saveSession(response);
       _setLoading(false);
       return true;
     } catch (e) {
@@ -81,16 +70,15 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // --- REGISTRAZIONE ---
+  // --- REGISTRAZIONE EMAIL ---
   Future<bool> register(String email, String password) async {
     _setLoading(true);
     try {
       await _authRepository.register(email, password);
-
       _tempEmail = email;
+      _tempPhone = null;
       _tempPassword = password;
       startTimer();
-
       _setLoading(false);
       return true;
     } catch (e) {
@@ -100,29 +88,57 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // --- VERIFICA OTP ---
+  // --- REGISTRAZIONE / LOGIN TELEFONO ---
+  Future<bool> startPhoneAuth(String phoneNumber) async {
+    _setLoading(true);
+    try {
+      // Chiama il repository per inviare SMS (endpoint register)
+      await _authRepository.sendPhoneOtp(phoneNumber);
+
+      _tempPhone = phoneNumber;
+      _tempEmail = null;
+      _tempPassword = null;
+
+      startTimer();
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _errorMessage = _cleanError(e);
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  // --- VERIFICA OTP (Gestisce sia Email che Telefono) ---
   Future<bool> verifyCode(String code) async {
-    if (_tempEmail == null) {
-      _errorMessage = "Errore: Email persa.";
+    if (_tempEmail == null && _tempPhone == null) {
+      _errorMessage = "Nessun contatto trovato. Ricomincia.";
       notifyListeners();
       return false;
     }
 
     _setLoading(true);
     try {
-      bool isValid = await _authRepository.verifyOtp(_tempEmail!, code);
-      _setLoading(false);
+      // Passiamo i parametri corretti al repository
+      final response = await _authRepository.verifyOtp(
+        email: _tempEmail,
+        phone: _tempPhone,
+        code: code,
+      );
 
-      if (isValid) {
-        stopTimer();
-        _tempEmail = null;
-        _tempPassword = null;
-        return true;
-      } else {
-        _errorMessage = "Codice non valido.";
-        notifyListeners();
-        return false;
+      // Se la risposta contiene un token, l'utente è loggato (flusso tipico telefono)
+      if (response.containsKey('token')) {
+        await _saveSession(response);
       }
+
+      stopTimer();
+      // Pulizia dati temporanei
+      _tempEmail = null;
+      _tempPhone = null;
+      _tempPassword = null;
+
+      _setLoading(false);
+      return true;
     } catch (e) {
       _errorMessage = _cleanError(e);
       _setLoading(false);
@@ -132,19 +148,17 @@ class AuthProvider extends ChangeNotifier {
 
   // --- RESEND OTP (RINVIA CODICE) ---
   Future<void> resendOtp() async {
-    if (_tempEmail == null || _tempPassword == null) {
-      _errorMessage = "Dati sessione scaduti. Registrati di nuovo.";
-      notifyListeners();
-      return;
-    }
-
     _setLoading(true);
     try {
-      // Nota: Poiché il tuo server non ha un endpoint specifico "resend",
-      // richiamiamo la registrazione. Il backend deve essere in grado di gestire
-      // un "aggiornamento" OTP se l'utente esiste ma non è verificato.
-      // Altrimenti, dovresti creare una rotta specifica server-side /api/resend-otp
-      await _authRepository.register(_tempEmail!, _tempPassword!);
+      if (_tempEmail != null && _tempPassword != null) {
+        // Rinvia Email (richiamando register)
+        await _authRepository.register(_tempEmail!, _tempPassword!);
+      } else if (_tempPhone != null) {
+        // Rinvia SMS (richiamando sendPhoneOtp)
+        await _authRepository.sendPhoneOtp(_tempPhone!);
+      } else {
+        throw Exception("Dati mancanti per rinviare codice.");
+      }
 
       startTimer(); // Riavvia il timer
       _errorMessage = null; // Pulisce eventuali errori precedenti
@@ -162,6 +176,19 @@ class AuthProvider extends ChangeNotifier {
     _currentUser = null;
     _authToken = null;
     notifyListeners();
+  }
+
+  // --- HELPER: SALVATAGGIO SESSIONE ---
+  Future<void> _saveSession(Map<String, dynamic> response) async {
+    final token = response['token'];
+    final userMap = response['user'];
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('auth_token', token);
+    await prefs.setString('user_data', jsonEncode(userMap));
+
+    _authToken = token;
+    _currentUser = _parseUser(userMap);
   }
 
   // --- UTILS ---

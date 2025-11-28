@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:io'; // Per Platform.environment
-import 'package:crypto/crypto.dart'; // Importa crypto
+import 'dart:io';
+import 'package:crypto/crypto.dart';
 
 import 'package:data_models/UtenteGenerico.dart';
 import 'package:data_models/Soccorritore.dart';
@@ -8,13 +8,11 @@ import 'package:data_models/Utente.dart';
 import '../repositories/UserRepository.dart';
 import 'VerificationService.dart';
 
-// --- Lista dei domini abilitati come Soccorritore ---
 const List<String> rescuerDomains = [
   '@soccorritore.gmail',
   '@crocerossa.it',
   '@118.it',
   '@protezionecivile.it',
-  // Aggiungi qui altri domini se necessario
 ];
 
 class RegisterService {
@@ -23,15 +21,9 @@ class RegisterService {
 
   RegisterService(this._userRepository, this._verificationService);
 
-  // Funzione privata per generare l'hash
   String _hashPassword(String password) {
-    // 1. Recupera il segreto dalle Env (o usa un fallback per sicurezza in dev)
     final secret = Platform.environment['HASH_SECRET'] ?? 'fallback_secret_dev';
-
-    // 2. Unisce password + segreto
     final bytes = utf8.encode(password + secret);
-
-    // 3. Calcola SHA-256 e restituisce la stringa esadecimale
     return sha256.convert(bytes).toString();
   }
 
@@ -42,6 +34,7 @@ class RegisterService {
     final email = requestData['email'] as String?;
     final telefono = requestData['telefono'] as String?;
 
+    // 1. Validazione: Almeno uno dei due deve esistere
     if (password.isEmpty || (email == null && telefono == null)) {
       throw Exception('Devi fornire Password e almeno Email o Telefono.');
     }
@@ -58,28 +51,32 @@ class RegisterService {
 
     requestData['id'] = 0;
     requestData['isVerified'] = false;
+    requestData['attivo'] = false;
 
     bool isSoccorritore = false;
-
-    // --- MODIFICA LOGICA SOCCORRITORE ---
     if (email != null) {
-      // Controlla se l'email finisce con UNO QUALSIASI dei domini nella lista
       isSoccorritore = rescuerDomains.any((domain) => email.toLowerCase().endsWith(domain));
     }
+    requestData['isSoccorritore'] = isSoccorritore;
 
+    // 5. Creazione Oggetto
     final UtenteGenerico newUser;
     if (isSoccorritore) {
-      // Se è soccorritore, istanzia la classe corretta
       newUser = Soccorritore.fromJson(requestData);
     } else {
-      // Altrimenti è un utente standard
       newUser = Utente.fromJson(requestData);
     }
 
+    // 6. Salvataggio
     final savedUser = await _userRepository.saveUser(newUser);
 
-    if (savedUser.telefono != null) {
-      await _verificationService.startPhoneVerification(savedUser.telefono!);
+    // 7. Avvio Verifica Telefono (se presente)
+    if (savedUser.telefono != null && savedUser.telefono!.isNotEmpty) {
+      try {
+        await _verificationService.startPhoneVerification(savedUser.telefono!);
+      } catch (e) {
+        print("Errore durante l'invio dell'SMS: $e");
+      }
     }
 
     return savedUser;

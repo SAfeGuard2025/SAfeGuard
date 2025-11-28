@@ -11,9 +11,8 @@ class PhoneRegisterScreen extends StatefulWidget {
 }
 
 class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
-  final TextEditingController _phoneController = TextEditingController(
-    text: "+39 ",
-  );
+  // Controller inizializzato col prefisso
+  final TextEditingController _phoneController = TextEditingController(text: "+39");
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +21,6 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      //HEADER
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -31,8 +29,6 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-
-      //BODY
       body: Stack(
         children: [
           Container(
@@ -65,7 +61,7 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                   ),
                   const SizedBox(height: 100),
 
-                  //CAMPO PER INSERIRE IL NUMERO DI TELEFONO
+                  // INPUT TELEFONO
                   TextField(
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
@@ -73,13 +69,9 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
-                      hintText:
-                          "+39 ...", //PARTE INIZIALE PER IL PREFISSO ITALIANO
+                      hintText: "+39 ...",
                       hintStyle: const TextStyle(color: Colors.grey),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 25,
-                        vertical: 20,
-                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
                         borderSide: BorderSide.none,
@@ -87,31 +79,47 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                     ),
                   ),
 
+                  if (authProvider.errorMessage != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 20),
+                      child: Text(
+                        authProvider.errorMessage!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+
                   const Spacer(),
-                  //anche senza numero ti rimanda al codice OTP, visivamente funziona
+
+                  // BOTTONE REGISTRATI
                   SizedBox(
                     height: 55,
                     child: ElevatedButton(
                       onPressed: authProvider.isLoading
                           ? null
                           : () async {
-                              final navigator = Navigator.of(context);
+                        final navigator = Navigator.of(context);
+                        final phone = _phoneController.text.trim();
 
-                              /*bool success = await authProvider.sendPhoneCode(
-                                _phoneController.text,
-                              );*/ //DA DECOMMETARE
+                        if (phone.isEmpty || phone.length < 5) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Inserisci un numero valido")),
+                          );
+                          return;
+                        }
 
-                              if (false) { //SUCCESS
-                                navigator.push(
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const VerificationScreen(),
-                                  ),
-                                );
-                              }
-                            },
+                        // CHIAMATA AL PROVIDER
+                        bool success = await authProvider.startPhoneAuth(phone);
 
-                      //PULSANTE REGISTRATI
+                        // Se successo, vai alla verifica OTP
+                        if (success && mounted) {
+                          navigator.push(
+                            MaterialPageRoute(
+                              builder: (context) => const VerificationScreen(),
+                            ),
+                          );
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: buttonColor,
                         foregroundColor: Colors.white,
@@ -123,13 +131,13 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                       child: authProvider.isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : const Text(
-                              "REGISTRATI",
-                              style: TextStyle(
-                                fontSize: 35,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.0,
-                              ),
-                            ),
+                        "REGISTRATI",
+                        style: TextStyle(
+                          fontSize: 35,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 100),
