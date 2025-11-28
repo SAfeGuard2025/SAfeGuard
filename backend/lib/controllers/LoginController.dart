@@ -6,6 +6,7 @@ import 'package:data_models/Soccorritore.dart';
 import 'package:data_models/UtenteGenerico.dart';
 
 class LoginController {
+  // Dipendenza: il Controller DELEGA la logica di business a LoginService
   final LoginService _loginService = LoginService();
 
   // Headers standard per le risposte JSON
@@ -28,7 +29,7 @@ class LoginController {
         return _buildErrorResponse(400, 'Email/Telefono e Password sono obbligatori.');
       }
 
-      // Chiamata al Service
+      // Chiamata al LoginService per la logica di autenticazione
       final result = await _loginService.login(
         email: email,
         telefono: telefono,
@@ -39,7 +40,7 @@ class LoginController {
         return _buildSuccessResponse(result);
       } else {
         return _buildErrorResponse(
-          401, // Unauthorized
+          401,
           'Credenziali non valide (combinazione errata o utente non trovato)',
         );
       }
@@ -63,6 +64,7 @@ class LoginController {
         return _buildErrorResponse(400, 'Token Google mancante nella richiesta.');
       }
 
+      // Delega al LoginService per la verifica del token e la creazione del JWT
       final result = await _loginService.loginWithGoogle(googleToken);
 
       if (result != null) {
@@ -92,6 +94,7 @@ class LoginController {
         return _buildErrorResponse(400, 'Token Apple (identityToken) mancante.');
       }
 
+      // Delega al LoginService
       final result = await _loginService.loginWithApple(
         identityToken: identityToken,
         email: email,
@@ -109,18 +112,18 @@ class LoginController {
     }
   }
 
-  // --- HELPER METHODS ---
+  // Metodi di Utility
 
   // Costruzione Risposta di Successo (200 OK)
   Response _buildSuccessResponse(Map<String, dynamic> result) {
-    // Gestione sicura del casting: se 'user' non è UtenteGenerico, gestisci l'errore o fallo nel service
-    // Assumo che LoginService ritorni la mappa {'user': UtenteGenerico, 'token': String}
+    // Gestione sicura del casting
     final user = result['user'] as UtenteGenerico;
     final token = result['token'] as String;
 
     String tipoUtente;
     int assignedId = user.id ?? 0;
 
+    // Determina il tipo di utente per messaggio e log
     if (user is Soccorritore) {
       tipoUtente = 'Soccorritore';
     } else if (user is Utente) {
@@ -139,7 +142,7 @@ class LoginController {
     return Response.ok(jsonEncode(responseBody), headers: _headers);
   }
 
-  // Costruzione Risposta di Errore (400, 401, 500)
+  // Costruzione Risposta di Errore (4**, 5**)
   Response _buildErrorResponse(int statusCode, String message) {
     return Response(
       statusCode,

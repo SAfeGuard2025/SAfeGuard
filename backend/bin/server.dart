@@ -5,22 +5,21 @@ import 'package:shelf_router/shelf_router.dart';
 import 'package:dotenv/dotenv.dart';
 import 'package:firedart/firedart.dart';
 
-// Assicurati che i path dei package siano corretti nel tuo progetto
 import 'package:backend/controllers/LoginController.dart';
 import 'package:backend/controllers/RegisterController.dart';
 import 'package:backend/controllers/VerificationController.dart';
-import 'package:backend/controllers/ProfileController.dart'; // Importa il nuovo controller
-import 'package:backend/controllers/AuthGuard.dart'; // Importa il Middleware
+import 'package:backend/controllers/ProfileController.dart';
+import 'package:backend/controllers/AuthGuard.dart';
 
 
 void main() async {
-  // 1. Caricamento Variabili d'ambiente
+  // 1. Configurazione ambiente
+  // Carica le variabili dal file .env e determina la porta del server
   var env = DotEnv(includePlatformEnvironment: true)..load();
-
-  // 2. Configurazione Porta e Progetto Firebase
   final portStr = Platform.environment['PORT'] ?? env['PORT'] ?? '8080';
   final int port = int.parse(portStr);
 
+  // Recupera l'ID del database e ferma l'app in assenza
   final projectId = Platform.environment['FIREBASE_PROJECT_ID'] ?? env['FIREBASE_PROJECT_ID'];
 
   if (projectId == null) {
@@ -28,20 +27,23 @@ void main() async {
     exit(1);
   }
 
-  // 3. Inizializzazione Database
+  // 2. DataBase
+  // Inizializzazione client Firestore
   Firestore.initialize(projectId);
   print('🔥 Firestore inizializzato: $projectId');
 
-  // Inizializzazione Controller e Middleware
+  // 3. Controllers
+  // Istanzia le classi che contengono la logica di business
   final loginController = LoginController();
   final registerController = RegisterController();
   final verifyController = VerificationController();
-  final profileController = ProfileController(); // Istanzia il controller del profilo
+  final profileController = ProfileController();
   final authGuard = AuthGuard();
-  // 4. Router Principale
+
+  // 4. Rounting pubblico
+  // Router principale per endpoint accessibili a tutti
   final app = Router();
 
-  // --- ROTTE PUBBLICHE (AUTH) ---
   app.post('/api/auth/login', loginController.handleLoginRequest);
   app.post('/api/auth/google', loginController.handleGoogleLoginRequest);
   app.post('/api/auth/apple', loginController.handleAppleLoginRequest);
@@ -49,43 +51,47 @@ void main() async {
   app.post('/api/verify', verifyController.handleVerificationRequest);
   app.get('/health', (Request request) => Response.ok('OK'));
 
-  // --- ROTTE PROTETTE (PROFILO UTENTE) ---
+  // 5. Routing Protetto
+  // Sotto-router dedicato alle operazioni sull'utente loggato
   final profileApi = Router();
 
-  // GET
+  // Lettura dati
   profileApi.get('/', profileController.getProfile); // Nota: il path base è già /api/profile
 
-  // PUT
+  // Modifica dati
   profileApi.put('/anagrafica', profileController.updateAnagrafica);
   profileApi.put('/permessi', profileController.updatePermessi);
   profileApi.put('/condizioni', profileController.updateCondizioni);
   profileApi.put('/notifiche', profileController.updateNotifiche);
   profileApi.put('/password', profileController.updatePassword);
 
-  // POST (per aggiungere elementi a liste)
+  // Aggiunta elementi a liste
   profileApi.post('/allergie', profileController.addAllergia);
   profileApi.post('/medicinali', profileController.addMedicinale);
   profileApi.post('/contatti', profileController.addContatto);
 
-  // DELETE (per rimuovere elementi da liste o eliminare l'account)
+  // Rimozione elementi o cancellazione account
   profileApi.delete('/allergie', profileController.removeAllergia);
   profileApi.delete('/medicinali', profileController.removeMedicinale);
   profileApi.delete('/contatti', profileController.removeContatto);
   profileApi.delete('/', profileController.deleteAccount); // DELETE sull'utente stesso
 
-  // Montiamo il router del profilo sotto /api/profile/
-  // Tutte le rotte definite in 'profileApi' saranno protette da AuthGuard.
+  // 6. Mounting & Middleware
+  // Collega il router profilo a '/api/profile'
+  // Passa attraverso il controller AuthGuard per controllare il token di sessione
   app.mount('/api/profile', Pipeline()
       .addMiddleware(authGuard.middleware)
       .addHandler(profileApi)
   );
 
-  // 5. Configurazione Pipeline Principale (Logging + Routing)
+  // 7. Pipeline Server
+  // Aggiunge il logging delle richieste a tutte le chiamate
   final handler = Pipeline()
       .addMiddleware(logRequests())
       .addHandler(app);
 
-  // 6. Avvio Server
+  // 8. Avvio Server
+  // Mette in ascolto il server sull'indirizzo IPv4 e porta configurata
   final server = await io.serve(
       handler,
       InternetAddress.anyIPv4,
