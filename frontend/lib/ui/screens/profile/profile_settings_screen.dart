@@ -64,7 +64,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     // Assegnazione dinamica dei colori
     final kCardColor = isRescuer ? const Color(0xFFD65D01) : const Color(0xFF12345A);
     final kBackgroundColor = isRescuer ? const Color(0xFFEF932D) : const Color(0xFF0E2A48);
-    const Color kAccentOrange = Color(0xFFEF923D);
+    final Color kAccentOrange = !isRescuer ? const Color(0xFFEF932D) : const Color(0xFF0E2A48);
 
     return Scaffold(
       backgroundColor: kBackgroundColor,
@@ -109,26 +109,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                             backgroundImage: AssetImage("assets/cavalluccio.png"),
                           ),
                         ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: kBackgroundColor,
-                                width: 2,
-                              ),
-                            ),
-                            child: const Icon(
-                              Icons.edit,
-                              size: 16,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
+
                       ],
                     ),
                     const SizedBox(width: 20),
@@ -182,7 +163,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                           const GestioneNotificheCittadino(),
                         ),
                       ),
-                      const SizedBox(width: 15),
+                      !isRescuer? const SizedBox(width: 15) : Text(""),
 
                       // Mostra Cartella Clinica SOLO se non è un Soccorritore
                       if(!isRescuer)

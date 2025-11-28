@@ -98,9 +98,11 @@ class _GestioneModificaProfiloCittadinoState
 
   @override
   Widget build(BuildContext context) {
-    const Color bgColor = Color(0xFF12345A);
-    const Color cardColor = Color(0xFF0E2A48);
-    const Color accentColor = Color(0xFFEF923D);
+    final isRescuer = context.watch<AuthProvider>().isRescuer;
+
+    Color bgColor = isRescuer ? Color(0xFFEF923D) : Color(0xFF12345A);
+    Color cardColor = isRescuer ? Color(0xFFD65D01): Color(0xFF0E2A48);
+    Color accentColor = isRescuer ? Color(0xFF12345A) : Color(0xFFEF923D);
     const Color iconColor = Color(0xFFE3C63D);
 
     return Scaffold(
@@ -155,16 +157,6 @@ class _GestioneModificaProfiloCittadinoState
                 ),
                 child: Column(
                   children: [
-                    const CircleAvatar(
-                      radius: 40,
-                      backgroundColor: Colors.white24,
-                      child: Icon(
-                        Icons.camera_alt,
-                        size: 30,
-                        color: Colors.white70,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
 
                     _buildField("Nome", _nomeController),
                     _buildField("Cognome", _cognomeController),

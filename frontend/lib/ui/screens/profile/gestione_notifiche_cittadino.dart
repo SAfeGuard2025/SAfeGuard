@@ -1,6 +1,9 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/notification_provider.dart';
+import 'package:frontend/providers/auth_provider.dart';
 
 class GestioneNotificheCittadino extends StatefulWidget {
   const GestioneNotificheCittadino({super.key});
@@ -22,9 +25,15 @@ class _GestioneNotificheState extends State<GestioneNotificheCittadino> {
 
   @override
   Widget build(BuildContext context) {
+    /*
     const Color cardColor = Color(0xFF12345A);
     const Color bgColor = Color(0xFF0E2A48);
     const Color activeColor = Color(0xFFEF923D);
+    */
+    final isRescuer = context.watch<AuthProvider>().isRescuer;
+    Color cardColor = isRescuer ? Color(0xFFD65D01) : Color(0xFF0E2A48);
+    Color bgColor = isRescuer ? Color(0xFFEF923D) : Color(0xFF12345A);
+    Color activeColor = isRescuer ? Color(0xFF12345A) : Color(0xFFEF923D);
 
     return Scaffold(
       backgroundColor: bgColor,
