@@ -12,6 +12,7 @@ import 'package:backend/controllers/VerificationController.dart';
 import 'package:backend/controllers/ProfileController.dart'; // Importa il nuovo controller
 import 'package:backend/controllers/AuthGuard.dart'; // Importa il Middleware
 
+
 void main() async {
   // 1. Caricamento Variabili d'ambiente
   var env = DotEnv(includePlatformEnvironment: true)..load();
@@ -37,7 +38,6 @@ void main() async {
   final verifyController = VerificationController();
   final profileController = ProfileController(); // Istanzia il controller del profilo
   final authGuard = AuthGuard();
-
   // 4. Router Principale
   final app = Router();
 

@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 // IMPORT MODEL
 import 'package:data_models/help_request_item.dart';
-import 'package:frontend/providers/auth_provider.dart';
 
 // IMPORT SCHERMATE COLLEGATE
 import 'package:frontend/ui/screens/profile/gestione_notifiche_cittadino.dart';
 import 'package:frontend/ui/screens/profile/gestione_permessi_cittadino.dart';
 import 'package:frontend/ui/screens/profile/gestione_modifica_profilo_cittadino.dart';
 import 'package:frontend/ui/screens/medical/gestione_cartella_clinica_cittadino.dart';
-import 'package:provider/provider.dart';
+import 'package:frontend/providers/auth_provider.dart';
+
+// Importa la schermata di login per il reindirizzamento (assumiamo esista)
+import 'package:frontend/ui/screens/auth/login_screen.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
-
   const ProfileSettingsScreen({super.key});
 
   @override
@@ -20,7 +22,6 @@ class ProfileSettingsScreen extends StatefulWidget {
 
 class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   // Dati simulati delle richieste (In futuro verranno dal Backend/Provider)
-
   final List<HelpRequestItem> requests = [
     HelpRequestItem(
       title: "Richiesta ambulanza",
@@ -45,22 +46,72 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     ),
   ];
 
+  // --- FUNZIONE DI LOGOUT INTEGRATA (CHIAMA IL PROVIDER) ---
+  void _handleLogout(BuildContext context) async {
+    // 1. Ottieni l'istanza del Provider (che gestisce la disconnessione locale e API)
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    try {
+      // 2. Chiama la funzione di logout del Provider
+      // Questa funzione pulisce SharedPreferences e chiama l'eventuale API backend.
+      await authProvider.logout();
+
+      // 3. Reindirizza alla schermata di Login
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+            (Route<dynamic> route) => false,
+      );
+
+    } catch (e) {
+      // Gestione errori (es. fallimento chiamata API backend)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Disconnessione fallita. Riprova: ${e.toString()}')),
+      );
+    }
+  }
+
+
   void _navigateTo(BuildContext context, Widget page) {
     Navigator.push(context, MaterialPageRoute(builder: (context) => page));
   }
 
   @override
   Widget build(BuildContext context) {
+    // Ottiene lo stato isRescuer dal Provider
     final isRescuer = context.watch<AuthProvider>().isRescuer;
 
-    Color kCardColor = isRescuer ? Color(0xFFD65D01) : Color(0xFF0E2A48);
-    Color kBackgroundColor = isRescuer ? Color(0xFFEF932D) : Color(0xFF12345A);
-    // const Color kCardColor = Color(0xFF12345A);  EF923D
-    // const Color kBackgroundColor = Color(0xFF0E2A48);
+    // Assegnazione dinamica dei colori
+    final kCardColor = isRescuer ? const Color(0xFFD65D01) : const Color(0xFF12345A);
+    final kBackgroundColor = isRescuer ? const Color(0xFFEF932D) : const Color(0xFF0E2A48);
     const Color kAccentOrange = Color(0xFFEF923D);
 
     return Scaffold(
       backgroundColor: kBackgroundColor,
+
+      // === APPBAR AGGIUNTA CON BOTTONE LOGOUT ===
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: kBackgroundColor,
+        elevation: 0,
+        // Titolo dinamico (Opzionale)
+        title: Text(
+          isRescuer ? "Dashboard Soccorritore" : "Profilo Cittadino",
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          // === BOTTONE LOGOUT ===
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.white),
+            tooltip: 'Esci dal tuo account',
+            onPressed: () {
+              // Chiama la funzione di gestione del Logout
+              _handleLogout(context);
+            },
+          ),
+        ],
+      ),
+      // ======================================
+
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -151,12 +202,14 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         Icons.notifications_active,
                         Colors.yellow,
                         kCardColor,
-                        () => _navigateTo(
+                            () => _navigateTo(
                           context,
                           const GestioneNotificheCittadino(),
                         ),
                       ),
-                      ?!isRescuer ? const SizedBox(width: 15) : null,
+                      const SizedBox(width: 15),
+
+                      // Mostra Cartella Clinica SOLO se non è un Soccorritore
                       if(!isRescuer)
                         _buildSettingCard(
                           "Cartella clinica",
@@ -178,7 +231,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         Icons.security,
                         Colors.blueAccent,
                         kCardColor,
-                        () => _navigateTo(
+                            () => _navigateTo(
                           context,
                           const GestionePermessiCittadino(),
                         ),
@@ -190,7 +243,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         Icons.settings,
                         Colors.grey,
                         kCardColor,
-                        () => _navigateTo(
+                            () => _navigateTo(
                           context,
                           const GestioneModificaProfiloCittadino(),
                         ),
@@ -235,7 +288,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       const SizedBox(height: 10),
 
                       // Generazione dinamica della lista
-                      ...requests.map((req) => _buildRequestItem(req)),
+                      ...requests.map((req) => _buildRequestItem(req)).toList(),
                     ],
                   ),
                 ),
@@ -250,13 +303,13 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   // Helper Card
   Widget _buildSettingCard(
-    String title,
-    String subtitle,
-    IconData icon,
-    Color iconColor,
-    Color bgColor,
-    VoidCallback onTap,
-  ) {
+      String title,
+      String subtitle,
+      IconData icon,
+      Color iconColor,
+      Color bgColor,
+      VoidCallback onTap,
+      ) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
@@ -348,7 +401,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           Text(
             item.status,
             style: TextStyle(
-              color: item.isComplete ? Colors.greenAccent : Colors.redAccent,
+              color: item.isComplete ? Colors.greenAccent : Colors.redAccent ,
               fontWeight: FontWeight.bold,
             ),
           ),
