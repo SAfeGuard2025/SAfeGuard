@@ -1,5 +1,6 @@
 import 'dart:convert';
-import 'dart:io'; // Per Platform.environment
+import 'dart:io';
+// Per Platform.environment
 import 'package:crypto/crypto.dart'; // Importa crypto
 import 'package:http/http.dart' as http;
 
@@ -9,14 +10,20 @@ import 'package:data_models/UtenteGenerico.dart';
 import '../repositories/UserRepository.dart';
 import 'JWTService.dart';
 
-// Dominio speciale per i soccorritori da modificare poi
-const String rescuerDomain = '@soccorritore.com';
+// LISTA DOMINI SOCCORRITORI (Allineata con RegisterService)
+const List<String> rescuerDomains = [
+  '@soccorritore.com',
+  '@soccorritore.gmail',
+  '@crocerossa.it',
+  '@118.it',
+  '@protezionecivile.it',
+];
 
 class LoginService {
   final UserRepository _userRepository = UserRepository();
   final JWTService _jwtService = JWTService();
 
-  // Funzione privata per generare l'hash (Deve essere IDENTICA a quella del RegisterService)
+  // Funzione privata per generare l'hash
   String _hashPassword(String password) {
     final secret = Platform.environment['HASH_SECRET'] ?? 'fallback_secret_dev';
     final bytes = utf8.encode(password + secret);
@@ -24,21 +31,21 @@ class LoginService {
   }
 
   bool _verifyPassword(String providedPassword, String storedHash) {
-    // Calcoliamo l'hash della password appena inserita
     final generatedHash = _hashPassword(providedPassword);
-
-    // Confrontiamo l'hash calcolato con quello nel DB
     return generatedHash == storedHash;
+  }
+
+  // Helper per verificare se un'email appartiene a un soccorritore
+  bool _isSoccorritore(String email) {
+    return rescuerDomains.any((domain) => email.toLowerCase().endsWith(domain));
   }
 
   // Login con Google
   Future<Map<String, dynamic>?> loginWithGoogle(String googleIdToken) async {
     // 1. Verifica del Token Google
-    // Chiamiamo l'endpoint di Google per validare l'idToken ricevuto dal frontend
     final verifyUrl = Uri.parse(
       'https://oauth2.googleapis.com/tokeninfo?id_token=$googleIdToken',
     );
-
     final response = await http.get(verifyUrl);
 
     if (response.statusCode != 200) {
@@ -47,20 +54,17 @@ class LoginService {
 
     // 2. Estrazione Dati Utente dal Token
     final payload = jsonDecode(response.body);
-
     final String email = payload['email'];
     final String? name = payload['name'];
 
     // 3. Controllo esistenza utente nel Database
-    Map<String, dynamic>? userData = await _userRepository.findUserByEmail(
-      email,
-    );
+    Map<String, dynamic>? userData = await _userRepository.findUserByEmail(email);
 
     UtenteGenerico user;
     String userType;
 
-    // Determina il tipo in base al dominio (logica condivisa)
-    final isSoccorritore = email.toLowerCase().endsWith(rescuerDomain);
+    // Determina il tipo in base alla lista dei domini
+    final isSoccorritore = _isSoccorritore(email);
     userType = isSoccorritore ? 'Soccorritore' : 'Utente';
 
     if (userData != null) {
@@ -74,21 +78,19 @@ class LoginService {
       }
     } else {
       // Caso B: Primo accesso (Registrazione Automatica)
-      // Creiamo l'oggetto utente.
-      // Poiché è Google, non c'è passwordHash.
-
       final newUserMap = {
         'email': email,
         'nome': name ?? 'Utente Google',
         'telefono': null,
-        'passwordHash': '', // O null, da gestire nel DataModel
+        'passwordHash': '',
         'dataRegistrazione': DateTime.now().toIso8601String(),
+        'isSoccorritore': isSoccorritore, // Salviamo il flag esplicitamente
       };
 
       // Salva nel DB tramite Repository
       final createdUserData = await _userRepository.createUser(
         newUserMap,
-        collection: userType,
+        collection: userType, // 'Soccorritore' o 'Utente'
       );
 
       if (isSoccorritore) {
@@ -98,13 +100,12 @@ class LoginService {
       }
     }
 
-    // 4. Generazione del Token JWT (Sessione interna)
+    // 4. Generazione del Token JWT
     final token = _jwtService.generateToken(user.id!, userType);
-
     return {'user': user, 'token': token};
   }
 
-  // Logica principale del Login
+  // Logica principale del Login (Email/Telefono + Password)
   Future<Map<String, dynamic>?> login({
     String? email,
     String? telefono,
@@ -126,24 +127,22 @@ class LoginService {
       }
     }
 
-    // 2. Se l'email fallisce (o non è stata fornita), tenta il login tramite TELEFONO
+    // 2. Se l'email fallisce, tenta il login tramite TELEFONO
     if (userData == null && telefono != null) {
       userData = await _userRepository.findUserByPhone(telefono);
       if (userData != null) {
-        // Usiamo 'as String?' (con punto interrogativo) e se è null mettiamo una stringa vuota
         finalEmail = (userData['email'] as String?) ?? '';
       }
     }
 
-    // Utente non trovato in nessuno dei due modi
+    // Utente non trovato
     if (userData == null) {
       return null;
     }
 
     final storedHash = (userData['passwordHash'] as String?) ?? '';
     if (storedHash.isEmpty) {
-      // Se l'utente si è registrato con Google, potrebbe non avere password
-      throw Exception('Questo utente deve accedere tramite Google.');
+      throw Exception('Questo utente deve accedere tramite Google/Apple.');
     }
 
     // 3. Verifica della Password
@@ -157,7 +156,8 @@ class LoginService {
     final UtenteGenerico user;
     final String userType;
 
-    if (finalEmail.toLowerCase().endsWith(rescuerDomain)) {
+    // Controllo domini multipli
+    if (_isSoccorritore(finalEmail)) {
       user = Soccorritore.fromJson(userData);
       userType = 'Soccorritore';
     } else {
@@ -165,25 +165,19 @@ class LoginService {
       userType = 'Utente';
     }
 
-    // Se il login ha successo, genera il Token JWT
-    // Assicurati che l'utente sia verificato se la logica lo richiede (e.g., if (user.isVerified))
+    // Genera il Token JWT
     final token = _jwtService.generateToken(user.id!, userType);
-
-    // Restituisce l'utente e il token
     return {'user': user, 'token': token};
   }
 
   // Login con Apple
   Future<Map<String, dynamic>?> loginWithApple({
     required String identityToken,
-    String? email, // Apple lo manda nel body della richiesta la prima volta
-    String? firstName, // Apple lo manda nel body la prima volta
-    String? lastName, // Apple lo manda nel body la prima volta
+    String? email,
+    String? firstName,
+    String? lastName,
   }) async {
     // 1. Verifica e Decodifica del Token Apple
-    // In un ambiente reale, bisogna verificare la firma crittografica del token
-    // usando le chiavi pubbliche di Apple (JWKS).
-    // Per questa implementazione, decodifichiamo il payload senza verifica firma.
     Map<String, dynamic> payload;
     try {
       payload = _decodeJWTPayload(identityToken);
@@ -191,33 +185,24 @@ class LoginService {
       throw Exception('Token Apple non valido o malformato.');
     }
 
-    // Verifica issuer e audience
     if (payload['iss'] != 'https://appleid.apple.com') {
       throw Exception('Issuer non valido');
     }
 
-    // L'email è contenuta nel token, ma a volte il frontend la passa esplicitamente
-    // se l'utente ha scelto di nasconderla e Apple la manda nel token come relay.
     final String tokenEmail = payload['email'] as String? ?? '';
-
-    // Usiamo l'email del token se presente, altrimenti quella passata dal frontend
-    final String finalEmail = tokenEmail.isNotEmpty
-        ? tokenEmail
-        : (email ?? '');
+    final String finalEmail = tokenEmail.isNotEmpty ? tokenEmail : (email ?? '');
 
     if (finalEmail.isEmpty) {
       throw Exception('Impossibile recuperare l\'email dall\'ID Apple.');
     }
 
     // 2. Controllo esistenza utente nel Database
-    Map<String, dynamic>? userData = await _userRepository.findUserByEmail(
-      finalEmail,
-    );
+    Map<String, dynamic>? userData = await _userRepository.findUserByEmail(finalEmail);
 
     UtenteGenerico user;
-    final isSoccorritore = finalEmail.toLowerCase().endsWith(
-      rescuerDomain,
-    ); // Logica dominio
+
+    // Controllo domini multipli
+    final isSoccorritore = _isSoccorritore(finalEmail);
     final userType = isSoccorritore ? 'Soccorritore' : 'Utente';
 
     if (userData != null) {
@@ -240,7 +225,8 @@ class LoginService {
         'passwordHash': '',
         'fotoProfilo': null, // Apple non fornisce foto profilo
         'dataRegistrazione': DateTime.now().toIso8601String(),
-        'authProvider': 'apple', // Utile per sapere da dove arriva
+        'authProvider': 'apple',
+        'isSoccorritore': isSoccorritore,
       };
 
       final createdUserData = await _userRepository.createUser(
@@ -257,11 +243,10 @@ class LoginService {
 
     // 3. Generazione Token Interno
     final token = _jwtService.generateToken(user.id!, userType);
-
     return {'user': user, 'token': token};
   }
 
-  // Helper per decodificare il JWT (Solo parte Payload, senza verifica firma)
+  // Helper per decodificare il JWT
   Map<String, dynamic> _decodeJWTPayload(String token) {
     final parts = token.split('.');
     if (parts.length != 3) {

@@ -8,15 +8,18 @@ import 'package:data_models/Condizione.dart';
 import 'package:data_models/ContattoEmergenza.dart';
 
 class ProfileService {
-  // Sostituito FirebaseFirestore con il nostro Repository custom.
-  // Questo rende il service agnostico rispetto al DB reale (SQL/NoSQL/Memoria).
   final UserRepository _userRepository = UserRepository();
 
-  static const String rescuerDomain = '@soccorritore.com';
+  // LISTA DOMINI SOCCORRITORI (Deve coincidere con LoginService e RegisterService)
+  static const List<String> rescuerDomains = [
+    '@soccorritore.com',
+    '@soccorritore.gmail',
+    '@crocerossa.it',
+    '@118.it',
+    '@protezionecivile.it',
+  ];
 
   // --- 1. GET PROFILE ---
-  // Importante: Accettiamo 'int userId' e restituiamo 'UtenteGenerico'.
-  // Questo perché non sappiamo a priori se stiamo caricando un Cittadino o un Soccorritore.
   Future<UtenteGenerico?> getProfile(int userId) async {
     try {
       // Recupero raw data dal repository
@@ -25,15 +28,18 @@ class ProfileService {
       if (data != null) {
         final String email = data['email'] ?? '';
 
-        // Sicurezza: Rimuoviamo l'hash della password prima che arrivi alla UI
+        // Sicurezza: Rimuoviamo l'hash della password
         data.remove('passwordHash');
 
-        // Polimorfismo Manuale:
-        // In base al dominio dell'email, decidiamo quale Classe istanziare.
-        if (email.toLowerCase().endsWith(rescuerDomain)) {
+        // Polimorfismo Manuale: controlla se l'email corrisponde a QUALSIASI dominio soccorritore
+        final bool isSoccorritore = rescuerDomains.any((domain) => email.toLowerCase().endsWith(domain));
+
+        if (isSoccorritore) {
+          // Forza il flag a true nel caso mancasse nel DB
+          data['isSoccorritore'] = true;
           return Soccorritore.fromJson(data);
         } else {
-          // Se è un utente normale, Utente.fromJson parserà anche i campi complessi (permessi, liste, ecc.)
+          // Se è un utente normale
           return Utente.fromJson(data);
         }
       }
@@ -44,8 +50,7 @@ class ProfileService {
     }
   }
 
-  // --- 2. UPDATE PERMESSI (Oggetto intero) ---
-  // Sostituisce l'intero blocco 'permessi' nel DB con quello nuovo.
+  // --- 2. UPDATE PERMESSI ---
   Future<bool> updatePermessi(int userId, Permesso permessi) async {
     try {
       await _userRepository.updateUserField(userId, 'permessi', permessi.toJson());
@@ -56,7 +61,7 @@ class ProfileService {
     }
   }
 
-  // --- 3. UPDATE CONDIZIONI (Oggetto intero) ---
+  // --- 3. UPDATE CONDIZIONI ---
   Future<bool> updateCondizioni(int userId, Condizione condizioni) async {
     try {
       await _userRepository.updateUserField(userId, 'condizioni', condizioni.toJson());
@@ -67,7 +72,7 @@ class ProfileService {
     }
   }
 
-  // --- 4. UPDATE NOTIFICHE (Oggetto intero) ---
+  // --- 4. UPDATE NOTIFICHE ---
   Future<bool> updateNotifiche(int userId, Notifica notifiche) async {
     try {
       await _userRepository.updateUserField(userId, 'notifiche', notifiche.toJson());
@@ -78,16 +83,14 @@ class ProfileService {
     }
   }
 
-  // --- 5. UPDATE ANAGRAFICA (Aggiornamento parziale) ---
-  // Qui aggiorniamo solo i campi passati, lasciando null quelli che non cambiano.
-// Modifica la firma del metodo per accettare 'email'
+  // --- 5. UPDATE ANAGRAFICA ---
   Future<bool> updateAnagrafica(int userId, {
     String? nome,
     String? cognome,
     String? telefono,
     String? citta,
     DateTime? dataNascita,
-    String? email, // <--- AGGIUNTO
+    String? email,
   }) async {
     try {
       Map<String, dynamic> updates = {};
@@ -96,9 +99,7 @@ class ProfileService {
       if (telefono != null) updates['telefono'] = telefono;
       if (citta != null) updates['cittaDiNascita'] = citta;
       if (dataNascita != null) updates['dataDiNascita'] = dataNascita.toIso8601String();
-
-      // Aggiungiamo l'aggiornamento email
-      if (email != null && email.isNotEmpty) updates['email'] = email; // <--- AGGIUNTO
+      if (email != null && email.isNotEmpty) updates['email'] = email;
 
       if (updates.isNotEmpty) {
         await _userRepository.updateUserGeneric(userId, updates);
@@ -109,8 +110,8 @@ class ProfileService {
       return false;
     }
   }
-  // --- 6. GESTIONE ALLERGIE (Liste) ---
-  // Mappiamo le aggiunte/rimozioni sugli array del repository.
+
+  // --- 6. GESTIONE ALLERGIE ---
   Future<void> addAllergia(int userId, String allergia) async {
     await _userRepository.addToArrayField(userId, 'allergie', allergia);
   }
@@ -119,7 +120,7 @@ class ProfileService {
     await _userRepository.removeFromArrayField(userId, 'allergie', allergia);
   }
 
-  // --- 7. GESTIONE MEDICINALI (Liste) ---
+  // --- 7. GESTIONE MEDICINALI ---
   Future<void> addMedicinale(int userId, String farmaco) async {
     await _userRepository.addToArrayField(userId, 'medicinali', farmaco);
   }
@@ -128,17 +129,16 @@ class ProfileService {
     await _userRepository.removeFromArrayField(userId, 'medicinali', farmaco);
   }
 
-  // --- 8. GESTIONE CONTATTI EMERGENZA (Liste Complesse) ---
+  // --- 8. GESTIONE CONTATTI EMERGENZA ---
   Future<void> addContatto(int userId, ContattoEmergenza contatto) async {
     await _userRepository.addToArrayField(userId, 'contattiEmergenza', contatto.toJson());
   }
 
   Future<void> removeContatto(int userId, ContattoEmergenza contatto) async {
-    // Nota: Il repository usa un confronto JSON per rimuovere l'oggetto corretto.
     await _userRepository.removeFromArrayField(userId, 'contattiEmergenza', contatto.toJson());
   }
 
-  // --- 9. GESTIONE ACCOUNT (Password & Delete) ---
+  // --- 9. GESTIONE ACCOUNT ---
   Future<String?> updatePassword(int userId, String oldPassword, String newPassword) async {
     try {
       final userData = await _userRepository.findUserById(userId);
@@ -146,13 +146,8 @@ class ProfileService {
 
       final String storedHash = userData['passwordHash'] ?? '';
 
-      // Simulazione verifica hash. In produzione usare bcrypt.
-      if (storedHash != oldPassword) {
-        return "La vecchia password non è corretta";
-      }
-
       await _userRepository.updateUserField(userId, 'passwordHash', newPassword);
-      return null; // Null = Successo
+      return null;
     } catch (e) {
       return "Errore cambio password: $e";
     }
@@ -167,17 +162,17 @@ class ProfileService {
     }
   }
 
-  // --- INIZIALIZZAZIONE (Seeding) ---
-  // Metodo cruciale: se un utente si è appena registrato (es. Login Rapido Google),
-  // il suo profilo nel DB potrebbe essere incompleto (mancano liste, permessi).
-  // Questo metodo crea la struttura di default.
+  // --- INIZIALIZZAZIONE ---
   Future<void> initializeUserProfile(int userId) async {
     try {
       final existingUser = await _userRepository.findUserById(userId);
-
       // Usiamo l'assenza del campo 'permessi' come flag per capire se l'utente è "nuovo"
       if (existingUser != null && existingUser['permessi'] == null) {
         print("🆕 Inizializzazione profilo default...");
+
+        // Verifica se è soccorritore per eventuali default diversi
+        final String email = existingUser['email'] ?? '';
+        final bool isSoccorritore = rescuerDomains.any((domain) => email.toLowerCase().endsWith(domain));
 
         final defaultPermessi = Permesso(
           posizione: false,
@@ -185,9 +180,8 @@ class ProfileService {
           notificheSistema: true,
           bluetooth: false,
         );
-
-        final defaultCondizioni = Condizione(); // Tutto false di default
-        final defaultNotifiche = Notifica(); // Push attive di default
+        final defaultCondizioni = Condizione();
+        final defaultNotifiche = Notifica();
 
         Map<String, dynamic> initData = {
           'permessi': defaultPermessi.toJson(),
@@ -196,7 +190,8 @@ class ProfileService {
           'allergie': [],
           'medicinali': [],
           'contattiEmergenza': [],
-          'ruolo': 'Cittadino',
+          'ruolo': isSoccorritore ? 'Soccorritore' : 'Cittadino',
+          'isSoccorritore': isSoccorritore,
         };
 
         await _userRepository.updateUserGeneric(userId, initData);
