@@ -80,21 +80,25 @@ class ProfileService {
 
   // --- 5. UPDATE ANAGRAFICA (Aggiornamento parziale) ---
   // Qui aggiorniamo solo i campi passati, lasciando null quelli che non cambiano.
+// Modifica la firma del metodo per accettare 'email'
   Future<bool> updateAnagrafica(int userId, {
     String? nome,
     String? cognome,
     String? telefono,
     String? citta,
-    DateTime? dataNascita
+    DateTime? dataNascita,
+    String? email, // <--- AGGIUNTO
   }) async {
     try {
-      // Costruiamo una mappa dinamica solo con i valori non nulli
       Map<String, dynamic> updates = {};
       if (nome != null) updates['nome'] = nome;
       if (cognome != null) updates['cognome'] = cognome;
       if (telefono != null) updates['telefono'] = telefono;
       if (citta != null) updates['cittaDiNascita'] = citta;
       if (dataNascita != null) updates['dataDiNascita'] = dataNascita.toIso8601String();
+
+      // Aggiungiamo l'aggiornamento email
+      if (email != null && email.isNotEmpty) updates['email'] = email; // <--- AGGIUNTO
 
       if (updates.isNotEmpty) {
         await _userRepository.updateUserGeneric(userId, updates);
@@ -105,7 +109,6 @@ class ProfileService {
       return false;
     }
   }
-
   // --- 6. GESTIONE ALLERGIE (Liste) ---
   // Mappiamo le aggiunte/rimozioni sugli array del repository.
   Future<void> addAllergia(int userId, String allergia) async {

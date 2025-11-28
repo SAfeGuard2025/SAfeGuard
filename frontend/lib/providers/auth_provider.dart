@@ -8,6 +8,8 @@ import 'package:data_models/UtenteGenerico.dart';
 import 'package:data_models/Utente.dart';
 import 'package:data_models/Soccorritore.dart';
 
+import '../repositories/profile_repository.dart';
+
 class AuthProvider extends ChangeNotifier {
   final AuthRepository _authRepository = AuthRepository();
 
@@ -255,5 +257,71 @@ class AuthProvider extends ChangeNotifier {
   void dispose() {
     _timer?.cancel();
     super.dispose();
+  }
+
+  // Aggiungi un'istanza del ProfileRepository se non vuoi ricrearla ogni volta,
+  // oppure usala localmente nel metodo.
+  final ProfileRepository _profileRepo = ProfileRepository();
+
+// --- RICARICAMENTO DATI DAL SERVER ---
+  Future<void> reloadUser() async {
+    // Se non siamo loggati, inutile ricaricare
+    if (_currentUser?.id == null) return;
+
+    try {
+      // 1. Scarica il profilo aggiornato
+      final UtenteGenerico? updatedUser = await _profileRepo.getUserProfile();
+
+      if (updatedUser != null) {
+        // 2. Aggiorna la variabile in memoria
+        _currentUser = updatedUser;
+
+        // 3. Aggiorna lo stato "isRescuer" (per sicurezza)
+        _isRescuer = updatedUser.isSoccorritore;
+
+        // 4. Aggiorna le SharedPreferences (Sessione persistente)
+        // Dobbiamo recuperare il token attuale perché getUserProfile non lo restituisce
+        final prefs = await SharedPreferences.getInstance();
+        final currentToken = prefs.getString('auth_token');
+
+        if (currentToken != null) {
+          await prefs.setString('user_data', jsonEncode(updatedUser.toJson()));
+        }
+
+        // 5. Notifica la UI
+        notifyListeners();
+      }
+    } catch (e) {
+      print("Errore ricaricamento profilo: $e");
+      // Non blocchiamo l'app, stampiamo solo l'errore
+    }
+  }
+
+//Helper per aggiornare l'utente manualmente (Optimistic Update)
+  void updateUserLocally({String? nome, String? cognome, String? telefono, String? citta}) {
+    if (_currentUser != null) {
+
+      // Se è un CITTADINO (Utente)
+      if (_currentUser is Utente) {
+        final oldUser = _currentUser as Utente;
+
+        // Usiamo il copyWith che esiste in Utente
+        _currentUser = oldUser.copyWith(
+          nome: nome ?? oldUser.nome,
+          cognome: cognome ?? oldUser.cognome,
+          telefono: telefono ?? oldUser.telefono,
+          cittaDiNascita: citta ?? oldUser.cittaDiNascita,
+        );
+      }
+      // Se è un SOCCORRITORE (Soccorritore non ha copyWith nel codice fornito, lo gestiamo manualmente o ricarichiamo)
+      else if (_currentUser is Soccorritore) {
+        // Poiché Soccorritore nel codice fornito non ha un copyWith esplicito comodo come Utente,
+        // e i campi di UtenteGenerico sono final, la cosa più semplice è aspettare il reloadUser.
+        // Tuttavia, se vuoi forzarlo, dovresti ricreare l'oggetto Soccorritore.
+        // Per ora lasciamo che reloadUser gestisca la verità dei dati per il soccorritore.
+      }
+
+      notifyListeners();
+    }
   }
 }

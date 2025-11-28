@@ -44,12 +44,15 @@ class ProfileController {
     if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
 
     final body = jsonDecode(await request.readAsString());
+
     final success = await _profileService.updateAnagrafica(
       userId,
       nome: body['nome'],
       cognome: body['cognome'],
       telefono: body['telefono'],
       citta: body['cittaDiNascita'],
+      // Passiamo l'email ricevuta dal frontend
+      email: body['email'], // <--- AGGIUNTO
       dataNascita: body['dataDiNascita'] != null ? DateTime.parse(body['dataDiNascita']) : null,
     );
 

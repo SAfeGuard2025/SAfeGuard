@@ -4,6 +4,9 @@ import 'package:data_models/Condizione.dart';
 import 'package:data_models/ContattoEmergenza.dart';
 import 'package:data_models/Notifica.dart';
 import 'package:data_models/Permesso.dart';
+import 'package:data_models/Soccorritore.dart';
+import 'package:data_models/Utente.dart';
+import 'package:data_models/UtenteGenerico.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart'; // Per kIsWeb
@@ -337,6 +340,67 @@ class ProfileRepository {
 
     if (response.statusCode != 200) {
       throw Exception('Errore aggiornamento notifiche: ${response.body}');
+    }
+  }
+
+
+  // --- AGGIUNGI QUESTO METODO ---
+  Future<bool> updateAnagrafica({
+    String? nome,
+    String? cognome,
+    String? telefono,
+    String? citta,
+    String? email, // <--- AGGIUNTO
+  }) async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/api/profile/anagrafica');
+
+    final response = await http.put(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'nome': nome,
+        'cognome': cognome,
+        'telefono': telefono,
+        'email': email, // <--- INVIAMO L'EMAIL AL SERVER
+        'cittaDiNascita': citta,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      throw Exception('Errore aggiornamento: ${response.body}');
+    }
+  }
+
+  // --- GET PROFILO COMPLETO ---
+  Future<UtenteGenerico?> getUserProfile() async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/api/profile/');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      // Logica per distinguere i tipi (simile a quella del LoginService o AuthProvider)
+      if (data['isSoccorritore'] == true) {
+        return Soccorritore.fromJson(data);
+      } else {
+        return Utente.fromJson(data);
+      }
+    } else {
+      throw Exception('Impossibile ricaricare il profilo');
     }
   }
 }
