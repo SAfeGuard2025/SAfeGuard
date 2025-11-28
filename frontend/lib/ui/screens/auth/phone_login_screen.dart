@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
-import 'package:frontend/ui/screens/auth/verification_screen.dart';
-
-import '../home/home_screen.dart';
+import 'package:frontend/ui/screens/home/home_screen.dart';
 
 class PhoneLoginScreen extends StatefulWidget {
   const PhoneLoginScreen({super.key});
@@ -17,6 +15,13 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     text: "+39",
   );
   final TextEditingController _passController = TextEditingController();
+
+  bool _isPasswordVisible = false;
+  void _togglePasswordVisibility() {
+    setState(() {
+      _isPasswordVisible = !_isPasswordVisible;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -112,25 +117,28 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                             ? null
                             : () async {
                           final navigator = Navigator.of(context);
+                          final messenger = ScaffoldMessenger.of(context);
+                          final phone = _phoneController.text.trim();
+                          final password = _passController.text;
 
-                          // --- MODIFICA QUI ---
-                          // Togliamo i commenti e usiamo il metodo corretto
+                          if (phone.isEmpty || password.isEmpty) {
+                            messenger.showSnackBar(const SnackBar(content: Text("Inserisci telefono e password")));
+                            return;
+                          }
+
                           bool success = await authProvider.loginPhone(
-                            _phoneController.text.trim(),
+                            phone,
                             _passController.text,
                           );
 
                           if (success) {
-                            // Se il login ha successo, vai alla Home, NON alla verifica
-                            // (La verifica si fa solo in registrazione o se l'account non è attivo)
                             navigator.pushAndRemoveUntil(
                               MaterialPageRoute(
-                                builder: (context) => const HomeScreen(), // Assicurati di importare HomeScreen
+                                builder: (context) => const HomeScreen(),
                               ),
                                   (route) => false,
                             );
                           }
-                          // --------------------
                         },
 
                         //PULSANTE PER ANDARE AVANTI
@@ -165,15 +173,16 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     );
   }
 
-  // Widget Helper
   Widget _buildTextField(
       String hint,
       TextEditingController controller, {
-        bool isPassword = false,
+        required bool isPassword,
       }) {
+    bool obscureText = isPassword ? !_isPasswordVisible : false;
+
     return TextField(
       controller: controller,
-      obscureText: isPassword,
+      obscureText: obscureText,
       style: const TextStyle(color: Colors.black),
       decoration: InputDecoration(
         filled: true,
@@ -188,6 +197,16 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
           borderRadius: BorderRadius.circular(30),
           borderSide: BorderSide.none,
         ),
+
+        suffixIcon: isPassword
+            ? IconButton(
+          icon: Icon(
+            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+            color: Colors.grey,
+          ),
+          onPressed: _togglePasswordVisibility,
+        )
+            : null,
       ),
     );
   }

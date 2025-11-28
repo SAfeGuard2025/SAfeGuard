@@ -18,6 +18,13 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _surnameController = TextEditingController();
 
+  bool _isPasswordVisible = false;
+  void _togglePasswordVisibility() {
+    setState(() {
+      _isPasswordVisible = !_isPasswordVisible;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -66,14 +73,14 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                     const SizedBox(height: 40),
 
                     // CAMPO NOME
-                    _buildTextField("Nome", _nameController),
+                    _buildTextField("Nome", _nameController, isPassword: false),
                     const SizedBox(height: 15),
 
                     // CAMPO COGNOME
-                    _buildTextField("Cognome", _surnameController),
+                    _buildTextField("Cognome", _surnameController, isPassword: false),
                     const SizedBox(height: 15),
 
-                    // INPUT TELEFONO
+                    // INPUT TELEFONO (non ha suffix icon)
                     TextField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
@@ -92,11 +99,11 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                     ),
                     const SizedBox(height: 15),
 
-                    // INPUT PASSWORD
+                    // INPUT PASSWORD (Ora usa _buildTextField modificato)
                     _buildTextField("Password", _passController, isPassword: true),
                     const SizedBox(height: 15),
 
-                    // INPUT RIPETI PASSWORD
+                    // INPUT RIPETI PASSWORD (Ora usa _buildTextField modificato)
                     _buildTextField("Ripeti Password", _repeatPassController, isPassword: true),
 
                     if (authProvider.errorMessage != null)
@@ -141,12 +148,11 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                             return;
                           }
 
-                          // ⚠️ CORREZIONE QUI SOTTO: Passiamo i controller giusti!
                           bool success = await authProvider.startPhoneAuth(
                               phone,
                               password: password,
-                              nome: nome,         // <--- ORA È GIUSTO (_nameController)
-                              cognome: cognome    // <--- ORA È GIUSTO (_surnameController)
+                              nome: nome,
+                              cognome: cognome
                           );
 
                           if (success && mounted) {
@@ -175,10 +181,13 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
     );
   }
 
-  Widget _buildTextField(String hint, TextEditingController controller, {bool isPassword = false}) {
+  // WIDGET CAMPO DI TESTO
+  Widget _buildTextField(String hint, TextEditingController controller, {required bool isPassword}) {
+    bool obscureText = isPassword ? !_isPasswordVisible : false;
+
     return TextField(
       controller: controller,
-      obscureText: isPassword,
+      obscureText: obscureText,
       style: const TextStyle(color: Colors.black),
       decoration: InputDecoration(
         filled: true,
@@ -187,6 +196,16 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
         hintStyle: const TextStyle(color: Colors.grey),
         contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+
+        suffixIcon: isPassword
+            ? IconButton(
+          icon: Icon(
+            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+            color: Colors.grey,
+          ),
+          onPressed: _togglePasswordVisibility, // Chiama la funzione che fa setState
+        )
+            : null,
       ),
     );
   }

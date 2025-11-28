@@ -17,8 +17,21 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _surnameController = TextEditingController();
 
+  bool _isPasswordVisible = false;
+  void _togglePasswordVisibility() {
+    setState(() {
+      _isPasswordVisible = !_isPasswordVisible;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    // VARIABILI PER LA RESPONSIVITÀ
+    final Size screenSize = MediaQuery.of(context).size;
+    final double verticalPadding = screenSize.height * 0.04;
+    final double smallSpacing = screenSize.height * 0.015;
+    final double largeSpacing = screenSize.height * 0.04;
+
     final authProvider = Provider.of<AuthProvider>(context);
     final Color buttonColor = const Color(0xFF0A2540);
 
@@ -53,7 +66,7 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 30),
+                    SizedBox(height: verticalPadding),
 
                     const Text(
                       "Inserisci i tuoi dati",
@@ -64,20 +77,24 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    const SizedBox(height: 40),
+
+                    SizedBox(height: largeSpacing),
 
                     // NOME E COGNOME
-                    _buildTextField("Nome", _nameController),
-                    const SizedBox(height: 15),
-                    _buildTextField("Cognome", _surnameController),
-                    const SizedBox(height: 15),
+                    _buildTextField("Nome", _nameController, isPassword: false),
+                    SizedBox(height: smallSpacing),
+                    _buildTextField("Cognome", _surnameController, isPassword: false),
+                    SizedBox(height: smallSpacing),
 
-                    _buildTextField("Email", _emailController),
-                    const SizedBox(height: 15),
+                    // MAIL
+                    _buildTextField("Email", _emailController, isPassword: false),
+                    SizedBox(height: smallSpacing),
 
+                    // CAMPO PASSWORD
                     _buildTextField("Password", _passController, isPassword: true),
-                    const SizedBox(height: 15),
+                    SizedBox(height: smallSpacing),
 
+                    // CAMPO RIPETI PASSWORD
                     _buildTextField("Ripeti Password", _repeatPassController, isPassword: true),
 
                     if (authProvider.errorMessage != null)
@@ -90,7 +107,7 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                         ),
                       ),
 
-                    const SizedBox(height: 30),
+                    SizedBox(height: largeSpacing),
 
                     SizedBox(
                       height: 55,
@@ -134,7 +151,8 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                             : const Text("CONTINUA", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
                       ),
                     ),
-                    const SizedBox(height: 100),
+
+                    SizedBox(height: verticalPadding),
                   ],
                 ),
               ),
@@ -145,10 +163,13 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
     );
   }
 
-  Widget _buildTextField(String hint, TextEditingController controller, {bool isPassword = false}) {
+  // WIDGET CAMPO DI TESTO
+  Widget _buildTextField(String hint, TextEditingController controller, {required bool isPassword}) {
+    bool obscureText = isPassword ? !_isPasswordVisible : false;
+
     return TextField(
       controller: controller,
-      obscureText: isPassword,
+      obscureText: obscureText,
       style: const TextStyle(color: Colors.black),
       decoration: InputDecoration(
         filled: true,
@@ -157,6 +178,16 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
         hintStyle: const TextStyle(color: Colors.grey),
         contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+
+        suffixIcon: isPassword
+            ? IconButton(
+          icon: Icon(
+            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+            color: Colors.grey,
+          ),
+          onPressed: _togglePasswordVisibility,
+        )
+            : null,
       ),
     );
   }

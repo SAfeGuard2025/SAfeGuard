@@ -14,6 +14,13 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
 
+  bool _isPasswordVisible = false;
+  void _togglePasswordVisibility() {
+    setState(() {
+      _isPasswordVisible = !_isPasswordVisible;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     //ACCESSO AL PROVIDER PER LO STATO DI CARICAMENTO O DI ERRORI
@@ -67,10 +74,10 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                   const SizedBox(height: 110),
 
                   //CAMPO DI TESTO - EMAIL
-                  _buildTextField("Email", _emailController),
+                  _buildTextField("Email", _emailController, isPassword: false),
                   const SizedBox(height: 20),
 
-                  //CAMPO DI TESTO - PASSWORD
+                  //CAMPO DI TESTO - PASSWORD (MODIFICATO)
                   _buildTextField(
                     "Password",
                     _passController,
@@ -99,20 +106,27 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                       onPressed: authProvider.isLoading
                           ? null
                           : () async {
-                              final navigator = Navigator.of(context);
-                              bool success = await authProvider.login(
-                                _emailController.text,
-                                _passController.text,
-                              );
-                              if (success) {
-                                navigator.pushAndRemoveUntil(
-                                  MaterialPageRoute(
-                                    builder: (context) => const HomeScreen(),
-                                  ),
-                                  (route) => false,
-                                );
-                              }
-                            },
+                        if (_emailController.text.isEmpty || _passController.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Inserisci email e password")),
+                          );
+                          return;
+                        }
+
+                        final navigator = Navigator.of(context);
+                        bool success = await authProvider.login(
+                          _emailController.text,
+                          _passController.text,
+                        );
+                        if (success) {
+                          navigator.pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (context) => const HomeScreen(),
+                            ),
+                                (route) => false,
+                          );
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: buttonColor,
                         foregroundColor: Colors.white,
@@ -124,13 +138,13 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                       child: authProvider.isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : const Text(
-                              "ACCEDI",
-                              style: TextStyle(
-                                fontSize: 35,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.0,
-                              ),
-                            ),
+                        "ACCEDI",
+                        style: TextStyle(
+                          fontSize: 35,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 100),
@@ -143,15 +157,17 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
     );
   }
 
-  //DA METTERE IN UN ALTRO FILE
+  // WIDGET CAMPO DI TESTO (MODIFICATO)
   Widget _buildTextField(
-    String hint,
-    TextEditingController controller, {
-    bool isPassword = false,
-  }) {
+      String hint,
+      TextEditingController controller, {
+        required bool isPassword,
+      }) {
+    bool obscureText = isPassword ? !_isPasswordVisible : false;
+
     return TextField(
       controller: controller,
-      obscureText: isPassword,
+      obscureText: obscureText,
       style: const TextStyle(color: Colors.black),
       decoration: InputDecoration(
         filled: true,
@@ -166,6 +182,16 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
           borderRadius: BorderRadius.circular(30),
           borderSide: BorderSide.none,
         ),
+
+        suffixIcon: isPassword
+            ? IconButton(
+          icon: Icon(
+            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+            color: Colors.grey,
+          ),
+          onPressed: _togglePasswordVisibility,
+        )
+            : null,
       ),
     );
   }
