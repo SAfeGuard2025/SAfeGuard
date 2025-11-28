@@ -50,7 +50,7 @@ class UserRepository {
 
   // --- CREATE USER (Usato da LoginService per Google/Apple) ---
   // Questo metodo mancava e causava l'errore nello screenshot
-  Future<Map<String, dynamic>> createUser(Map<String, dynamic> userData, {String collection = 'utenti'}) async {
+  Future<Map<String, dynamic>> createUser(Map<String, dynamic> userData, {String collection = 'users'}) async {
     // Genera ID se manca
     if (userData['id'] == null || userData['id'] == 0) {
       userData['id'] = DateTime.now().millisecondsSinceEpoch;
