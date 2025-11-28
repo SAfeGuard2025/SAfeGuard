@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:data_models/Condizione.dart';
 import 'package:data_models/ContattoEmergenza.dart';
+import 'package:data_models/Notifica.dart';
 import 'package:data_models/Permesso.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -293,6 +294,49 @@ class ProfileRepository {
 
     if (response.statusCode != 200) {
       throw Exception('Errore aggiornamento permessi: ${response.body}');
+    }
+  }
+
+  // --- GET NOTIFICHE ---
+  Future<Notifica> fetchNotifiche() async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/api/profile/');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['notifiche'] != null) {
+        return Notifica.fromJson(data['notifiche']);
+      }
+      return Notifica(); // Default
+    } else {
+      throw Exception('Impossibile caricare le notifiche');
+    }
+  }
+
+  // --- UPDATE NOTIFICHE ---
+  Future<void> updateNotifiche(Notifica notifiche) async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/api/profile/notifiche');
+
+    final response = await http.put(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(notifiche.toJson()),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Errore aggiornamento notifiche: ${response.body}');
     }
   }
 }

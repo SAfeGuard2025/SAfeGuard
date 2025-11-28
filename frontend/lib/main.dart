@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/providers/notification_provider.dart';
 import 'package:provider/provider.dart';
 
 // IMPORT DEI PROVIDER
@@ -16,6 +17,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => MedicalProvider()),
         ChangeNotifierProvider(create: (_) => EmergencyProvider()),
         ChangeNotifierProvider(create: (_) => PermissionProvider()), // <--- E DI QUESTA RIGA
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: const SAfeGuard(),
     ),
