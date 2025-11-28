@@ -13,6 +13,10 @@ import '../repositories/profile_repository.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthRepository _authRepository = AuthRepository();
+  final ProfileRepository _profileRepo = ProfileRepository();
+
+  // Istanza GoogleSignIn definita qui per essere usata sia nel login che nel logout
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -55,7 +59,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-// --- MODIFICA: LOGIN EMAIL ---
+  // --- LOGIN EMAIL ---
   Future<bool> login(String email, String password) async {
     _setLoading(true);
     try {
@@ -189,12 +193,27 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // --- LOGOUT MODIFICATO ---
   Future<void> logout() async {
+    // 1. Disconnessione da Google per forzare la scelta account al prossimo login
+    try {
+      if (await _googleSignIn.isSignedIn()) {
+        await _googleSignIn.signOut();
+        // Nota: disconnect() revocherebbe completamente i permessi, signOut() basta per cambiare account
+      }
+    } catch (e) {
+      print("Errore logout Google: $e");
+    }
+
+    // 2. Pulizia sessione locale (SharedPreferences)
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
+
+    // 3. Reset stato interno
     _currentUser = null;
     _authToken = null;
     _isRescuer = false;
+
     notifyListeners();
   }
 
@@ -255,11 +274,7 @@ class AuthProvider extends ChangeNotifier {
     super.dispose();
   }
 
-  // Aggiungi un'istanza del ProfileRepository se non vuoi ricrearla ogni volta,
-  // oppure usala localmente nel metodo.
-  final ProfileRepository _profileRepo = ProfileRepository();
-
-// --- RICARICAMENTO DATI DAL SERVER ---
+  // --- RICARICAMENTO DATI DAL SERVER ---
   Future<void> reloadUser() async {
     // Se non siamo loggati, inutile ricaricare
     if (_currentUser?.id == null) return;
@@ -276,7 +291,6 @@ class AuthProvider extends ChangeNotifier {
         _isRescuer = updatedUser.isSoccorritore;
 
         // 4. Aggiorna le SharedPreferences (Sessione persistente)
-        // Dobbiamo recuperare il token attuale perché getUserProfile non lo restituisce
         final prefs = await SharedPreferences.getInstance();
         final currentToken = prefs.getString('auth_token');
 
@@ -289,19 +303,15 @@ class AuthProvider extends ChangeNotifier {
       }
     } catch (e) {
       print("Errore ricaricamento profilo: $e");
-      // Non blocchiamo l'app, stampiamo solo l'errore
     }
   }
 
-//Helper per aggiornare l'utente manualmente (Optimistic Update)
+  // Helper per aggiornare l'utente manualmente (Optimistic Update)
   void updateUserLocally({String? nome, String? cognome, String? telefono, String? citta}) {
     if (_currentUser != null) {
-
       // Se è un CITTADINO (Utente)
       if (_currentUser is Utente) {
         final oldUser = _currentUser as Utente;
-
-        // Usiamo il copyWith che esiste in Utente
         _currentUser = oldUser.copyWith(
           nome: nome ?? oldUser.nome,
           cognome: cognome ?? oldUser.cognome,
@@ -309,26 +319,19 @@ class AuthProvider extends ChangeNotifier {
           cittaDiNascita: citta ?? oldUser.cittaDiNascita,
         );
       }
-      // Se è un SOCCORRITORE (Soccorritore non ha copyWith nel codice fornito, lo gestiamo manualmente o ricarichiamo)
-      else if (_currentUser is Soccorritore) {
-        // Poiché Soccorritore nel codice fornito non ha un copyWith esplicito comodo come Utente,
-        // e i campi di UtenteGenerico sono final, la cosa più semplice è aspettare il reloadUser.
-        // Tuttavia, se vuoi forzarlo, dovresti ricreare l'oggetto Soccorritore.
-        // Per ora lasciamo che reloadUser gestisca la verità dei dati per il soccorritore.
-      }
-
+      // Se è un SOCCORRITORE, aspettiamo il reloadUser o implementiamo logica simile
       notifyListeners();
     }
   }
-
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   // --- GESTIONE GOOGLE ---
   Future<bool> signInWithGoogle() async {
     _setLoading(true);
     try {
       // 1. Apre il popup nativo di Google
+      // Nota: grazie al logout modificato, se l'utente aveva fatto logout, qui chiederà l'account
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
       if (googleUser == null) {
         _setLoading(false);
         return false; // Utente ha annullato
@@ -368,7 +371,6 @@ class AuthProvider extends ChangeNotifier {
       );
 
       // 2. Chiama il Backend
-      // Nota: email e nomi sono presenti solo al PRIMO login su Apple, poi sono null.
       final response = await _authRepository.loginWithApple(
         identityToken: credential.identityToken!,
         email: credential.email,
