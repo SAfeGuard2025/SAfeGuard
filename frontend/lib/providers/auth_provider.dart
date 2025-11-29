@@ -347,8 +347,9 @@ class AuthProvider extends ChangeNotifier {
           await googleUser.authentication;
       final String? idToken = googleAuth.idToken;
 
-      if (idToken == null)
+      if (idToken == null) {
         throw Exception("Impossibile recuperare ID Token Google");
+      }
 
       // 3. Chiama il Backend inviando l'ID Token (Login/Registrazione Social)
       final response = await _authRepository.loginWithGoogle(idToken);
