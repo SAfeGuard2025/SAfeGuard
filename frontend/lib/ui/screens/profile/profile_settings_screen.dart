@@ -140,7 +140,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         backgroundColor: kAccentOrange,
                         child: CircleAvatar(
                           radius: isWideScreen ? 56 : 42,
-                          backgroundImage: const AssetImage("assets/cavalluccio.png"),
+                          backgroundImage: AssetImage(isRescuer ? "assets/cavalluccioSoccorritore.png" : "assets/cavalluccio.png"),
                         ),
                       ),
                       const SizedBox(width: 20),
