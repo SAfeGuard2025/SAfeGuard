@@ -21,7 +21,7 @@ class LoginController {
 
       final Map<String, dynamic> credentials = jsonDecode(body);
 
-      final email = credentials['email'] as String?;
+      final email = (credentials['email'] as String?)?.toLowerCase();
       final telefono = credentials['telefono'] as String?;
       final password = credentials['password'] as String?;
 
@@ -86,7 +86,7 @@ class LoginController {
       final Map<String, dynamic> payload = jsonDecode(body);
 
       final identityToken = payload['identityToken'] as String?;
-      final email = payload['email'] as String?;
+      final email = (payload['email'] as String?)?.toLowerCase();
       final firstName = payload['givenName'] as String?;
       final lastName = payload['familyName'] as String?;
 

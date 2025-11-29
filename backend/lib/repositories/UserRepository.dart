@@ -11,7 +11,7 @@ class UserRepository {
 
   // Cerca un utente nella collezione 'users' tramite il campo 'email'
   Future<Map<String, dynamic>?> findUserByEmail(String email) async {
-    final pages = await _usersCollection.where('email', isEqualTo: email).get();
+    final pages = await _usersCollection.where('email', isEqualTo: email.toLowerCase()).get();
     if (pages.isEmpty) return null;
     return pages.first.map;
   }
@@ -156,8 +156,11 @@ class UserRepository {
 
   // Trova un utente tramite email o telefono e lo marca come verificato/attivo
   Future<void> markUserAsVerified(String identifier) async {
+    // Normalizza l'input
+    final idLower = identifier.toLowerCase();
+
     // Cerca per email o telefono
-    var pages = await _usersCollection.where('email', isEqualTo: identifier).get();
+    var pages = await _usersCollection.where('email', isEqualTo: idLower).get();
 
     if (pages.isEmpty) {
       pages = await _usersCollection.where('telefono', isEqualTo: identifier).get();

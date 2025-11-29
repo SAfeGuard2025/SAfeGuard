@@ -55,7 +55,7 @@ class ProfileController {
       cognome: body['cognome'],
       telefono: body['telefono'],
       citta: body['cittaDiNascita'],
-      email: body['email'],
+      email: (body['email'] as String?)?.toLowerCase(),
       dataNascita: body['dataDiNascita'] != null
           ? DateTime.parse(body['dataDiNascita'])
           : null,

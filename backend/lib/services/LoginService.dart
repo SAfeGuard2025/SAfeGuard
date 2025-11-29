@@ -198,8 +198,8 @@ class LoginService {
     }
 
     // Prende l'email dal token o dal body della richiesta
-    final String tokenEmail = payload['email'] as String? ?? '';
-    final String finalEmail = tokenEmail.isNotEmpty ? tokenEmail : (email ?? '');
+    final String tokenEmail = (payload['email'] as String? ?? '').toLowerCase();
+    final String finalEmail = tokenEmail.isNotEmpty ? tokenEmail : (email?.toLowerCase() ?? '');
 
     if (finalEmail.isEmpty) {
       throw Exception('Impossibile recuperare l\'email dall\'ID Apple.');

@@ -27,7 +27,11 @@ class RegisterController {
 
       final Map<String, dynamic> requestData = jsonDecode(body);
 
-      final email = requestData['email'] as String?;
+      final email = (requestData['email'] as String?)?.toLowerCase();
+      if (email != null) {
+        requestData['email'] = email; // Aggiorna la mappa per il Service
+      }
+
       final telefono = requestData['telefono'] as String?;
       String? password = requestData['password'] as String?;
       final confermaPassword = requestData['confermaPassword'] as String?;
