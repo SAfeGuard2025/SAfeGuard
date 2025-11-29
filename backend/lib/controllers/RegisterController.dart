@@ -32,7 +32,7 @@ class RegisterController {
         requestData['email'] = email; // Aggiorna la mappa per il Service
       }
 
-      final telefono = requestData['telefono'] as String?;
+      final String? telefono = requestData['telefono'] = (requestData['telefono'] as String?)?.replaceAll(' ', '');
       String? password = requestData['password'] as String?;
       final confermaPassword = requestData['confermaPassword'] as String?;
 

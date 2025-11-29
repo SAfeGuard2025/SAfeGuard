@@ -107,22 +107,48 @@ class ProfileService {
     String? email,
   }) async {
     try {
-      // Costruisce la mappa di aggiornamento solo con i campi non nulli
-      Map<String, dynamic> updates = {};
+      final Map<String, dynamic> updates = {};
+
+      // 1. Aggiornamenti campi semplici (solo se presenti)
       if (nome != null) updates['nome'] = nome;
       if (cognome != null) updates['cognome'] = cognome;
-      if (telefono != null) updates['telefono'] = telefono;
       if (citta != null) updates['cittaDiNascita'] = citta;
       if (dataNascita != null) updates['dataDiNascita'] = dataNascita.toIso8601String();
-      if (email != null && email.isNotEmpty) updates['email'] = email;
 
+      // 2. Logica Email (Lowercase + Controllo Duplicati)
+      if (email != null && email.isNotEmpty) {
+        final normalizedEmail = email.toLowerCase();
+
+        // Verifica se l'email è già usata da un ALTRO utente
+        final existingUser = await _userRepository.findUserByEmail(normalizedEmail);
+        if (existingUser != null && existingUser['id'] != userId) {
+          print("Errore: Email $normalizedEmail già in uso.");
+          return false;
+        }
+        updates['email'] = normalizedEmail;
+      }
+
+      // 3. Logica Telefono (No Spazi + Controllo Duplicati)
+      if (telefono != null && telefono.isNotEmpty) {
+        final cleanPhone = telefono.replaceAll(' ', '');
+
+        // Verifica se il telefono è già usato da un altro utente
+        final existingUser = await _userRepository.findUserByPhone(cleanPhone);
+        if (existingUser != null && existingUser['id'] != userId) {
+          print("Errore: Telefono $cleanPhone già in uso.");
+          return false;
+        }
+        updates['telefono'] = cleanPhone;
+      }
+
+      // Esegue l'update solo se ci sono modifiche valide
       if (updates.isNotEmpty) {
-        // Delega l'aggiornamento al UserRepository
         await _userRepository.updateUserGeneric(userId, updates);
       }
       return true;
+
     } catch (e) {
-      print("Errore anagrafica: $e");
+      print("Errore update anagrafica: $e");
       return false;
     }
   }
