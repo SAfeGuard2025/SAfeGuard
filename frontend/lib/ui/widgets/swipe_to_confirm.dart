@@ -5,15 +5,23 @@ class SwipeToConfirm extends StatefulWidget {
   final double width;
   final VoidCallback onConfirm;
   final Widget? thumb; // La freccia
-  final Widget? background; // La barra rossa
+  final String text;            // Testo personalizzabile
+  final TextStyle? textStyle;   // Stile testo personalizzabile
+  final Color? sliderColor;     // Colore freccia
+  final Color? backgroundColor; // Colore sfondo barra
+  final Color? iconColor;       // Colore icona
 
   const SwipeToConfirm({
     super.key,
     required this.onConfirm,
-    this.thumb,
-    this.background,
-    this.height = 60,
     required this.width,
+    this.height = 60,
+    this.thumb,
+    this.text = "Slide per confermare",
+    this.textStyle,
+    this.sliderColor,
+    this.backgroundColor,
+    this.iconColor,
   });
 
   @override
@@ -37,26 +45,30 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
         children: [
           // Background della barra
           Positioned.fill(
-            child: widget.background ??
-                Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF8B1D1D),
-                    borderRadius: BorderRadius.circular(40),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      "Slide per confermare",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: widget.backgroundColor ?? const Color(0xFF8B1D1D),
+                borderRadius: BorderRadius.circular(widget.height / 2),
+              ),
+              child: Center(
+                child: Text(
+                  widget.text,
+                  textAlign: TextAlign.center,
+                  // MODIFICA QUI:
+                  // Se non passi uno stile personalizzato, usa quello di default.
+                  // Ho impostato il font size al 30% dell'altezza dello slider.
+                  // Esempio: altezza 70 -> font 21 | altezza 80 -> font 24
+                  style: widget.textStyle ?? TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: widget.height * 0.25,
                   ),
                 ),
+              ),
+            ),
           ),
 
-          //Freccia che si muove
+          // Thumb (Freccia che si muove)
           AnimatedPositioned(
             duration: const Duration(milliseconds: 80),
             left: position,
@@ -64,13 +76,11 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
             bottom: 0,
             child: GestureDetector(
               onHorizontalDragUpdate: (details) {
-                if (confirmed) return; // Se già confermato, blocca
+                if (confirmed) return;
 
                 setState(() {
                   position += details.delta.dx;
-                  // Blocca a sinistra (0)
                   if (position < 0) position = 0;
-                  // Blocca a destra (maxDragDistance)
                   if (position > maxDragDistance) {
                     position = maxDragDistance;
                   }
@@ -79,14 +89,12 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
               onHorizontalDragEnd: (_) {
                 if (confirmed) return;
 
-                // Se è arrivato in fondo (con un margine di tolleranza di 5px)
                 if (position >= maxDragDistance - 5) {
                   setState(() {
                     confirmed = true;
                   });
                   widget.onConfirm();
                 } else {
-                  // Torna indietro se non ha finito
                   setState(() {
                     position = 0;
                   });
@@ -97,14 +105,22 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
                 width: widget.height,
                 child: widget.thumb ??
                     Container(
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.red,
+                        color: widget.sliderColor ?? Colors.red,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 4,
+                            spreadRadius: 1,
+                          )
+                        ],
                       ),
-                      child: const Icon(
-                          Icons.arrow_forward,
-                          color: Colors.white,
-                          size: 30
+                      child: Icon(
+                        Icons.arrow_forward,
+                        color: widget.iconColor ?? Colors.white,
+                        // L'icona scala in base all'altezza dello slider (60%)
+                        size: widget.height * 0.6,
                       ),
                     ),
               ),
