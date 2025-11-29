@@ -49,7 +49,7 @@ class _EmergencyDropdownMenuState extends State<EmergencyDropdownMenu> {
       // Altezza totale dei 6 elementi (6 * 45.0) = 270.0
       final double itemsTotalHeight = _itemHeight * widget.items.length;
 
-      // Aggiungiamo un margine di sicurezza di circa 30 pixel.
+      // Margine di sicurezza
       const double safetyMargin = 30.0;
 
       // Nuova altezza totale stimata
@@ -141,7 +141,7 @@ class _EmergencyDropdownMenuState extends State<EmergencyDropdownMenu> {
                 ],
               ),
             ),
-          )).toList().reversed,
+          )).toList().reversed, //Invertiamo per avere l'ordine stabilito di item
           const Spacer(),
         ],
       ),

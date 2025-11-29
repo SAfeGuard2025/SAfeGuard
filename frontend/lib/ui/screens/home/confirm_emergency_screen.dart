@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:frontend/ui/widgets/swipe_to_confirm.dart';
 
@@ -8,83 +9,123 @@ class ConfirmEmergencyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 1. Variabili per la responsività
+    final size = MediaQuery.of(context).size;
+    final double screenWidth = size.width;
+    final bool isWideScreen = screenWidth > 600;
+
+    // Dimensione dei font dinamiche
+    final double titleSize = isWideScreen ? 60 : 45;
+    final double subTitleSize = isWideScreen ? 26 : 20;
+
+    // Testo legale: 14 su mobile -> 20 su tablet
+    final double legalTextSize = isWideScreen ? 20 : 14;
+
+    // Tasto Annulla: 24 su mobile -> 35 su tablet
+    final double cancelTextSize = isWideScreen ? 35 : 24;
+
+    // Larghezza slider
+    final double sliderWidth = math.min(screenWidth * 0.85, 500.0);
+
     return Scaffold(
       backgroundColor: brightRed,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 10),
-                _buildSosImage(),
-                const SizedBox(height: 10),
-                const Text(
-                  "Conferma SOS",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 55,
-                    height: 1.0,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  "Swipe per mandare la tua \nposizione e allertare i soccorritori",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 22,
-                  ),
-                ),
-                const SizedBox(height: 40),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
 
-                Center(
-                  child: SwipeToConfirm(
-                    //Lo slider prende l'85% della larghezza della pagina
-                    width: MediaQuery.of(context).size.width * 0.85,
-                    height: 70,
-
-                    onConfirm: () {
-                      Navigator.of(context).pop(); // Chiude la schermata
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("SOS INVIATO!"),
-                          backgroundColor: Colors.black,
-                        ),
-                      );
-                    },
+              // 1. Immagine SOS
+              Expanded(
+                flex: 4,
+                child: Center(
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: _buildSosImage(),
                   ),
                 ),
+              ),
 
-                const SizedBox(height: 40),
-                const Text(
-                  "Ricorda che il procurato allarme verso le autorità è\nperseguibile per legge ai sensi dell'art. 658 del c.p.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontStyle: FontStyle.italic,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text(
-                    "Annulla",
+              SizedBox(height: isWideScreen ? 40 : 20),
+
+              // 2. Testi
+              Column(
+                children: [
+                  Text(
+                    "Conferma SOS",
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 24,
-                      decoration: TextDecoration.underline,
-                      decorationColor: Colors.white,
+                      fontSize: titleSize,
+                      height: 1.0,
                     ),
                   ),
+                  const SizedBox(height: 50),
+                  Text(
+                    "Swipe per mandare la tua \nposizione e allertare i soccorritori",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: subTitleSize,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 50),
+
+              // 3. Slider
+              Center(
+                child: SwipeToConfirm(
+                  width: sliderWidth,
+                  height: isWideScreen ? 80 : 70,
+                  onConfirm: () {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("SOS INVIATO!"),
+                        backgroundColor: Colors.black,
+                      ),
+                    );
+                  },
                 ),
-              ],
-            ),
+              ),
+
+              const Spacer(flex: 1),
+
+              // 4. Footer
+              Column(
+                children: [
+                  Text(
+                    "Ricorda che il procurato allarme verso le autorità è\nperseguibile per legge ai sensi dell'art. 658 del c.p.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontStyle: FontStyle.italic,
+                      fontSize: legalTextSize,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(
+                      "Annulla",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: cancelTextSize,
+                        decoration: TextDecoration.underline,
+                        decorationColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
@@ -93,13 +134,11 @@ class ConfirmEmergencyScreen extends StatelessWidget {
 
   Widget _buildSosImage() {
     return Container(
-      width: 200,
-      height: 200,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         shape: BoxShape.circle,
-        image: const DecorationImage(
+        image: DecorationImage(
           image: AssetImage('assets/sosbutton.png'),
-          fit: BoxFit.cover,
+          fit: BoxFit.contain,
         ),
       ),
     );

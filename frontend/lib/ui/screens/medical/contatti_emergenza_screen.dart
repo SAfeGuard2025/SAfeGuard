@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-// IMPORT MODELLO UFFICIALE E PROVIDER
+// Import modello ufficiale e provider
 import 'package:data_models/ContattoEmergenza.dart';
 import 'package:frontend/providers/medical_provider.dart';
+import 'package:flutter/services.dart';
 
 class ContattiEmergenzaScreen extends StatefulWidget {
   const ContattiEmergenzaScreen({super.key});
@@ -42,7 +43,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // HEADER
+            // Header
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
               child: Row(
@@ -55,7 +56,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
               ),
             ),
 
-            // TITOLO
+            // Titolo
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
@@ -85,7 +86,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
             ),
             const SizedBox(height: 30),
 
-            // LISTA COLLEGATA AL PROVIDER
+            // Lista collegata al provider
             Expanded(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -128,7 +129,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
             ),
             const SizedBox(height: 20),
 
-            // AGGIUNGI
+            // Aggiungi
             Padding(
               padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 30.0),
               child: InkWell(
@@ -182,7 +183,6 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
     );
   }
 
-  // WIDGET ITEM
   Widget _buildItem({
     required ContattoEmergenza item,
     required VoidCallback onEdit,
@@ -208,7 +208,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  item.nome, // Usa i campi di ContattoEmergenza
+                  item.nome,
                   style: const TextStyle(color: Colors.white70, fontSize: 14),
                 ),
               ],
@@ -231,8 +231,8 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
     );
   }
 
-  // DIALOGO
-  void _openDialog({required bool isEdit, int? index}) {
+  // Dialogo
+  void _openDialog({required bool isEdit}) {
     _numberController.clear();
     _nameController.clear();
 
@@ -251,6 +251,9 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
               TextField(
                 controller: _numberController,
                 keyboardType: TextInputType.phone,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
+                ],
                 style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
                   labelText: "Numero",
@@ -279,17 +282,37 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
               onPressed: () => Navigator.pop(context),
               child: const Text("Annulla", style: TextStyle(color: Colors.white70)),
             ),
-            ElevatedButton(
+            ElevatedButton(   //Inserimento di un numero con controllo sui campi vuoti e validazione numerica
               style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
               onPressed: () async {
-                if (_numberController.text.isNotEmpty && _nameController.text.isNotEmpty) {
 
-                  final success = await Provider.of<MedicalProvider>(context, listen: false)
-                      .addContatto(_nameController.text, _numberController.text);
+                final nome = _nameController.text.trim();
+                final numero = _numberController.text.trim();
+                if (nome.isEmpty || numero.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Per favore, compila tutti i campi.")),
+                  );
+                  return;
+                }
 
-                  if (success && context.mounted) {
-                    Navigator.pop(context);
-                  }
+                final isNumeroValido = RegExp(r'^[0-9+]+$').hasMatch(numero);
+
+                if (!isNumeroValido) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Il numero inserito non è valido (usa solo cifre)."),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+
+                final success = await Provider.of<MedicalProvider>(context, listen: false)
+                    .addContatto(nome, numero);
+
+                if (success && context.mounted) {
+                  Navigator.pop(context);
                 }
               },
               child: const Text("Salva", style: TextStyle(color: Colors.white)),

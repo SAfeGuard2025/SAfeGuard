@@ -29,7 +29,8 @@ class ProfileController {
   // Recupera il profilo completo dell'utente loggato
   Future<Response> getProfile(Request request) async {
     final userId = _getUserId(request);
-    if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
+    if (userId == null)
+      return _jsonResponse(401, body: {'error': 'Non autorizzato'});
 
     final userProfile = await _profileService.getProfile(userId);
     if (userProfile != null) {
@@ -43,7 +44,8 @@ class ProfileController {
   // Aggiorna i campi base (nome, cognome, telefono, email, ecc.)
   Future<Response> updateAnagrafica(Request request) async {
     final userId = _getUserId(request);
-    if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
+    if (userId == null)
+      return _jsonResponse(401, body: {'error': 'Non autorizzato'});
 
     final body = jsonDecode(await request.readAsString());
 
@@ -54,13 +56,18 @@ class ProfileController {
       telefono: body['telefono'],
       citta: body['cittaDiNascita'],
       email: body['email'],
-      dataNascita: body['dataDiNascita'] != null ? DateTime.parse(body['dataDiNascita']) : null,
+      dataNascita: body['dataDiNascita'] != null
+          ? DateTime.parse(body['dataDiNascita'])
+          : null,
     );
 
     if (success) {
       return _jsonResponse(200, body: {'message': 'Anagrafica aggiornata'});
     } else {
-      return _jsonResponse(500, body: {'error': 'Errore durante l\'aggiornamento'});
+      return _jsonResponse(
+        500,
+        body: {'error': 'Errore durante l\'aggiornamento'},
+      );
     }
   }
 
@@ -68,7 +75,8 @@ class ProfileController {
   // Aggiorna i permessi dell'utente
   Future<Response> updatePermessi(Request request) async {
     final userId = _getUserId(request);
-    if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
+    if (userId == null)
+      return _jsonResponse(401, body: {'error': 'Non autorizzato'});
 
     final body = jsonDecode(await request.readAsString());
     final permessi = Permesso.fromJson(body);
@@ -77,7 +85,10 @@ class ProfileController {
     if (success) {
       return _jsonResponse(200, body: {'message': 'Permessi aggiornati'});
     } else {
-      return _jsonResponse(500, body: {'error': 'Errore durante l\'aggiornamento'});
+      return _jsonResponse(
+        500,
+        body: {'error': 'Errore durante l\'aggiornamento'},
+      );
     }
   }
 
@@ -85,7 +96,8 @@ class ProfileController {
   // Aggiorna le condizioni mediche dell'utente
   Future<Response> updateCondizioni(Request request) async {
     final userId = _getUserId(request);
-    if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
+    if (userId == null)
+      return _jsonResponse(401, body: {'error': 'Non autorizzato'});
 
     final body = jsonDecode(await request.readAsString());
     final condizioni = Condizione.fromJson(body);
@@ -94,7 +106,10 @@ class ProfileController {
     if (success) {
       return _jsonResponse(200, body: {'message': 'Condizioni aggiornate'});
     } else {
-      return _jsonResponse(500, body: {'error': 'Errore durante l\'aggiornamento'});
+      return _jsonResponse(
+        500,
+        body: {'error': 'Errore durante l\'aggiornamento'},
+      );
     }
   }
 
@@ -102,7 +117,8 @@ class ProfileController {
   // Aggiorna le preferenze relative alle notifiche
   Future<Response> updateNotifiche(Request request) async {
     final userId = _getUserId(request);
-    if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
+    if (userId == null)
+      return _jsonResponse(401, body: {'error': 'Non autorizzato'});
 
     final body = jsonDecode(await request.readAsString());
     final notifiche = Notifica.fromJson(body);
@@ -111,7 +127,10 @@ class ProfileController {
     if (success) {
       return _jsonResponse(200, body: {'message': 'Notifiche aggiornate'});
     } else {
-      return _jsonResponse(500, body: {'error': 'Errore durante l\'aggiornamento'});
+      return _jsonResponse(
+        500,
+        body: {'error': 'Errore durante l\'aggiornamento'},
+      );
     }
   }
 
@@ -119,7 +138,8 @@ class ProfileController {
   // Aggiunge un elemento alla lista delle allergie dell'utente
   Future<Response> addAllergia(Request request) async {
     final userId = _getUserId(request);
-    if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
+    if (userId == null)
+      return _jsonResponse(401, body: {'error': 'Non autorizzato'});
 
     final body = jsonDecode(await request.readAsString());
     final allergia = body['allergia'] as String;
@@ -131,7 +151,8 @@ class ProfileController {
   // Rimuove un elemento dalla lista delle allergie dell'utente
   Future<Response> removeAllergia(Request request) async {
     final userId = _getUserId(request);
-    if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
+    if (userId == null)
+      return _jsonResponse(401, body: {'error': 'Non autorizzato'});
 
     final body = jsonDecode(await request.readAsString());
     final allergia = body['allergia'] as String;
@@ -143,7 +164,8 @@ class ProfileController {
   // Aggiunge un farmaco alla lista dei medicinali assunti dall'utente
   Future<Response> addMedicinale(Request request) async {
     final userId = _getUserId(request);
-    if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
+    if (userId == null)
+      return _jsonResponse(401, body: {'error': 'Non autorizzato'});
 
     final body = jsonDecode(await request.readAsString());
     final farmaco = body['medicinale'] as String;
@@ -155,7 +177,8 @@ class ProfileController {
   // Rimuove un farmaco dalla lista dei medicinali assunti dall'utente
   Future<Response> removeMedicinale(Request request) async {
     final userId = _getUserId(request);
-    if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
+    if (userId == null)
+      return _jsonResponse(401, body: {'error': 'Non autorizzato'});
 
     final body = jsonDecode(await request.readAsString());
     final farmaco = body['medicinale'] as String;
@@ -167,19 +190,42 @@ class ProfileController {
   // Aggiunge un contatto di emergenza
   Future<Response> addContatto(Request request) async {
     final userId = _getUserId(request);
-    if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
+    if (userId == null)
+      return _jsonResponse(401, body: {'error': 'Non autorizzato'});
 
-    final body = jsonDecode(await request.readAsString());
-    final contatto = ContattoEmergenza.fromJson(body);
-    await _profileService.addContatto(userId, contatto);
-    return _jsonResponse(201, body: {'message': 'Contatto aggiunto'});
+    try {
+      final body = jsonDecode(await request.readAsString());
+      String? numero =
+          body['numero']; //Validazione, Controllo esistenza, numeri e pulizia per il Dato
+
+      if (numero == null || numero.isEmpty) {
+        return _jsonResponse(400, body: {'error': 'Numero mancante'});
+      }
+
+      numero = numero.replaceAll(' ', '');
+      if (!RegExp(r'^[0-9+]+$').hasMatch(numero)) {
+        return _jsonResponse(
+          400,
+          body: {'error': 'Numero non valido: usa solo cifre'},
+        );
+      }
+
+      body['numero'] = numero;
+
+      final contatto = ContattoEmergenza.fromJson(body);
+      await _profileService.addContatto(userId, contatto);
+      return _jsonResponse(201, body: {'message': 'Contatto aggiunto'});
+    } catch (e) {
+      return _jsonResponse(400, body: {'error': 'Dati non validi'});
+    }
   }
 
   // 11. DELETE /profile/contatti
   // Rimuove un contatto di emergenza
   Future<Response> removeContatto(Request request) async {
     final userId = _getUserId(request);
-    if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
+    if (userId == null)
+      return _jsonResponse(401, body: {'error': 'Non autorizzato'});
 
     final body = jsonDecode(await request.readAsString());
     final contatto = ContattoEmergenza.fromJson(body);
@@ -191,13 +237,18 @@ class ProfileController {
   // Aggiorna la password dell'utente richiesta password vecchia per la verifica
   Future<Response> updatePassword(Request request) async {
     final userId = _getUserId(request);
-    if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
+    if (userId == null)
+      return _jsonResponse(401, body: {'error': 'Non autorizzato'});
 
     final body = jsonDecode(await request.readAsString());
     final oldPassword = body['oldPassword'] as String;
     final newPassword = body['newPassword'] as String;
 
-    final error = await _profileService.updatePassword(userId, oldPassword, newPassword);
+    final error = await _profileService.updatePassword(
+      userId,
+      oldPassword,
+      newPassword,
+    );
     if (error == null) {
       return _jsonResponse(200, body: {'message': 'Password aggiornata'});
     } else {
@@ -209,13 +260,17 @@ class ProfileController {
   // Elimina l'intero account utente
   Future<Response> deleteAccount(Request request) async {
     final userId = _getUserId(request);
-    if (userId == null) return _jsonResponse(401, body: {'error': 'Non autorizzato'});
+    if (userId == null)
+      return _jsonResponse(401, body: {'error': 'Non autorizzato'});
 
     final success = await _profileService.deleteAccount(userId);
     if (success) {
       return _jsonResponse(200, body: {'message': 'Account eliminato'});
     } else {
-      return _jsonResponse(500, body: {'error': 'Errore durante l\'eliminazione'});
+      return _jsonResponse(
+        500,
+        body: {'error': 'Errore durante l\'eliminazione'},
+      );
     }
   }
 }

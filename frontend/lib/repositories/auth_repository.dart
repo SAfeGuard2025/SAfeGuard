@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart'; // Serve per kIsWeb
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+// Repository: AuthRepository
+// Responsabile di tutte le chiamate API relative ad autenticazione, registrazione e verifica.
 class AuthRepository {
 
+  // Metodo per determinare l'URL base del Backend in base alla piattaforma
   String get _baseUrl {
     String host = 'http://localhost';
     if (!kIsWeb && Platform.isAndroid) {
@@ -14,17 +17,16 @@ class AuthRepository {
     return '$host:8080';
   }
 
-  // --- LOGIN EMAIL/PASSWORD ---
-// --- MODIFICA: LOGIN UNIFICATO ---
+  // Login tramite email o telefono
   Future<Map<String, dynamic>> login({String? email, String? phone, required String password}) async {
     final url = Uri.parse('$_baseUrl/api/auth/login');
 
-    // Costruiamo il body dinamicamente in base a cosa abbiamo
+    // Costruisce il body dinamicamente in base ai dati forniti
     final Map<String, dynamic> body = {'password': password};
     if (email != null) {
       body['email'] = email;
     } else if (phone != null) {
-      body['telefono'] = phone; // Importante: usare la chiave che il backend si aspetta
+      body['telefono'] = phone;
     }
 
     try {
@@ -34,7 +36,7 @@ class AuthRepository {
         body: jsonEncode(body),
       );
 
-      final Map<String, dynamic> responseBody = jsonDecode(response.body); // Rinomina per chiarezza
+      final Map<String, dynamic> responseBody = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
         return responseBody;
@@ -46,10 +48,11 @@ class AuthRepository {
     }
   }
 
-  // --- REGISTRAZIONE EMAIL ---
+  // Registrazione con email o telefono
   Future<void> register(String identifier, String password, String nome, String cognome) async {
     final url = Uri.parse('$_baseUrl/api/auth/register');
 
+    // Tenta di determinare se l'identificatore è un numero di telefono (inizia con + o cifre)
     final bool isPhone = RegExp(r'^[+0-9]').hasMatch(identifier);
 
     final Map<String, dynamic> bodyMap = {
@@ -81,7 +84,7 @@ class AuthRepository {
     }
   }
 
-  // --- INVIO OTP TELEFONO ---
+  // Invio OTP Telefono
   Future<void> sendPhoneOtp(String phoneNumber, {String? password, String? nome, String? cognome}) async {
     final url = Uri.parse('$_baseUrl/api/auth/register');
     try {
@@ -93,7 +96,7 @@ class AuthRepository {
 
       if (password != null) {
         body['password'] = password;
-        body['confermaPassword'] = password; // Per validazione backend
+        body['confermaPassword'] = password;
       }
 
       final response = await http.post(
@@ -111,8 +114,8 @@ class AuthRepository {
     }
   }
 
-  // --- VERIFICA OTP (Unificata) ---
-  // Restituisce una Map perché in caso di telefono potremmo ricevere il token login
+  // Verifica OTP
+  // Verifica per email o telefono. Restituisce token se login completato.
   Future<Map<String, dynamic>> verifyOtp({String? email, String? phone, required String code}) async {
     final url = Uri.parse('$_baseUrl/api/verify');
     final Map<String, dynamic> requestBody = {'code': code};
@@ -137,7 +140,7 @@ class AuthRepository {
     }
   }
 
-  // --- LOGIN GOOGLE ---
+  // Login Google
   Future<Map<String, dynamic>> loginWithGoogle(String idToken) async {
     final url = Uri.parse('$_baseUrl/api/auth/google');
 
@@ -145,7 +148,7 @@ class AuthRepository {
       final response = await http.post(
           url,
           headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'id_token': idToken}),
+          body: jsonEncode({'id_token': idToken}), // Invia l'ID Token Google al backend
     );
 
     final Map<String, dynamic> body = jsonDecode(response.body);
@@ -159,7 +162,7 @@ class AuthRepository {
     }
   }
 
-  // --- LOGIN APPLE ---
+  // Login Apple
   Future<Map<String, dynamic>> loginWithApple({
     required String identityToken,
     String? email,
@@ -173,7 +176,7 @@ class AuthRepository {
           url,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
-      'identityToken': identityToken,
+      'identityToken': identityToken, // Token di identità Apple
       'email': email,
       'givenName': firstName,
       'familyName': lastName,

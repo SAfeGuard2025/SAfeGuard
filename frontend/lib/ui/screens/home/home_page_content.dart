@@ -5,14 +5,10 @@ import 'package:frontend/ui/screens/medical/contatti_emergenza_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/widgets/emergency_item.dart';
-import 'package:frontend/ui/widgets/emergency_notification.dart';
-import 'package:frontend/providers/emergency_provider.dart';
 
 class HomePageContent extends StatelessWidget {
   const HomePageContent({super.key});
 
-
-  // Colori della pagina
   final Color darkBlue = const Color(0xFF041528);
   final Color primaryRed = const Color(0xFFE53935);
   final Color amberOrange = const Color(0xFFFF9800);
@@ -20,56 +16,67 @@ class HomePageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isRescuer = context.watch<AuthProvider>().isRescuer;
+    final size = MediaQuery.of(context).size;
+    final double screenWidth = size.width;
+    final bool isWideScreen = screenWidth > 600;
 
-    final hasActiveAlert = context.watch<EmergencyProvider>().isSendingSos;
+    final double horizontalPadding = isWideScreen ? screenWidth * 0.08 : 15.0;
 
-    // Permette lo scroll se lo schermo è piccolo
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 10.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+
+          // 1. Mappa
+          Expanded(
+            flex: isRescuer ? 4 : 5,
+            child: _buildMapPlaceholder(isWideScreen),
+          ),
+
+          const SizedBox(height: 10),
+
+          // 2. Pulsante contatti
+          if (!isRescuer) ...[
+            _buildEmergencyContactsButton(context, isWideScreen),
             const SizedBox(height: 10),
-
-            if (hasActiveAlert) ...[ // se c'è un'allerta mostra la notifica
-              _buildEmergencyNotification(),
-              const SizedBox(height: 25), // spazio dopo la notifica
-            ] else ...[
-              const SizedBox(height: 5), // se non c'è la notifica metto solo uno spazio
-            ],
-
-            _buildMapPlaceholder(isRescuer),
-            const SizedBox(height: 20),
-            if(!isRescuer) _buildEmergencyContactsButton(context),
-            const SizedBox(height: 20),
-            _buildSosSection(context),
-
-            const SizedBox(height: 20),
-            if(isRescuer) _buildSpecificEmergency(context),
-            const SizedBox(height: 30),
           ],
-        ),
+
+          // 3. Sos button
+          Expanded(
+            flex: 3,
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: _buildSosSection(context),
+              ),
+            ),
+          ),
+
+          // 4. Menù emergenze specifiche (Solo Soccorritore)
+          if (isRescuer) ...[
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 60,
+              child: _buildSpecificEmergency(context, isWideScreen),
+            ),
+          ],
+
+          const SizedBox(height: 10),
+        ],
       ),
     );
   }
 
-  // costruzione della notifica
-  Widget _buildEmergencyNotification() {
-    return EmergencyNotification();
-  }
+  // --- WIDGETS ---
 
-
-
-  Widget _buildMapPlaceholder(bool isRescuer) {
+  Widget _buildMapPlaceholder(bool isWideScreen) {
     return Container(
-      height: isRescuer ? 300 : 225,
       width: double.infinity,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: const Color(
-          0xFF0E2A48, // Un blu leggermente più chiaro dello sfondo
-        ),
+        color: const Color(0xFF0E2A48),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.white54, width: 2),
         boxShadow: [
@@ -81,109 +88,78 @@ class HomePageContent extends StatelessWidget {
           ),
         ],
       ),
-      child: const Column(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.map_outlined, color: Colors.white70, size: 60),
-          SizedBox(height: 10),
+          FittedBox(
+              child: Icon(Icons.map_outlined, color: Colors.white70, size: isWideScreen ? 80 : 50)
+          ),
+          const SizedBox(height: 10),
           Text(
             "Mappa",
             style: TextStyle(
               color: Colors.white70,
-              fontSize: 20,
+              fontSize: isWideScreen ? 28 : 20,
               fontWeight: FontWeight.bold,
             ),
           ),
           Text(
-            "(Implementazione futura)",
-            style: TextStyle(color: Colors.white70, fontSize: 14),
+            "(Futura)",
+            style: TextStyle(
+                color: Colors.white70,
+                fontSize: isWideScreen ? 18 : 14
+            ),
           ),
         ],
       ),
     );
   }
 
-
-  Widget _buildEmergencyContactsButton(BuildContext context) {
-    // controllo se l'utente è loggato, se lo è mostro i contatti di emergenza se no mostra il tasto per andare alla registrazione
+  Widget _buildEmergencyContactsButton(BuildContext context, bool isWideScreen) {
     final isLogged = context.watch<AuthProvider>().isLogged;
-    if(!isLogged){
+    final buttonStyle = ElevatedButton.styleFrom(
+      backgroundColor: isLogged ? amberOrange : Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      padding: EdgeInsets.symmetric(
+          horizontal: isWideScreen ? 60 : 30,
+          vertical: isWideScreen ? 20 : 12
+      ),
+      elevation: 5,
+    );
 
-      //return Text("");
-
-      return ElevatedButton(
+    final textStyle = TextStyle(
+      color: darkBlue,
+      fontWeight: FontWeight.bold,
+      fontSize: isWideScreen ? 22 : 16,
+    );
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: ElevatedButton(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const RegistrationScreen(),
-            ),
-          );
+          final route = isLogged
+              ? MaterialPageRoute(builder: (_) => const ContattiEmergenzaScreen())
+              : MaterialPageRoute(builder: (_) => const RegistrationScreen());
+          Navigator.push(context, route);
         },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-          elevation: 5,
-        ),
+        style: buttonStyle,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(width: 10),
-            Text(
-              "Registrati",
-              style: TextStyle(
-                color: darkBlue,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-            ),
+            if(isLogged) Icon(Icons.person_pin_circle, color: darkBlue, size: isWideScreen ? 34 : 24),
+            if(isLogged) const SizedBox(width: 10),
+            Text(isLogged ? "Contatti di Emergenza" : "Registrati", style: textStyle),
           ],
         ),
-      );
-    }
-
-      return ElevatedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const ContattiEmergenzaScreen(),
-            ),
-          );
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: amberOrange,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-          elevation: 5,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.person_pin_circle, color: darkBlue, size: 28),
-            const SizedBox(width: 10),
-            Text(
-              "Contatti di Emergenza",
-              style: TextStyle(
-                color: darkBlue,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-            ),
-          ],
-        ),
-      );
-
+      ),
+    );
   }
 
-
   Widget _buildSosSection(BuildContext context) {
-    // controllo se l'utente è loggato, se lo è mostro il pulsante di SOS se no niente
     final isLogged = context.watch<AuthProvider>().isLogged;
-    if(!isLogged){
-      return Text("");
+    if (!isLogged) {
+      return const SizedBox.shrink();
     }
+
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
@@ -191,38 +167,43 @@ class HomePageContent extends StatelessWidget {
         );
       },
       child: Container(
-        width: 250,
-        height: 250,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              spreadRadius: 2,
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            )
+          ],
           image: const DecorationImage(
             image: AssetImage('assets/sosbutton.png'),
-            fit: BoxFit.cover,
+            fit: BoxFit.contain,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildSpecificEmergency(BuildContext context) {
-    return EmergencyDropdownMenu(
-        items: [
-          EmergencyItem(label: "Terremoto", icon: Icons.waves),
-          EmergencyItem(label: "Incendio", icon: Icons.local_fire_department),
-          EmergencyItem(label: "Tsunami", icon: Icons.water),
-          EmergencyItem(label: "Alluvione", icon: Icons.flood),
-          EmergencyItem(label: "Malessere", icon: Icons.medical_services),
-          EmergencyItem(label: "Bomba", icon: Icons.warning),
-        ],
-        onSelected: (item) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Hai selezionato: ${item.label}"),
-              backgroundColor: Colors.black,
-            ),
-          );
-        }
+  Widget _buildSpecificEmergency(BuildContext context, bool isWideScreen) {
+    return SizedBox(
+      width: isWideScreen ? 500 : double.infinity,
+      child: EmergencyDropdownMenu(
+          items: [
+            EmergencyItem(label: "Terremoto", icon: Icons.waves),
+            EmergencyItem(label: "Incendio", icon: Icons.local_fire_department),
+            EmergencyItem(label: "Tsunami", icon: Icons.water),
+            EmergencyItem(label: "Alluvione", icon: Icons.flood),
+            EmergencyItem(label: "Malessere", icon: Icons.medical_services),
+            EmergencyItem(label: "Bomba", icon: Icons.warning),
+          ],
+          onSelected: (item) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Selezionato: ${item.label}"), backgroundColor: Colors.black),
+            );
+          }
+      ),
     );
   }
 }
-
