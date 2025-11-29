@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:data_models/ContattoEmergenza.dart';
+import 'package:data_models/contatto_emergenza.dart';
 import 'package:frontend/providers/medical_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend/ui/style/color_palette.dart';

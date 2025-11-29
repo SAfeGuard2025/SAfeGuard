@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import '../services/profile_service.dart';
-import 'package:data_models/Permesso.dart';
-import 'package:data_models/Notifica.dart';
-import 'package:data_models/Condizione.dart';
-import 'package:data_models/ContattoEmergenza.dart';
+import 'package:data_models/permesso.dart';
+import 'package:data_models/notifica.dart';
+import 'package:data_models/condizione.dart';
+import 'package:data_models/contatto_emergenza.dart';
 
 class ProfileController {
   // Dipendenza: delega tutte le operazioni di database al ProfileService

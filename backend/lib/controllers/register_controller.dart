@@ -8,7 +8,7 @@ import '../services/verification_service.dart';
 import '../services/sms_service.dart';
 import '../repositories/user_repository.dart';
 
-import 'package:data_models/UtenteGenerico.dart';
+import 'package:data_models/utente_generico.dart';
 
 class RegisterController {
   // 1. Inizializzazione del RegisterService con le sue dipendenze

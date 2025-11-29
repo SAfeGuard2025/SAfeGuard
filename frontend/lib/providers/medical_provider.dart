@@ -1,5 +1,5 @@
-import 'package:data_models/Condizione.dart';
-import 'package:data_models/ContattoEmergenza.dart';
+import 'package:data_models/condizione.dart';
+import 'package:data_models/contatto_emergenza.dart';
 import 'package:flutter/material.dart';
 import 'package:data_models/medical_item.dart';
 import '../repositories/profile_repository.dart';

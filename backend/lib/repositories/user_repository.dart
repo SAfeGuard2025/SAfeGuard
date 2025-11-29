@@ -1,7 +1,7 @@
 import 'package:firedart/firedart.dart';
-import 'package:data_models/Utente.dart';
-import 'package:data_models/Soccorritore.dart';
-import 'package:data_models/UtenteGenerico.dart';
+import 'package:data_models/utente.dart';
+import 'package:data_models/soccorritore.dart';
+import 'package:data_models/utente_generico.dart';
 import 'dart:convert';
 
 class UserRepository {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/repositories/profile_repository.dart';
-import 'package:data_models/UtenteGenerico.dart';
+import 'package:data_models/utente_generico.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
 // Schermata Modifica Profilo Cittadino/Generico

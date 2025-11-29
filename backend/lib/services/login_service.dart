@@ -4,9 +4,9 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:data_models/Utente.dart';
-import 'package:data_models/Soccorritore.dart';
-import 'package:data_models/UtenteGenerico.dart';
+import 'package:data_models/utente.dart';
+import 'package:data_models/soccorritore.dart';
+import 'package:data_models/utente_generico.dart';
 import '../config/rescuer_config.dart';
 import '../repositories/user_repository.dart';
 import 'jwt_service.dart';

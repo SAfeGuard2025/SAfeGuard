@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:data_models/UtenteGenerico.dart';
+import 'package:data_models/utente_generico.dart';
 
 // Servizio API: UserApiService
 // Classe responsabile per l'interazione con l'endpoint degli utenti del Backend

@@ -2,7 +2,7 @@
 // Modello che rappresenta un utente con privilegi speciali di soccorritore,
 // ereditando tutti i campi base da UtenteGenerico.
 
-import 'UtenteGenerico.dart';
+import 'utente_generico.dart';
 
 class Soccorritore extends UtenteGenerico {
   // Costruttore principale non nominato: Delega a 'super' e forza il flag.

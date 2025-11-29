@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:crypto/crypto.dart';
 
-import 'package:data_models/UtenteGenerico.dart';
-import 'package:data_models/Soccorritore.dart';
-import 'package:data_models/Utente.dart';
+import 'package:data_models/utente_generico.dart';
+import 'package:data_models/soccorritore.dart';
+import 'package:data_models/utente.dart';
 import '../config/rescuer_config.dart';
 import '../repositories/user_repository.dart';
 import 'verification_service.dart';

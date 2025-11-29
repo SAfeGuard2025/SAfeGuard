@@ -2,11 +2,11 @@
 // Rappresenta l'utente base del sistema. Eredita i campi anagrafici da UtenteGenerico
 // e aggiunge i dati specifici del profilo (permessi, liste mediche, ecc.).
 
-import 'UtenteGenerico.dart';
-import 'Permesso.dart';
-import 'Condizione.dart';
-import 'Notifica.dart';
-import 'ContattoEmergenza.dart';
+import 'utente_generico.dart';
+import 'permesso.dart';
+import 'condizione.dart';
+import 'notifica.dart';
+import 'contatto_emergenza.dart';
 
 class Utente extends UtenteGenerico {
   // Oggetti Modello Nidificati

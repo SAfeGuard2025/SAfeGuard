@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:data_models/Notifica.dart';
+import 'package:data_models/notifica.dart';
 import '../repositories/profile_repository.dart';
 
 // Provider di Stato: NotificationProvider

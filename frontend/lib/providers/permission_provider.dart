@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:data_models/Permesso.dart';
+import 'package:data_models/permesso.dart';
 import '../repositories/profile_repository.dart';
 
 // Provider di Stato: PermissionProvider

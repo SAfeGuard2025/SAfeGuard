@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import '../services/login_service.dart';
-import 'package:data_models/Utente.dart';
-import 'package:data_models/Soccorritore.dart';
-import 'package:data_models/UtenteGenerico.dart';
+import 'package:data_models/utente.dart';
+import 'package:data_models/soccorritore.dart';
+import 'package:data_models/utente_generico.dart';
 
 class LoginController {
   // Dipendenza: il Controller delega la logica di business a LoginService

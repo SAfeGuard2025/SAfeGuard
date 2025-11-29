@@ -5,9 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:frontend/repositories/auth_repository.dart';
-import 'package:data_models/UtenteGenerico.dart';
-import 'package:data_models/Utente.dart';
-import 'package:data_models/Soccorritore.dart';
+import 'package:data_models/utente_generico.dart';
+import 'package:data_models/utente.dart';
+import 'package:data_models/soccorritore.dart';
 import '../repositories/profile_repository.dart';
 
 // Provider di Stato: AuthProvider

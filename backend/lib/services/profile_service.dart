@@ -5,13 +5,13 @@ import 'package:crypto/crypto.dart';
 
 import '../config/rescuer_config.dart';
 import '../repositories/user_repository.dart';
-import 'package:data_models/Utente.dart';
-import 'package:data_models/Soccorritore.dart';
-import 'package:data_models/UtenteGenerico.dart';
-import 'package:data_models/Permesso.dart';
-import 'package:data_models/Notifica.dart';
-import 'package:data_models/Condizione.dart';
-import 'package:data_models/ContattoEmergenza.dart';
+import 'package:data_models/utente.dart';
+import 'package:data_models/soccorritore.dart';
+import 'package:data_models/utente_generico.dart';
+import 'package:data_models/permesso.dart';
+import 'package:data_models/notifica.dart';
+import 'package:data_models/condizione.dart';
+import 'package:data_models/contatto_emergenza.dart';
 
 class ProfileService {
   // Dipendenza dal Repository per l'accesso ai dati
