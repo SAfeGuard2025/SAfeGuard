@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 // IMPORT MODELLO UFFICIALE E PROVIDER
 import 'package:data_models/ContattoEmergenza.dart';
 import 'package:frontend/providers/medical_provider.dart';
+import 'package:flutter/services.dart';
 
 class ContattiEmergenzaScreen extends StatefulWidget {
   const ContattiEmergenzaScreen({super.key});
@@ -251,6 +252,9 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
               TextField(
                 controller: _numberController,
                 keyboardType: TextInputType.phone,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
+                ],
                 style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
                   labelText: "Numero",
@@ -279,17 +283,37 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
               onPressed: () => Navigator.pop(context),
               child: const Text("Annulla", style: TextStyle(color: Colors.white70)),
             ),
-            ElevatedButton(
+            ElevatedButton(   //Inserimento di un numero con controllo sui campi vuoti e validazione numerica
               style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
               onPressed: () async {
-                if (_numberController.text.isNotEmpty && _nameController.text.isNotEmpty) {
 
-                  final success = await Provider.of<MedicalProvider>(context, listen: false)
-                      .addContatto(_nameController.text, _numberController.text);
+                final nome = _nameController.text.trim();
+                final numero = _numberController.text.trim();
+                if (nome.isEmpty || numero.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Per favore, compila tutti i campi.")),
+                  );
+                  return;
+                }
 
-                  if (success && context.mounted) {
-                    Navigator.pop(context);
-                  }
+                final isNumeroValido = RegExp(r'^[0-9+]+$').hasMatch(numero);
+
+                if (!isNumeroValido) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Il numero inserito non è valido (usa solo cifre)."),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+
+                final success = await Provider.of<MedicalProvider>(context, listen: false)
+                    .addContatto(nome, numero);
+
+                if (success && context.mounted) {
+                  Navigator.pop(context);
                 }
               },
               child: const Text("Salva", style: TextStyle(color: Colors.white)),
