@@ -125,8 +125,9 @@ class ProfileService {
       if (nome != null) updates['nome'] = nome;
       if (cognome != null) updates['cognome'] = cognome;
       if (citta != null) updates['cittaDiNascita'] = citta;
-      if (dataNascita != null)
+      if (dataNascita != null) {
         updates['dataDiNascita'] = dataNascita.toIso8601String();
+      }
 
       // 2. Logica Email
       if (email != null && email.isNotEmpty) {

@@ -17,8 +17,9 @@ class LoginController {
     try {
       // Lettura e validazione body
       final String body = await request.readAsString();
-      if (body.isEmpty)
+      if (body.isEmpty) {
         return _buildErrorResponse(400, 'Body della richiesta vuoto');
+      }
 
       final Map<String, dynamic> credentials = jsonDecode(body);
 

@@ -87,12 +87,12 @@ void main() async {
   // Passa attraverso il controller AuthGuard per controllare il token di sessione
   app.mount(
     '/api/profile',
-    Pipeline().addMiddleware(authGuard.middleware).addHandler(profileApi),
+    Pipeline().addMiddleware(authGuard.middleware).addHandler(profileApi.call),
   );
 
   // 7. Pipeline Server
   // Aggiunge il logging delle richieste a tutte le chiamate
-  final handler = Pipeline().addMiddleware(logRequests()).addHandler(app);
+  final handler = Pipeline().addMiddleware(logRequests()).addHandler(app.call);
 
   // 8. Avvio Server
   // Mette in ascolto il server sull'indirizzo IPv4 e porta configurata
