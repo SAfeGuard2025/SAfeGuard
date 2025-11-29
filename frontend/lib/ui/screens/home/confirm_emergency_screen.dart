@@ -1,11 +1,12 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:frontend/ui/widgets/swipe_to_confirm.dart';
+import 'package:frontend/ui/style/color_palette.dart';
 
 class ConfirmEmergencyScreen extends StatelessWidget {
   const ConfirmEmergencyScreen({super.key});
 
-  static const Color brightRed = Color(0xFFE53935);
+  static const Color brightRed = ColorPalette.primaryBrightRed;
 
   @override
   Widget build(BuildContext context) {

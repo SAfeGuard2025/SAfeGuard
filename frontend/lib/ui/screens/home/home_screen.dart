@@ -6,6 +6,7 @@ import 'package:frontend/providers/auth_provider.dart';
 import '../profile/profile_settings_screen.dart';
 import 'package:frontend/ui/screens/map/map_screen.dart';
 import 'package:frontend/ui/screens/reports/reports_screen.dart';
+import 'package:frontend/ui/style/color_palette.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -41,8 +42,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final isRescuer = context.watch<AuthProvider>().isRescuer;
 
-    final backgroundColor = Color(isRescuer ? 0xFFef923d : 0xFF0e2a48);
-    final selectedColor = isRescuer ? const Color(0xFF0e2a48) : const Color(0xFFef923d);
+    final backgroundColor = isRescuer ? ColorPalette.primaryOrange : ColorPalette.backgroundDarkBlue;
+    final selectedColor = isRescuer ? ColorPalette.backgroundDarkBlue : ColorPalette.primaryOrange;
 
     return LayoutBuilder(
       builder: (context, constraints) {

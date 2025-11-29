@@ -7,6 +7,7 @@ import 'package:frontend/ui/screens/profile/gestione_modifica_profilo_cittadino.
 import 'package:frontend/ui/screens/medical/gestione_cartella_clinica_cittadino.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/auth/login_screen.dart';
+import 'package:frontend/ui/style/color_palette.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
   const ProfileSettingsScreen({super.key});
@@ -56,9 +57,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         ? "${user!.nome} ${user.cognome}"
         : "Utente";
 
-    final kCardColor = isRescuer ? const Color(0xFFD65D01) : const Color(0xFF12345A);
-    final kBackgroundColor = isRescuer ? const Color(0xFFEF932D) : const Color(0xFF0E2A48);
-    final Color kAccentOrange = !isRescuer ? const Color(0xFFEF932D) : const Color(0xFF0E2A48);
+    final kCardColor = isRescuer ? ColorPalette.cardDarkOrange : ColorPalette.backgroundMidBlue;
+    final kBackgroundColor = isRescuer ? ColorPalette.primaryOrange : ColorPalette.backgroundDarkBlue;
+    final Color kAccentOrange = !isRescuer ? ColorPalette.primaryOrange : ColorPalette.backgroundDarkBlue;
 
     final size = MediaQuery.of(context).size;
     final bool isWideScreen = size.width > 700;

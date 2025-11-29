@@ -6,6 +6,7 @@ import 'package:frontend/ui/screens/medical/condizioni_mediche_screen.dart';
 import 'package:frontend/ui/screens/medical/allergie_screen.dart';
 import 'package:frontend/ui/screens/medical/medicinali_screen.dart';
 import 'package:frontend/ui/screens/medical/contatti_emergenza_screen.dart';
+import 'package:frontend/ui/style/color_palette.dart';
 
 class GestioneCartellaClinicaCittadino extends StatelessWidget {
   const GestioneCartellaClinicaCittadino({super.key});
@@ -14,8 +15,8 @@ class GestioneCartellaClinicaCittadino extends StatelessWidget {
   Widget build(BuildContext context) {
     final isRescuer = context.watch<AuthProvider>().isRescuer;
 
-    final Color cardColor = isRescuer ? const Color(0xFFD65D01) : const Color(0xFF12345A);
-    final Color bgColor = isRescuer ? const Color(0xFFEF932D) : const Color(0xFF0E2A48);
+    final Color cardColor = isRescuer ? ColorPalette.cardDarkOrange : ColorPalette.backgroundMidBlue;
+    final Color bgColor = isRescuer ? ColorPalette.primaryOrange : ColorPalette.backgroundDarkBlue;
 
     return Scaffold(
       backgroundColor: bgColor,

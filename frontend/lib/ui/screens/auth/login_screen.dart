@@ -5,6 +5,7 @@ import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/auth/registration_screen.dart';
 import 'package:frontend/ui/screens/home/home_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:frontend/ui/style/color_palette.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -63,7 +64,7 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    final Color darkBlue = const Color(0xFF041528);
+    final Color darkBlue = ColorPalette.backgroundDeepBlue;
 
     // Variabili per la responsività
     final Size screenSize = MediaQuery.of(context).size;

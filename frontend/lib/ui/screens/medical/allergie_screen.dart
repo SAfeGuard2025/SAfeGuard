@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 //Import del provider
 import 'package:provider/provider.dart';
 
-import '../../../providers/medical_provider.dart';
+import 'package:frontend/providers/medical_provider.dart';
+import 'package:frontend/ui/style/color_palette.dart';
 
 class AllergieScreen extends StatefulWidget {
   const AllergieScreen({super.key});
@@ -31,10 +32,10 @@ class _AllergieScreenState extends State<AllergieScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color bgColor = Color(0xFF12345A);
-    const Color cardColor = Color(0xFF0E2A48);
-    const Color deleteColor = Color(0xFFFF5555);
-    const Color addBtnColor = Color(0xFF152F4E);
+    const Color bgColor = ColorPalette.backgroundMidBlue;
+    const Color cardColor = ColorPalette.backgroundDarkBlue;
+    const Color deleteColor = ColorPalette.deleteRed;
+    const Color addBtnColor = ColorPalette.accentControlBlue;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -178,7 +179,7 @@ class _AllergieScreenState extends State<AllergieScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF0E2A48),
+          backgroundColor: ColorPalette.backgroundDarkBlue,
           title: const Text("Nuova allergia", style: TextStyle(color: Colors.white)),
           content: TextField(
             controller: _textController,

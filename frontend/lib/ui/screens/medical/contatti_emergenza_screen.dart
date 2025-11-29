@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:data_models/ContattoEmergenza.dart';
 import 'package:frontend/providers/medical_provider.dart';
 import 'package:flutter/services.dart';
+import 'package:frontend/ui/style/color_palette.dart';
 
 class ContattiEmergenzaScreen extends StatefulWidget {
   const ContattiEmergenzaScreen({super.key});
@@ -33,9 +34,9 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color bgColor = Color(0xFF12345A);
-    const Color cardColor = Color(0xFF0E2A48);
-    const Color deleteColor = Color(0xFFFF5555);
+    const Color bgColor = ColorPalette.backgroundMidBlue;
+    const Color cardColor = ColorPalette.backgroundDarkBlue;
+    const Color deleteColor = ColorPalette.deleteRed;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -66,7 +67,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
                     width: 70,
                     height: 70,
                     decoration: const BoxDecoration(
-                      color: Color(0xFFE08E50),
+                      color: ColorPalette.accentMediumOrange,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.phone_in_talk, color: Colors.blueAccent, size: 40),
@@ -138,7 +139,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
                   height: 80,
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF152F4E),
+                    color: ColorPalette.accentControlBlue,
                     borderRadius: BorderRadius.circular(20.0),
                   ),
                   child: Row(
@@ -240,7 +241,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF0E2A48),
+          backgroundColor: ColorPalette.backgroundDarkBlue ,
           title: const Text(
             "Nuovo contatto",
             style: TextStyle(color: Colors.white),

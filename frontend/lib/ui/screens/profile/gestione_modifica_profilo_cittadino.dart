@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/repositories/profile_repository.dart';
 import 'package:data_models/UtenteGenerico.dart';
+import 'package:frontend/ui/style/color_palette.dart';
 
 class GestioneModificaProfiloCittadino extends StatefulWidget {
   const GestioneModificaProfiloCittadino({super.key});
@@ -93,10 +94,10 @@ class _GestioneModificaProfiloCittadinoState
 
     final isRescuer = context.watch<AuthProvider>().isRescuer;
 
-    Color bgColor = isRescuer ? const Color(0xFFEF923D) : const Color(0xFF12345A);
-    Color cardColor = isRescuer ? const Color(0xFFD65D01): const Color(0xFF0E2A48);
-    Color accentColor = isRescuer ? const Color(0xFF12345A) : const Color(0xFFEF923D);
-    const Color iconColor = Color(0xFFE3C63D);
+    Color bgColor = isRescuer ? ColorPalette.primaryOrange : ColorPalette.backgroundMidBlue;
+    Color cardColor = isRescuer ? ColorPalette.cardDarkOrange: ColorPalette.backgroundDarkBlue;
+    Color accentColor = isRescuer ? ColorPalette.backgroundMidBlue : ColorPalette.primaryOrange;
+    const Color iconColor = ColorPalette.iconAccentYellow;
 
     final double titleSize = isWideScreen ? 50 : 28;
     final double iconSize = isWideScreen ? 60 : 40;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/home/home_screen.dart';
+import 'package:frontend/ui/style/color_palette.dart';
 
 class PhoneLoginScreen extends StatefulWidget {
   const PhoneLoginScreen({super.key});
@@ -37,7 +38,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     final double smallSpacing = screenHeight * 0.015;
 
     final authProvider = Provider.of<AuthProvider>(context);
-    final Color buttonColor = const Color(0xFF0A2540);
+    final Color buttonColor = ColorPalette.primaryDarkButtonBlue;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -56,7 +57,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
             height: double.infinity,
             width: double.infinity,
             decoration: const BoxDecoration(
-              color: Color(0xFF041528),
+              color: ColorPalette.backgroundDeepBlue,
               image: DecorationImage(
                 image: AssetImage('assets/backgroundBubbles3.png'),
                 fit: BoxFit.cover,

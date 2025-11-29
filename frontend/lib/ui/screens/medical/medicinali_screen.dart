@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 // Import provider
 import 'package:frontend/providers/medical_provider.dart';
+import 'package:frontend/ui/style/color_palette.dart';
 
 class MedicinaliScreen extends StatefulWidget {
   const MedicinaliScreen({super.key});
@@ -29,9 +30,9 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color bgColor = Color(0xFF12345A);
-    const Color cardColor = Color(0xFF0E2A48);
-    const Color deleteColor = Color(0xFFFF5555);
+    const Color bgColor = ColorPalette.backgroundMidBlue;
+    const Color cardColor = ColorPalette.backgroundDarkBlue;
+    const Color deleteColor = ColorPalette.deleteRed;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -62,7 +63,7 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
                     width: 70,
                     height: 70,
                     decoration: const BoxDecoration(
-                      color: Color(0xFFE08E50),
+                      color: ColorPalette.accentMediumOrange,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.medication_liquid, color: Colors.white, size: 40),
@@ -133,7 +134,7 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
                   height: 60,
                   padding: const EdgeInsets.symmetric(horizontal: 25.0),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF152F4E),
+                    color: ColorPalette.accentControlBlue,
                     borderRadius: BorderRadius.circular(20.0),
                   ),
                   child: Row(
@@ -210,7 +211,7 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF0E2A48),
+          backgroundColor: ColorPalette.backgroundDarkBlue,
           title: const Text(
             "Nuovo farmaco",
             style: TextStyle(color: Colors.white),

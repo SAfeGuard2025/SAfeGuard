@@ -16,135 +16,88 @@ import 'package:flutter/material.dart';
 * corrispondenti <3
 * */
 
+
 class ColorPalette {
-  //Costruttore statico per impedire le istanze
+  // Costruttore privato per impedire l'istanziamento
   ColorPalette._();
-  static Color beeYellow = const Color(0xFFFFFF00);
-  //Cartelle fatte finora = home, auth, map, reports, medical, profile, widgets
-  //In corso = nessuno :D
 
-  //Colori da email_login_screen
-  static Color emailLoginButtonColor = const Color(0xFF0A2540);
-  static Color emailLoginBlue = const Color(0xFF041528); //Riga 59
+  // ---------------------------------------------------------------------------
+  // BLU E SFONDI SCURI
+  // ---------------------------------------------------------------------------
 
-  //Colori da email_register_screen
-  static Color emailRegisterButtonColor = const Color(0xFF0A2540);
-  static Color emailRegisterBlue = const Color(0xFF041528); //Riga 59
+  /// Blu molto scuro (quasi nero). Usato per sfondi Auth e Login.
+  static const Color backgroundDeepBlue = Color(0xFF041528);
 
-  //Colori da loading_screen
-  static Color loadingScreenDarkBackground = const Color(0xFF12345A);
-  static Color loadingScreenProgressCyan = const Color(0xFF00B0FF);
+  /// Blu scuro intermedio. Usato per sfondi generali di schermate mediche/profilo.
+  static const Color backgroundMidBlue = Color(0xFF12345A);
 
-  //Colori da login_screen
-  static Color loginScreenDarkBlue = const Color(0xFF041528);
+  /// Blu scuro "Petrolio". Usato massicciamente per Card, Placeholder mappe e sfondi User.
+  static const Color backgroundDarkBlue = Color(0xFF0E2A48);
 
-  //Colori da phone_login_screen
-  static Color phoneLoginButtonColor = const Color(0xFF0A2540);
-  static Color phoneLoginDarkBlue = const Color(0xFF041528); //Riga 59
+  /// Blu bottone standard.
+  static const Color primaryDarkButtonBlue = Color(0xFF0A2540);
 
-  //Colori da phone_register_screen
-  static Color phoneRegisterButtonColor = const Color(0xFF0A2540);
-  static Color phoneRegisterDarkBlue = const Color(0xFF041528); //Riga 60
+  /// Blu di controllo/accento (più chiaro dei background).
+  static const Color accentControlBlue = Color(0xFF152F4E);
 
-  //Colori da registration_screen
-  static Color registrationScreenDarkBlue = const Color(0xFF041528);
+  /// Blu specifico per il bottone di verifica.
+  static const Color verificationButtonBlue = Color(0xFF1B3C5E);
 
-  //Colori da verification_screen
-  static Color verificationScreenDarkBluePrimary = const Color(0xFF12345A);
-  static Color verificationScreenDarkBlueButton = const Color(0xFF1B3C5E);
+  /// Blu per la Navigation Bar dell'Utente Cittadino.
+  static const Color navBarUserBackground = Color(0xFF16273F);
 
-  //Colori confirm_emergency_screen
-  static Color confirmEmergencyBrightRed = const Color(0xFFE53935);
+  /// blu per notifica soccorritore
+  static const Color electricBlue = Color(0xFF1000ef);
 
-  //Colori di home_page_content
-  static Color homePageContentDarkBlue = const Color(0xFF041528);
-  static Color homePageContentPrimaryRed = const Color(0xFFE53935);
-  static Color homePageContentAmberOrange = const Color(0xFFFF9800);
-  static Color homePageContentMapPlaceholder = const Color(0xFF0E2A48); //riga 79
+  /// Blu profondo usato per le sfumature (Gradienti).
 
-  //Colori di home_screen
-  static Color homeScreenRescuerBackgroundColor = const Color(0xFFef923d);
-  static Color homeScreenUserBackgroundColor = const Color(0xFF0e2a48);
+  static const Color gradientDeepBlue = Color.fromARGB(255, 10, 30, 50);
 
-  //Colori di map_screen
-  static Color mapScreenMapPlaceholder = const Color(0xFF0E2A48); //Riga 23
+  // ---------------------------------------------------------------------------
+  // ARANCIONI (Tema Soccorritore & Accent)
+  // ---------------------------------------------------------------------------
 
-//Colori di allergie_screen
-  static Color allergiesBgColor = const Color(0xFF12345A);
-  static Color allergiesCardColor = const Color(0xFF0E2A48);
-  static Color allergiesDeleteColor = const Color(0xFFFF5555);
-  static Color allergiesAddBtnColor = const Color(0xFF152F4E);
-  static Color allergiesBackgroundColor = const Color(0xFF0E2A48);  //Riga 181
+  /// Arancione primario vivace. (Nota: Unificato 0xFFEF923D e 0xFFEF932D).
+  static const Color primaryOrange = Color(0xFFEF923D);
 
-//Colori di condizioni_mediche_screen
-  static Color conditionsBgColor = const Color(0xFF12345A);
-  static Color conditionsCardColor = const Color(0xFF0E2A48);
-  static Color conditionsActiveSwitchColor = const Color(0xFFEF923D);
+  /// Arancione scuro/bruciato. Usato per le Card del soccorritore.
+  static const Color cardDarkOrange = Color(0xFFD65D01);
 
-//Colori di contatti_emergenza_screen
-  static Color emContactsBgColor = const Color(0xFF12345A);
-  static Color emContactsCardColor = const Color(0xFF0E2A48); //Appare sia nelle dichiarazioni che in riga 243
-  static Color emContactsDeleteColor = const Color(0xFFFF5555);
-  static Color emContactsOrange = const Color(0xFFE08E50);  //Riga 69 nice
-  static Color emContactsBlue = const Color(0xFF152F4E);  //Riga 141
+  /// Arancione medio/pastello. Usato per testi o icone secondarie.
+  static const Color accentMediumOrange = Color(0xFFE08E50);
 
-//Colori di gestione_cartella_clinica_screen
-  static Color clinicalRescuerCardColor = const Color(0xFFD65D01);
-  static Color clinicalRescuerBgColor = const Color(0xFFEF932D);
-  static Color clinicalUserCardColor = const Color(0xFF12345A);
-  static Color clinicalUserBgColor = const Color(0xFF0E2A48);
+  /// Arancione ambra.
+  static const Color amberOrange = Color(0xFFFF9800);
 
-//Colori di medicinali_screen
-  static Color medicalBgColor = Color(0xFF12345A);
-  static Color medicalCardColor = Color(0xFF0E2A48); //Anche a riga 213
-  static Color medicalDeleteColor = Color(0xFFFF5555);
-  static Color medicalOrange = Color(0xFFE08E50); // Riga 65
-  static Color medicalBlue = const Color(0xFF152F4E); // Riga 136
+  /// Marrone/Arancione scuro per Navigation Bar del Soccorritore.
+  static const Color navBarRescuerBackground = Color(0xFF995618);
 
-//Colori di gestione_modifica_profilo_cittadino
-  static Color modProfRescuerBgColor = const Color(0xFFEF923D); //Da riga 103
-  static Color modProfRescuerCardColor = const Color(0xFFD65D01);
-  static Color modProfRescuerAccentColor = const Color(0xFF12345A);
-  static Color modProfUserBgColor = const Color(0xFF12345A);
-  static Color modProfUserCardColor = const Color(0xFF0E2A48);
-  static Color modProfUserAccentColor = const Color(0xFFEF923D);
-  static Color modProfIconColor = const Color(0xFFE3C63D);
+  // ---------------------------------------------------------------------------
+  // ROSSI (Emergenza & Cancellazione)
+  // ---------------------------------------------------------------------------
 
-  //Colori di gestore_notifiche_cittadino
-  static Color gestNotRescuerBgColor = const Color(0xFFEF923D); //Da riga 34
-  static Color gestNotRescuerCardColor = const Color(0xFFD65D01);
-  static Color gestNotRescuerAccentColor = const Color(0xFF12345A);
-  static Color gestNotUserBgColor = const Color(0xFF12345A);
-  static Color gestNotUserCardColor = const Color(0xFF0E2A48);
-  static Color gestNotUserAccentColor = const Color(0xFFEF923D);
+  /// Rosso acceso (Puro). Bottone SOS.
+  static const Color emergencyButtonRed = Color(0xFFFF0000);
 
-  //Colori di gestore_permessi_cittadino
-  static Color gestPerRescuerBgColor = const Color(0xFFEF923D); //Da riga 27
-  static Color gestPerRescuerCardColor = const Color(0xFFD65D01);
-  static Color gestPerRescuerAccentColor = const Color(0xFF12345A);
-  static Color gestPerUserBgColor = const Color(0xFF12345A);
-  static Color gestPerUserCardColor = const Color(0xFF0E2A48);
-  static Color gestPerUserAccentColor = const Color(0xFFEF923D);
+  /// Rosso vivo. Conferme emergenza.
+  static const Color primaryBrightRed = Color(0xFFE53935);
 
-  //Colori di profile_settings_screen
-  static Color profSetRescuerCardColor = const Color(0xFFD65D01); //Riga 65
-  static Color profSetRescuerBgColor = const Color(0xFFEF932D);
-  static Color profSetRescuerAccentColor = const Color(0xFFEF932D);
-  static Color profSetUserCardColor = const Color(0xFF12345A);
-  static Color profSetUserBgColor = const Color(0xFF0E2A48);
-  static Color profSetUserAccentColor = const Color(0xFF0E2A48);
+  /// Rosso chiaro/pastello. Usato per icone cestino o azioni di eliminazione.
+  static const Color deleteRed = Color(0xFFFF5555);
 
-  //Colori di custom_bottom_nav_bar
-  static Color navBarRescuerbackgroundColor = const Color(0xFF995618); //Da riga 26
-  static Color navBarUserbackgroundColor = const Color(0xFF16273F);
-  static Color navBarSelectedItemColor = const Color(0xFFEF923D);
+  /// Rosso scuro sangue. Sfondo dello swipe.
+  static const Color swipeDarkRed = Color(0xFF8B1D1D);
 
-  //Colori di emergency_item
-  static Color emergencyItemButtonColor = const Color(0xFFFF0000);
+  // ---------------------------------------------------------------------------
+  // VARI (Gialli, Ciani)
+  // ---------------------------------------------------------------------------
 
-  //Colori di swipe_to_confirm
-  static Color swipeBackGroundColor = const Color(0xFF8B1D1D); //Riga 43
+  /// Giallo ape (Evidenziatore).
+  static const Color accentBeeYellow = Color(0xFFFFFF00);
 
-//Colori di reports_screen
-  //Nessuno ad ora
+  /// Giallo oro per icone profilo.
+  static const Color iconAccentYellow = Color(0xFFE3C63D);
+
+  /// Ciano per barre di caricamento.
+  static const Color progressCyan = Color(0xFF00B0FF);
 }

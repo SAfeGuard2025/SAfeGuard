@@ -7,13 +7,14 @@ import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/widgets/emergency_item.dart';
 import 'package:frontend/providers/emergency_provider.dart';
 import 'package:frontend/ui/widgets/emergency_notification.dart';
+import 'package:frontend/ui/style/color_palette.dart';
 
 class HomePageContent extends StatelessWidget {
   const HomePageContent({super.key});
 
-  final Color darkBlue = const Color(0xFF041528);
-  final Color primaryRed = const Color(0xFFE53935);
-  final Color amberOrange = const Color(0xFFFF9800);
+  final Color darkBlue = ColorPalette.backgroundDeepBlue;
+  final Color primaryRed = ColorPalette.primaryBrightRed;
+  final Color amberOrange = ColorPalette.amberOrange;
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +87,7 @@ class HomePageContent extends StatelessWidget {
       width: double.infinity,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: const Color(0xFF0E2A48),
+        color: ColorPalette.backgroundDarkBlue,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.white54, width: 2),
         boxShadow: [

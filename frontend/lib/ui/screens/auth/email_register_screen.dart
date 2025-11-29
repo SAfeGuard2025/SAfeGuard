@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/auth/verification_screen.dart';
+import 'package:frontend/ui/style/color_palette.dart';
 
 class EmailRegisterScreen extends StatefulWidget {
   const EmailRegisterScreen({super.key});
@@ -43,7 +44,7 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
     final double largeSpacing = screenHeight * 0.05;
 
     final authProvider = Provider.of<AuthProvider>(context);
-    final Color buttonColor = const Color(0xFF0A2540);
+    final Color buttonColor = ColorPalette.primaryDarkButtonBlue;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -63,7 +64,7 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
             height: double.infinity,
             width: double.infinity,
             decoration: const BoxDecoration(
-              color: Color(0xFF041528),
+              color: ColorPalette.backgroundDeepBlue,
               image: DecorationImage(
                 image: AssetImage('assets/backgroundBubbles3.png'),
                 fit: BoxFit.cover,
@@ -137,7 +138,7 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
                           if (value.length < 6) return "Minimo 6 caratteri";
                           if (value.length > 12) return "Massimo 12 caratteri";
                           if (!RegExp(
-                            r'^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%^&*(),.?":{}|<>_])',
+                            r'^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#%^&*(),.?":{}|<>_])',
                           ).hasMatch(value)) {
                             return "Serve: 1 Maiuscola, 1 Numero, 1 Speciale";
                           }

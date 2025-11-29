@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/auth/registration_screen.dart';
 import 'package:frontend/ui/screens/home/home_screen.dart';
+import 'package:frontend/ui/style/color_palette.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -33,8 +34,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
     final double mainTextFontSize = referenceSize * 0.055;
     final double secondaryTextFontSize = referenceSize * 0.035;
 
-    final Color darkBackground = const Color(0xFF12345A);
-    final Color progressCyan = const Color(0xFF00B0FF);
+    final Color darkBackground = ColorPalette.backgroundMidBlue;
+    final Color progressCyan = ColorPalette.progressCyan;
 
     return Scaffold(
       backgroundColor: darkBackground,

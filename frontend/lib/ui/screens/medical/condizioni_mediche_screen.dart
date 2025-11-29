@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/medical_provider.dart';
+import 'package:frontend/ui/style/color_palette.dart';
 
 class CondizioniMedicheScreen extends StatefulWidget {
   const CondizioniMedicheScreen({super.key});
@@ -22,9 +23,9 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color bgColor = Color(0xFF12345A);
-    const Color cardColor = Color(0xFF0E2A48);
-    const Color activeSwitchColor = Color(0xFFEF923D);
+    const Color bgColor = ColorPalette.backgroundMidBlue;
+    const Color cardColor = ColorPalette.backgroundDarkBlue;
+    const Color activeSwitchColor = ColorPalette.primaryOrange;
 
     return Scaffold(
       backgroundColor: bgColor,

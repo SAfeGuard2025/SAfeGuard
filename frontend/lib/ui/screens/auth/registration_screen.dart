@@ -3,13 +3,14 @@ import 'package:frontend/ui/screens/auth/email_register_screen.dart';
 import 'package:frontend/ui/screens/auth/login_screen.dart';
 import 'package:frontend/ui/screens/auth/phone_register_screen.dart';
 import 'package:frontend/ui/screens/home/home_screen.dart';
+import 'package:frontend/ui/style/color_palette.dart';
 
 class RegistrationScreen extends StatelessWidget {
   const RegistrationScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final Color darkBlue = const Color(0xFF041528);
+    final Color darkBlue = ColorPalette.backgroundDeepBlue;
 
     // Variabili per la responsività
     final Size screenSize = MediaQuery.of(context).size;

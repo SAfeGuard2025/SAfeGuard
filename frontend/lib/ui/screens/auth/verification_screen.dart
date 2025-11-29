@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:frontend/ui/screens/auth/login_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
+import 'package:frontend/ui/style/color_palette.dart';
 
 class VerificationScreen extends StatefulWidget {
   const VerificationScreen({super.key});
@@ -12,8 +13,8 @@ class VerificationScreen extends StatefulWidget {
 }
 
 class _VerificationScreenState extends State<VerificationScreen> {
-  static const Color darkBluePrimary = Color(0xFF12345A);
-  static const Color darkBlueButton = Color(0xFF1B3C5E);
+  static const Color darkBluePrimary = ColorPalette.backgroundMidBlue;
+  static const Color darkBlueButton = ColorPalette.verificationButtonBlue;
   static const Color textWhite = Colors.white;
 
   // Controller e FocusNode
@@ -65,7 +66,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [darkBluePrimary, Color.fromARGB(255, 10, 30, 50)],
+            colors: [darkBluePrimary, ColorPalette.gradientDeepBlue],
           ),
         ),
         child: SafeArea(

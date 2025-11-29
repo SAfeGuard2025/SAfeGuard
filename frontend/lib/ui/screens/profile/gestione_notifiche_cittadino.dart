@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/notification_provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
+import 'package:frontend/ui/style/color_palette.dart';
 
 class GestioneNotificheCittadino extends StatefulWidget {
   const GestioneNotificheCittadino({super.key});
@@ -28,9 +29,9 @@ class _GestioneNotificheState extends State<GestioneNotificheCittadino> {
     final bool isWideScreen = size.width > 700;
 
     final isRescuer = context.watch<AuthProvider>().isRescuer;
-    Color cardColor = isRescuer ? const Color(0xFFD65D01) : const Color(0xFF0E2A48);
-    Color bgColor = isRescuer ? const Color(0xFFEF923D) : const Color(0xFF12345A);
-    Color activeColor = isRescuer ? const Color(0xFF12345A) : const Color(0xFFEF923D);
+    Color cardColor = isRescuer ? ColorPalette.cardDarkOrange : ColorPalette.backgroundDarkBlue;
+    Color bgColor = isRescuer ? ColorPalette.primaryOrange : ColorPalette.backgroundMidBlue;
+    Color activeColor = isRescuer ? ColorPalette.backgroundMidBlue : ColorPalette.primaryOrange;
 
     final double titleSize = isWideScreen ? 40 : 30;
     final double iconSize = isWideScreen ? 50 : 40;
