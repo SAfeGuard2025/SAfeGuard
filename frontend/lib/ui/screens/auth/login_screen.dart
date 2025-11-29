@@ -9,7 +9,6 @@ import 'package:provider/provider.dart';
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
-  // Widget pulsante social
   Widget _buildSocialButton({
     required String text,
     required Color backgroundColor,
@@ -77,9 +76,7 @@ class LoginScreen extends StatelessWidget {
     final double subtitleFontSize = referenceSize * 0.035;
     final double buttonTextFontSize = referenceSize * 0.04;
 
-    //Header
     return Scaffold(
-      //Barra navigazionale sopra con: Accesso - Icona - Skip
       appBar: AppBar(
         backgroundColor: darkBlue,
         elevation: 0,
@@ -123,10 +120,8 @@ class LoginScreen extends StatelessWidget {
         ],
       ),
 
-      //Body
       body: Stack(
         children: [
-          // Sfondo
           Container(
             height: double.infinity,
             width: double.infinity,
@@ -137,17 +132,15 @@ class LoginScreen extends StatelessWidget {
               ),
             ),
           ),
-          // Contenuto
           SafeArea(
             child: Column(
               children: [
                 SizedBox(height: screenHeight * 0.04),
-                // Header - Sezione mascotte e testo
                 Padding(
                   padding: const EdgeInsets.fromLTRB(25, 5, 25, 10),
                   child: Row(
                     children: [
-                      // 1. Blocco Testo
+                      //Area testo
                       Expanded(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -186,7 +179,7 @@ class LoginScreen extends StatelessWidget {
 
                       const SizedBox(width: 20),
 
-                      // 2. Mascotte specchiata
+                      // Mascotte specchiata
                       Transform.flip(
                         flipX: true,
                         child: Image.asset(
@@ -208,7 +201,6 @@ class LoginScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        // Continua con apple
                         _buildSocialButton(
                           text: "Continua con Apple",
                           icon: Icons.apple,
@@ -226,7 +218,6 @@ class LoginScreen extends StatelessWidget {
                         ),
                         SizedBox(height: verticalSpacing),
 
-                        // Continua con google
                         _buildSocialButton(
                           text: "Continua con Google",
                           imagePath: 'assets/googleIcon.png',
@@ -245,7 +236,6 @@ class LoginScreen extends StatelessWidget {
                         ),
                         SizedBox(height: verticalSpacing),
 
-                        // Continua con email
                         _buildSocialButton(
                           text: "Continua con Email",
                           icon: Icons.alternate_email,
@@ -262,7 +252,6 @@ class LoginScreen extends StatelessWidget {
                         ),
                         SizedBox(height: verticalSpacing),
 
-                        // Continua con telefono
                         _buildSocialButton(
                           text: "Continua con Telefono",
                           icon: Icons.phone,
@@ -297,7 +286,6 @@ class LoginScreen extends StatelessWidget {
                                 ),
                               ),
 
-                              //Scritta cliccabile
                               child: const Text(
                                 "Registrati",
                                 style: TextStyle(

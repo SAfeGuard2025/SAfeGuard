@@ -84,9 +84,9 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
 
                     SizedBox(height: largeSpacing),
 
-                    // Campi di testo
                     _buildTextField("Nome", _nameController, isPassword: false, contentVerticalPadding: 12, fontSize: contentFontSize),
                     SizedBox(height: smallSpacing),
+
                     _buildTextField("Cognome", _surnameController, isPassword: false, contentVerticalPadding: 12, fontSize: contentFontSize),
                     SizedBox(height: smallSpacing),
 
@@ -170,7 +170,6 @@ class _EmailRegisterScreenState extends State<EmailRegisterScreen> {
     );
   }
 
-  // Widget campo di testo
   Widget _buildTextField(String hint, TextEditingController controller, {required bool isPassword, double contentVerticalPadding = 20, required double fontSize}) {
     bool obscureText = isPassword ? !_isPasswordVisible : false;
 
