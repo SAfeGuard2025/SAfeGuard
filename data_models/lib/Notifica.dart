@@ -1,17 +1,16 @@
-// ** Model: Notifica **
-// Gestisce le preferenze di notifica dell'utente.
+// Modello: Notifica
+// Classe immutabile che gestisce tutte le preferenze di notifica dell'utente.
 
 class Notifica {
   final bool push;
   final bool sms;
-  final bool silenzia; // Se true, l'app non deve emettere suoni
+  final bool silenzia;
   final bool mail;
   final bool aggiornamenti;
 
   Notifica({
-    // IMPORTANTE: I default per Push e SMS sono impostati a TRUE.
-    // Trattandosi di un'app per la sicurezza/emergenza, è meglio essere "invadenti"
-    // piuttosto che rischiare che l'utente perda un avviso critico.
+    // I default per canali critici (Push, SMS)
+    // per coerenza con lo scope dell sistema software
     this.push = true,
     this.sms = true,
     this.silenzia = false,
@@ -19,7 +18,9 @@ class Notifica {
     this.aggiornamenti = true,
   });
 
-  // Pattern standard copyWith per gestire gli switch nelle impostazioni
+  // Metodo copyWith: Fondamentale per la UI Flutter (Switch/Checkbox).
+  // Permette di creare una nuova istanza dell'oggetto, modificando solo i campi specificati
+  // mantenendo gli altri invariati.
   Notifica copyWith({
     bool? push,
     bool? sms,
@@ -36,6 +37,7 @@ class Notifica {
     );
   }
 
+  // Serializzazione (Da Model a JSON): Converte l'oggetto in una Map JSON.
   Map<String, dynamic> toJson() => {
     'push': push,
     'sms': sms,
@@ -44,8 +46,10 @@ class Notifica {
     'aggiornamenti': aggiornamenti,
   };
 
+  // Deserializzazione (da JSON a Model): Factory per ricostruire l'oggetto da una Map JSON.
   factory Notifica.fromJson(Map<String, dynamic> json) {
     return Notifica(
+      // Usa '?? false' per garantire robustezza.
       push: json['push'] ?? true,
       sms: json['sms'] ?? true,
       silenzia: json['silenzia'] ?? false,

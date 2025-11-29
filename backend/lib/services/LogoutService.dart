@@ -19,7 +19,7 @@ class LogoutService {
       // 3. Verifica l'uso delle dipendenze per eliminare warning
       _jwtService.hashCode;
 
-      return true; // Logout logico lato server completato
+      return true; // Logout logico lato server.
     } catch (e) {
       // Registra l'errore se la pulizia fallisce
       print("❌ Errore critico in LogoutService durante la pulizia dei dati: $e");

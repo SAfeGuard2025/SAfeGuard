@@ -1,6 +1,6 @@
-// ** Model: Permesso **
-// Questo model fa da ponte tra i permessi del Sistema Operativo (Android/iOS)
-// e il nostro Database. Viene popolato dal Frontend tramite OsPermissionService.
+// Modello: Permesso
+// Classe immutabile che fa da ponte tra i permessi del Sistema Operativo (Android/iOS)
+// richiesti dall'app (es. GPS, Notifiche) e lo stato salvato nel database.
 
 class Permesso {
   final bool posizione;
@@ -8,6 +8,7 @@ class Permesso {
   final bool notificheSistema;
   final bool bluetooth;
 
+  // Costruttore con valori di default a 'false'.
   Permesso({
     this.posizione = false,
     this.contatti = false,
@@ -15,8 +16,9 @@ class Permesso {
     this.bluetooth = false,
   });
 
-  // Permette di aggiornare un singolo stato (es. l'utente nega il GPS)
-  // mantenendo gli altri inalterati.
+  // Metodo copyWith: Fondamentale per la UI Flutter (Switch/Checkbox).
+  // Permette di creare una nuova istanza dell'oggetto, modificando solo i campi specificati
+  // mantenendo gli altri invariati.
   Permesso copyWith({
     bool? posizione,
     bool? contatti,
@@ -31,7 +33,8 @@ class Permesso {
     );
   }
 
-  // Questo oggetto JSON verrà salvato nel campo 'permessi' dell'utente nel DB
+  // Serializzazione (Da Model a JSON): Converte l'oggetto in una Map JSON.
+  // Utilizzato dal ProfileService per salvare lo stato nel campo 'permessi' dell'utente nel DB.
   Map<String, dynamic> toJson() => {
     'posizione': posizione,
     'contatti': contatti,
@@ -39,6 +42,7 @@ class Permesso {
     'bluetooth': bluetooth,
   };
 
+  // Deserializzazione (da JSON a Model): Factory per ricostruire l'oggetto da una Map JSON.
   factory Permesso.fromJson(Map<String, dynamic> json) {
     return Permesso(
       posizione: json['posizione'] ?? false,

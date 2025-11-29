@@ -1,4 +1,6 @@
-// ** File: lib/data_models/Utente.dart **
+// Modello: Utente
+// Rappresenta l'utente base del sistema. Eredita i campi anagrafici da UtenteGenerico
+// e aggiunge i dati specifici del profilo (permessi, liste mediche, ecc.).
 
 import 'UtenteGenerico.dart';
 import 'Permesso.dart';
@@ -6,13 +8,8 @@ import 'Condizione.dart';
 import 'Notifica.dart';
 import 'ContattoEmergenza.dart';
 
-// MODIFICA ARCHITETTURALE:
-// Utente ora estende UtenteGenerico. Questo ci permette di ereditare i campi base
-// (ID, email, password, anagrafica) gestiti dal nuovo backend, aggiungendo però
-// i campi complessi (liste, oggetti) necessari per la logica dell'app client.
 class Utente extends UtenteGenerico {
-
-  // --- CAMPI SPECIFICI (Dal vecchio progetto) ---
+  // Oggetti Modello Nidificati
   final Permesso permessi;
   final Condizione condizioni;
   final Notifica notifiche;
@@ -21,9 +18,9 @@ class Utente extends UtenteGenerico {
   final List<String> medicinali;
   final List<ContattoEmergenza> contattiEmergenza;
 
-  // --- COSTRUTTORE UNIFICATO ---
+  // Costruttore Unificato
   Utente({
-    // Campi ereditati da UtenteGenerico (required ID, etc.)
+    // Campi ereditati da UtenteGenerico
     required int id,
     String? passwordHash,
     String? email,
@@ -34,24 +31,24 @@ class Utente extends UtenteGenerico {
     String? cittaDiNascita,
     String? iconaProfilo,
 
-    // Campi specifici (Opzionali con Default)
+    // Campi specifici (Opzionali per deserializzazione)
     Permesso? permessi,
     Condizione? condizioni,
     Notifica? notifiche,
     List<String>? allergie,
     List<String>? medicinali,
     List<ContattoEmergenza>? contattiEmergenza,
-  })  :
-  // INIZIALIZZAZIONE SICURA:
-  // Se questi oggetti arrivano null (es. DB parziale o nuovo utente),
-  // li inizializziamo vuoti per evitare crash nell'interfaccia.
-        this.permessi = permessi ?? Permesso(),
-        this.condizioni = condizioni ?? Condizione(),
-        this.notifiche = notifiche ?? Notifica(),
-        this.allergie = allergie ?? const [],
-        this.medicinali = medicinali ?? const [],
-        this.contattiEmergenza = contattiEmergenza ?? const [],
-  // Passiamo i dati base al costruttore del padre (UtenteGenerico)
+  }) :
+  // Inizializzazione Sicura dei campi specifici:
+  // Se gli oggetti (Permesso, Condizione, Notifica) arrivano null dal DB,
+  // vengono inizializzati con le loro rispettive classi di default
+        permessi = permessi ?? Permesso(),
+        condizioni = condizioni ?? Condizione(),
+        notifiche = notifiche ?? Notifica(),
+        allergie = allergie ?? const [],
+        medicinali = medicinali ?? const [],
+        contattiEmergenza = contattiEmergenza ?? const [],
+  // I dati base sono passati al costruttore del padre (UtenteGenerico)
         super(
         id: id,
         passwordHash: passwordHash,
@@ -64,10 +61,9 @@ class Utente extends UtenteGenerico {
         iconaProfilo: iconaProfilo,
       );
 
-  // --- COPYWITH AVANZATO ---
-  // Ho dovuto riscrivere il copyWith per gestire un mix di campi:
-  // sia quelli locali (liste, permessi) sia quelli ereditati (nome, cognome).
-  // Restituisce sempre un 'Utente' completo.
+  // Metodo copyWith Avanzato
+  // Gestisce la creazione di una copia mutata, includendo sia i campi locali
+  // che i campi ereditati (richiama il costruttore principale).
   Utente copyWith({
     int? id,
     String? email,
@@ -86,7 +82,8 @@ class Utente extends UtenteGenerico {
     List<ContattoEmergenza>? contattiEmergenza,
   }) {
     return Utente(
-      id: id ?? this.id!, // ID è obbligatorio
+      // Campi ereditati (usa i valori correnti se non forniti)
+      id: id ?? this.id!,
       email: email ?? this.email,
       telefono: telefono ?? this.telefono,
       passwordHash: passwordHash ?? this.passwordHash,
@@ -95,6 +92,8 @@ class Utente extends UtenteGenerico {
       dataDiNascita: dataDiNascita ?? this.dataDiNascita,
       cittaDiNascita: cittaDiNascita ?? this.cittaDiNascita,
       iconaProfilo: iconaProfilo ?? this.iconaProfilo,
+
+      // Campi locali (usa i valori correnti se non forniti)
       permessi: permessi ?? this.permessi,
       condizioni: condizioni ?? this.condizioni,
       notifiche: notifiche ?? this.notifiche,
@@ -104,13 +103,14 @@ class Utente extends UtenteGenerico {
     );
   }
 
-  // --- DESERIALIZZAZIONE IBRIDA (JSON -> Utente) ---
+  // Deserializzazione (da JSON a Model): Factory per ricostruire l'oggetto da una Map JSON.
   factory Utente.fromJson(Map<String, dynamic> json) {
-    // 1. Deleghiamo al padre il parsing dei campi comuni
+    // 1. Chiama il fromJson del Super (UtenteGenerico) per popolare i campi ereditati
     final utenteGenerico = UtenteGenerico.fromJson(json);
 
-    // 2. Costruiamo l'Utente finale aggiungendo i pezzi mancanti
+    // 2. Costruisce l'Utente finale
     return Utente(
+      // Popola i campi ereditati
       id: utenteGenerico.id!,
       passwordHash: utenteGenerico.passwordHash,
       email: utenteGenerico.email,
@@ -121,7 +121,7 @@ class Utente extends UtenteGenerico {
       cittaDiNascita: utenteGenerico.cittaDiNascita,
       iconaProfilo: utenteGenerico.iconaProfilo,
 
-      // Parsing oggetti nidificati (con check null)
+      // 3. Parsing oggetti nidificati
       permessi: json['permessi'] != null
           ? Permesso.fromJson(json['permessi'])
           : Permesso(),
@@ -132,7 +132,7 @@ class Utente extends UtenteGenerico {
           ? Notifica.fromJson(json['notifiche'])
           : Notifica(),
 
-      // Parsing Liste (Gestione null, casting stringhe e oggetti complessi)
+      // 4. Parsing Liste
       allergie: (json['allergie'] as List<dynamic>?)
           ?.map((e) => e.toString())
           .toList() ?? [],
@@ -145,13 +145,13 @@ class Utente extends UtenteGenerico {
     );
   }
 
-  // --- SERIALIZZAZIONE COMPLETA (Utente -> JSON) ---
+  // Serializzazione (Da Model a JSON): Converte l'oggetto in una Map JSON.
   @override
   Map<String, dynamic> toJson() {
-    // 1. Ottieni la mappa base dal padre
+    // 1. Ottiene i dati ereditati da UtenteGenerico
     final Map<String, dynamic> data = super.toJson();
 
-    // 2. Aggiungi i dati specifici di Utente
+    // 2. Aggiunge i dati specifici di Utente
     data.addAll({
       'id': id,
       'permessi': permessi.toJson(),

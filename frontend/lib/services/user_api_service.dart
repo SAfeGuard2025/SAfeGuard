@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:data_models/user.dart';
+import 'package:data_models/UtenteGenerico.dart';
 
 class UserApiService {
   // 1. Definiamo le costanti prendendole dall'ambiente di compilazione
@@ -37,13 +37,13 @@ class UserApiService {
     return '$host$portPart$_envPrefix/user';
   }
 
-  Future<User> fetchUser(int userId) async {
+  Future<UtenteGenerico> fetchUser(int userId) async {
     try {
       final response = await http.get(Uri.parse('$_baseUrl/$userId'));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> userData = json.decode(response.body);
-        return User.fromJson(userData);
+        return UtenteGenerico.fromJson(userData);
       } else {
         throw Exception('Errore server: ${response.statusCode}');
       }

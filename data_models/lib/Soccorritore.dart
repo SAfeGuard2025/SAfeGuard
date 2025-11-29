@@ -1,12 +1,12 @@
-// ** File: lib/data_models/Soccorritore.dart ** (Manuale)
+// Modello: Soccorritore
+// Modello che rappresenta un utente con privilegi speciali di soccorritore,
+// ereditando tutti i campi base da UtenteGenerico.
 
 import 'UtenteGenerico.dart';
 
-// Rimosse le importazioni e le annotazioni di json_serializable
-
 class Soccorritore extends UtenteGenerico {
 
-  // Costruttore principale NON NOMINATO
+  // Costruttore principale non nominato: Delega a 'super' e forza il flag.
   Soccorritore({
     required int id,
     required String email,
@@ -27,11 +27,11 @@ class Soccorritore extends UtenteGenerico {
     dataDiNascita: dataDiNascita,
     cittaDiNascita: cittaDiNascita,
     iconaProfilo: iconaProfilo,
-    // QUI FORZIAMO A TRUE: Se è un'istanza di Soccorritore, il flag è true.
+    // Punto Chiave: Forza il flag isSoccorritore a true nella classe base.
     isSoccorritore: true,
   );
 
-  // Costruttore nominato: più facile da usare dal codice
+  // Costruttore nominato
   Soccorritore.conTuttiICampi(
       int id,
       String email,
@@ -54,7 +54,7 @@ class Soccorritore extends UtenteGenerico {
     iconaProfilo: iconaProfilo,
   );
 
-  // DESERIALIZZAZIONE MANUALE (Gestisce il Super)
+  // Deserializzazione (da JSON a Model): Factory per ricostruire l'oggetto da una Map JSON.
   factory Soccorritore.fromJson(Map<String, dynamic> json) {
     // Chiama il fromJson del Super (UtenteGenerico) per popolare i campi ereditati
     final utenteGenerico = UtenteGenerico.fromJson(json);
@@ -69,16 +69,14 @@ class Soccorritore extends UtenteGenerico {
       dataDiNascita: utenteGenerico.dataDiNascita,
       cittaDiNascita: utenteGenerico.cittaDiNascita,
       iconaProfilo: utenteGenerico.iconaProfilo,
-      // Non serve passare isSoccorritore qui perché il costruttore Soccorritore()
-      // lo imposta automaticamente a true chiamando super.
+      // isSoccorritore non è passato qui perché è gestito dal costruttore Soccorritore() che chiama super.
     );
   }
 
-  // SERIALIZZAZIONE MANUALE (Gestisce il Super)
+  // Serializzazione (Da Model a JSON): Converte l'oggetto in una Map JSON.
   @override
   Map<String, dynamic> toJson() {
     // Unisce la mappa del Super con i campi propri di Soccorritore
-    // Nota: super.toJson() includerà già 'isSoccorritore': true grazie al costruttore.
     return super.toJson()..addAll({'id': id});
   }
 }
