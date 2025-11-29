@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:frontend/ui/screens/auth/email_register_screen.dart';
 import 'package:frontend/ui/screens/auth/login_screen.dart';
 import 'package:frontend/ui/screens/auth/phone_register_screen.dart';
 import 'package:frontend/ui/screens/home/home_screen.dart';
 import 'package:frontend/ui/style/color_palette.dart';
+import 'package:provider/provider.dart';
+
+import '../../../providers/auth_provider.dart';
 
 // Schermata Principale di Registrazione
 // Offre diverse opzioni per creare un nuovo account.
@@ -12,6 +16,8 @@ class RegistrationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final authProvider = Provider.of<AuthProvider>(context);
     final Color darkBlue = ColorPalette.backgroundDeepBlue;
 
     // Variabili per la responsività
@@ -167,11 +173,18 @@ class RegistrationScreen extends StatelessWidget {
                         // Bottone Registrazione Google
                         _buildSocialButton(
                           text: "Continua con Google",
-                          imagePath: 'assets/googleIcon.png',
+                          icon: FontAwesomeIcons.google,
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
-                          iconColor: Colors.red,
                           fontSize: buttonTextFontSize,
+                          onTap: () async {
+                            final success = await authProvider.signInWithGoogle();
+                            if (success && context.mounted) {
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                              );
+                            }
+                          },
                         ),
                         SizedBox(height: verticalSpacing),
 

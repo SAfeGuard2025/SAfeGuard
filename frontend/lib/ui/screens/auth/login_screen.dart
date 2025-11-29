@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:frontend/ui/screens/auth/email_login_screen.dart';
 import 'package:frontend/ui/screens/auth/phone_login_screen.dart';
 import 'package:frontend/providers/auth_provider.dart';
@@ -239,10 +240,9 @@ class LoginScreen extends StatelessWidget {
                         // Bottone Login Google
                         _buildSocialButton(
                           text: "Continua con Google",
-                          imagePath: 'assets/googleIcon.png',
+                          icon: FontAwesomeIcons.google,
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
-                          iconColor: Colors.red,
                           fontSize: buttonTextFontSize,
                           onTap: () async {
                             final success = await authProvider.signInWithGoogle();
