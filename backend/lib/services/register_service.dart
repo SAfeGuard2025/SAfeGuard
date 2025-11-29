@@ -5,9 +5,9 @@ import 'package:crypto/crypto.dart';
 import 'package:data_models/UtenteGenerico.dart';
 import 'package:data_models/Soccorritore.dart';
 import 'package:data_models/Utente.dart';
-import '../config/RescuerConfig.dart';
-import '../repositories/UserRepository.dart';
-import 'VerificationService.dart';
+import '../config/rescuer_config.dart';
+import '../repositories/user_repository.dart';
+import 'verification_service.dart';
 
 class RegisterService {
   // Dipendenze: Repository per il DB e Service per la verifica

@@ -5,11 +5,11 @@ import 'package:shelf_router/shelf_router.dart';
 import 'package:dotenv/dotenv.dart';
 import 'package:firedart/firedart.dart';
 
-import 'package:backend/controllers/LoginController.dart';
-import 'package:backend/controllers/RegisterController.dart';
-import 'package:backend/controllers/VerificationController.dart';
-import 'package:backend/controllers/ProfileController.dart';
-import 'package:backend/controllers/AuthGuard.dart';
+import 'package:backend/controllers/login_controller.dart';
+import 'package:backend/controllers/register_controller.dart';
+import 'package:backend/controllers/verification_controller.dart';
+import 'package:backend/controllers/profile_controller.dart';
+import 'package:backend/controllers/auth_guard.dart';
 
 void main() async {
   // 1. Configurazione ambiente

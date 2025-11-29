@@ -3,10 +3,10 @@ import 'dart:math';
 import 'package:shelf/shelf.dart';
 import 'package:firedart/firedart.dart';
 
-import '../services/RegisterService.dart';
-import '../services/VerificationService.dart';
-import '../services/SmsService.dart';
-import '../repositories/UserRepository.dart';
+import '../services/register_service.dart';
+import '../services/verification_service.dart';
+import '../services/sms_service.dart';
+import '../repositories/user_repository.dart';
 
 import 'package:data_models/UtenteGenerico.dart';
 

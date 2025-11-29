@@ -1,5 +1,5 @@
-import '../repositories/UserRepository.dart';
-import 'JWTService.dart';
+import '../repositories/user_repository.dart';
+import 'jwt_service.dart';
 
 class LogoutService {
   // Dipendenze: repository per l'accesso ai dati, service per la gestione dei token

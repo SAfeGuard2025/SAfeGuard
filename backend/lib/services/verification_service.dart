@@ -1,5 +1,5 @@
-import '../repositories/UserRepository.dart';
-import 'SmsService.dart';
+import '../repositories/user_repository.dart';
+import 'sms_service.dart';
 
 class VerificationService {
   // Dipendenze: Repository per l'accesso al DB e SmsService per l'invio fisico dell'SMS

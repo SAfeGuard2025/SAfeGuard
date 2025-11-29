@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 
-import '../config/RescuerConfig.dart';
-import '../repositories/UserRepository.dart';
+import '../config/rescuer_config.dart';
+import '../repositories/user_repository.dart';
 import 'package:data_models/Utente.dart';
 import 'package:data_models/Soccorritore.dart';
 import 'package:data_models/UtenteGenerico.dart';

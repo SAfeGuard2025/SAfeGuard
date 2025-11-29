@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:shelf/shelf.dart';
-import '../services/LogoutService.dart';
+import '../services/logout_service.dart';
 
 class LogoutController {
   // Dipendenza: il Controller delega la logica di logout al LogoutService.

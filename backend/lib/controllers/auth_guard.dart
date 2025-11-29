@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:shelf/shelf.dart';
-import '../services/JWTService.dart';
+import '../services/jwt_service.dart';
 
 class AuthGuard {
   final JWTService _jwtService = JWTService();

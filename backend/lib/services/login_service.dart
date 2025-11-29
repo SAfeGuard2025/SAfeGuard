@@ -7,9 +7,9 @@ import 'package:http/http.dart' as http;
 import 'package:data_models/Utente.dart';
 import 'package:data_models/Soccorritore.dart';
 import 'package:data_models/UtenteGenerico.dart';
-import '../config/RescuerConfig.dart';
-import '../repositories/UserRepository.dart';
-import 'JWTService.dart';
+import '../config/rescuer_config.dart';
+import '../repositories/user_repository.dart';
+import 'jwt_service.dart';
 
 class LoginService {
   // Dipendenze: Repository per il DB e Service per la verifica
