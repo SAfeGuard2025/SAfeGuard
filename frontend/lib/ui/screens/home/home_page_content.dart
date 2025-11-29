@@ -5,6 +5,8 @@ import 'package:frontend/ui/screens/medical/contatti_emergenza_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/widgets/emergency_item.dart';
+import 'package:frontend/providers/emergency_provider.dart';
+import 'package:frontend/ui/widgets/emergency_notification.dart';
 
 class HomePageContent extends StatelessWidget {
   const HomePageContent({super.key});
@@ -16,6 +18,7 @@ class HomePageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isRescuer = context.watch<AuthProvider>().isRescuer;
+    final hasActiveAlert = context.watch<EmergencyProvider>().isSendingSos;
     final size = MediaQuery.of(context).size;
     final double screenWidth = size.width;
     final bool isWideScreen = screenWidth > 600;
@@ -28,6 +31,13 @@ class HomePageContent extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // 0. Notifica
+          if (hasActiveAlert) ...[
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0, bottom: 10.0),
+              child: _buildEmergencyNotification(),
+            ),
+          ],
 
           // 1. Mappa
           Expanded(
@@ -205,5 +215,10 @@ class HomePageContent extends StatelessWidget {
           }
       ),
     );
+  }
+
+  // costruzione della notifica
+  Widget _buildEmergencyNotification() {
+    return EmergencyNotification();
   }
 }
