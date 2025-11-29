@@ -6,7 +6,7 @@ import 'package:data_models/Soccorritore.dart';
 import 'package:data_models/UtenteGenerico.dart';
 
 class LoginController {
-  // Dipendenza: il Controller DELEGA la logica di business a LoginService
+  // Dipendenza: il Controller delega la logica di business a LoginService
   final LoginService _loginService = LoginService();
 
   // Headers standard per le risposte JSON

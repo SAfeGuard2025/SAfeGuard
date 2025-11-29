@@ -84,11 +84,9 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                     ),
                     SizedBox(height: largeSpacing),
 
-                    // Campo nome
                     _buildTextField("Nome", _nameController, isPassword: false, contentVerticalPadding: 12, fontSize: contentFontSize),
                     SizedBox(height: smallSpacing),
 
-                    // Campo cognome
                     _buildTextField("Cognome", _surnameController, isPassword: false, contentVerticalPadding: 12, fontSize: contentFontSize),
                     SizedBox(height: smallSpacing),
 
@@ -111,11 +109,9 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                     ),
                     SizedBox(height: smallSpacing),
 
-                    // Input password
                     _buildTextField("Password", _passController, isPassword: true, contentVerticalPadding: 12, fontSize: contentFontSize),
                     SizedBox(height: smallSpacing),
 
-                    // Input ripeti password
                     _buildTextField("Ripeti Password", _repeatPassController, isPassword: true, contentVerticalPadding: 12, fontSize: contentFontSize),
 
                     if (authProvider.errorMessage != null)
@@ -200,7 +196,6 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
     );
   }
 
-  // Widget campo di testo
   Widget _buildTextField(String hint, TextEditingController controller, {required bool isPassword, double contentVerticalPadding = 20, required double fontSize}) {
     bool obscureText = isPassword ? !_isPasswordVisible : false;
 

@@ -12,14 +12,12 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
-  // Variabile per attendere il completamento del controllo login
   late Future<void> _autoLoginFuture;
 
   @override
   void initState() {
     super.initState();
     // Avviamo il tentativo di auto-login appena il widget viene inizializzato.
-    // listen: false è fondamentale qui perché siamo fuori dal build.
     _autoLoginFuture = Provider.of<AuthProvider>(context, listen: false).tryAutoLogin();
   }
 
@@ -47,7 +45,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
             children: [
               SizedBox(height: screenHeight * 0.04),
 
-              // Titolo
               Text(
                 'SAfeGuard',
                 style: TextStyle(
@@ -59,7 +56,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
               const Spacer(),
 
-              // Logo
               Image.asset(
                 'assets/logo.png',
                 width: logoSize,
@@ -69,7 +65,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
               const Spacer(),
 
-              // Testo principale
               Text(
                 'Preparazione del\nsistema in corso...',
                 textAlign: TextAlign.center,
@@ -80,7 +75,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
                 ),
               ),
 
-              // Scritte secondarie
               SizedBox(height: screenHeight * 0.02),
               Text(
                 'Accedo alla tua posizione...\nResta al sicuro.\nConnessione ai servizi di emergenza...',
@@ -94,14 +88,13 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
               const Spacer(),
 
-              // Consiglio
               Text(
                 'Consiglio: non andare nel panico.',
                 style: TextStyle(color: Colors.white70, fontSize: secondaryTextFontSize),
               ),
               SizedBox(height: screenHeight * 0.015),
 
-              // Animazione barra - il caricamento è preimpostato a 3 secondi
+              //Animazione caricamento della barra
               TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0.0, end: 1.0),
                 duration: const Duration(seconds: 3),
@@ -115,15 +108,12 @@ class _LoadingScreenState extends State<LoadingScreen> {
                   );
                 },
                 onEnd: () async {
-                  // 1. Assicuriamoci che il controllo dello storage sia terminato
                   await _autoLoginFuture;
 
                   if (!context.mounted) return;
 
-                  // 2. Controlliamo lo stato di login dal Provider
                   final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-                  // Utilizziamo pushReplacement per impedire all'utente di tornare alla schermata di caricamento
                   if (authProvider.isLogged) {
                     // Se loggato -> home screen
                     Navigator.of(context).pushReplacement(

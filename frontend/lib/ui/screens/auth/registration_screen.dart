@@ -24,7 +24,6 @@ class RegistrationScreen extends StatelessWidget {
 
     //Header
     return Scaffold(
-      //Barra navigazionale sopra con: Registrazione - Icona - Skip
       appBar: AppBar(
         backgroundColor: darkBlue,
         elevation: 0,
@@ -32,7 +31,6 @@ class RegistrationScreen extends StatelessWidget {
         leadingWidth: 120,
         leading: const Padding(
           padding: EdgeInsets.only(left: 10),
-          //Accentra il testo + zona testo registrazione
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
@@ -45,7 +43,6 @@ class RegistrationScreen extends StatelessWidget {
             ),
           ),
         ),
-        //Parte icona
         title: Image.asset(
           'assets/logo.png',
           height: screenHeight * 0.05,
@@ -57,7 +54,6 @@ class RegistrationScreen extends StatelessWidget {
             onPressed: () => Navigator.of(context).pushReplacement(
               MaterialPageRoute(builder: (context) => const HomeScreen()),
             ),
-            //Parte testo skip
             child: const Text(
               "Skip",
               style: TextStyle(
@@ -69,7 +65,6 @@ class RegistrationScreen extends StatelessWidget {
         ],
       ),
 
-      //Body
       body: Stack(
         children: [
           Container(
@@ -87,7 +82,6 @@ class RegistrationScreen extends StatelessWidget {
               children: [
                 SizedBox(height: verticalSpacing * 2),
 
-                //Sezione mascotte e testo
                 Padding(
                   padding: const EdgeInsets.fromLTRB(25, 5, 25, 10),
                   child: Row(
@@ -138,7 +132,6 @@ class RegistrationScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Fine sezione mascotte e testo
 
                 //Zona pulsanti
                 Expanded(
@@ -157,7 +150,6 @@ class RegistrationScreen extends StatelessWidget {
                         ),
                         SizedBox(height: verticalSpacing),
 
-                        //Continua con google
                         _buildSocialButton(
                           text: "Continua con Google",
                           imagePath: 'assets/googleIcon.png',
@@ -167,7 +159,6 @@ class RegistrationScreen extends StatelessWidget {
                           fontSize: buttonTextFontSize,
                         ),
 
-                        //Continua con email
                         SizedBox(height: verticalSpacing),
                         _buildSocialButton(
                           text: "Continua con Email",
@@ -185,7 +176,6 @@ class RegistrationScreen extends StatelessWidget {
                         ),
                         SizedBox(height: verticalSpacing),
 
-                        //Ccontinua con telefono
                         _buildSocialButton(
                           text: "Continua con Telefono",
                           icon: Icons.phone,
@@ -203,7 +193,6 @@ class RegistrationScreen extends StatelessWidget {
 
                         SizedBox(height: screenHeight * 0.05),
 
-                        //Parte bassa "hai già un account" - reindirizzamento a login_screen
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -219,7 +208,6 @@ class RegistrationScreen extends StatelessWidget {
                                 ),
                               ),
 
-                              //Scritta cliccabile
                               child: const Text(
                                 "Login",
                                 style: TextStyle(
@@ -243,7 +231,6 @@ class RegistrationScreen extends StatelessWidget {
     );
   }
 
-  // Widget pulsante social
   Widget _buildSocialButton({
     required String text,
     required Color backgroundColor,

@@ -54,6 +54,34 @@ class Soccorritore extends UtenteGenerico {
     iconaProfilo: iconaProfilo,
   );
 
+  // Metodo copyWith Avanzato
+  // Gestisce la creazione di una copia mutata, includendo sia i campi locali
+  // che i campi ereditati (richiama il costruttore principale).
+  Soccorritore copyWith({
+    int? id,
+    String? email,
+    String? telefono,
+    String? passwordHash,
+    String? nome,
+    String? cognome,
+    DateTime? dataDiNascita,
+    String? cittaDiNascita,
+    String? iconaProfilo,
+  }) {
+    return Soccorritore(
+      id: id ?? this.id!,
+      email: email ?? this.email!,
+      telefono: telefono ?? this.telefono,
+      passwordHash: passwordHash ?? this.passwordHash,
+      nome: nome ?? this.nome,
+      cognome: cognome ?? this.cognome,
+      dataDiNascita: dataDiNascita ?? this.dataDiNascita,
+      cittaDiNascita: cittaDiNascita ?? this.cittaDiNascita,
+      iconaProfilo: iconaProfilo ?? this.iconaProfilo,
+      // isSoccorritore è forzato nel costruttore
+    );
+  }
+
   // Deserializzazione (da JSON a Model): Factory per ricostruire l'oggetto da una Map JSON.
   factory Soccorritore.fromJson(Map<String, dynamic> json) {
     // Chiama il fromJson del Super (UtenteGenerico) per popolare i campi ereditati

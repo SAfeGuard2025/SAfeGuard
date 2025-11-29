@@ -50,7 +50,6 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
         ),
       ),
 
-      //Body
       body: Stack(
         children: [
           Container(
@@ -85,11 +84,9 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                     ),
                     SizedBox(height: screenHeight * 0.10),
 
-                    //Campo di testo - email
                     _buildTextField("Email", _emailController, isPassword: false, contentVerticalPadding: 16, fontSize: contentFontSize),
                     SizedBox(height: smallSpacing),
 
-                    //Campo di testo - password
                     _buildTextField(
                         "Password",
                         _passController,
@@ -98,7 +95,6 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                         fontSize: contentFontSize
                     ),
 
-                    // Messaggio di errore
                     if (authProvider.errorMessage != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 15),
@@ -175,7 +171,6 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
     );
   }
 
-  // Widget campo di testo
   Widget _buildTextField(
       String hint,
       TextEditingController controller, {
