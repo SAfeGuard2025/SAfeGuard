@@ -12,8 +12,8 @@ class VerificationController {
       if (body.isEmpty) return _errorResponse('Body vuoto');
 
       final Map<String, dynamic> data = jsonDecode(body);
-      final String? email = data['email'];
-      final String? telefono = data['telefono'];
+      final String? email = (data['email'] as String?)?.toLowerCase();
+      final String? telefono = (data['telefono'] as String?)?.replaceAll(' ', '');
       final String? code = data['code']; // Codice OTP inviato dal frontend
 
       if (code == null || (email == null && telefono == null)) {

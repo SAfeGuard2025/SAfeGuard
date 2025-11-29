@@ -5,17 +5,9 @@ import 'package:crypto/crypto.dart';
 import 'package:data_models/UtenteGenerico.dart';
 import 'package:data_models/Soccorritore.dart';
 import 'package:data_models/Utente.dart';
+import '../config/RescuerConfig.dart';
 import '../repositories/UserRepository.dart';
 import 'VerificationService.dart';
-
-// Lista domini Soccorritori (Allineata con LoginService e ProfileService)
-const List<String> rescuerDomains = [
-  '@soccorritore.com',
-  '@soccorritore.gmail',
-  '@crocerossa.it',
-  '@118.it',
-  '@protezionecivile.it',
-];
 
 class RegisterService {
   // Dipendenze: Repository per il DB e Service per la verifica
@@ -87,9 +79,7 @@ class RegisterService {
     // 4. Classificazione Utente
     bool isSoccorritore = false;
     if (email != null) {
-      isSoccorritore = rescuerDomains.any(
-        (domain) => email.toLowerCase().endsWith(domain),
-      );
+      isSoccorritore = RescuerConfig.isSoccorritore(email);
     }
     requestData['isSoccorritore'] = isSoccorritore;
 
