@@ -2,26 +2,30 @@ import 'package:data_models/Condizione.dart';
 import 'package:data_models/ContattoEmergenza.dart';
 import 'package:flutter/material.dart';
 import 'package:data_models/medical_item.dart';
-import '../repositories/profile_repository.dart'; // Importa il repo creato sopra
+import '../repositories/profile_repository.dart';
 
+// Provider di Stato: MedicalProvider
+// Gestisce lo stato e la logica per le sezioni mediche e contatti del profilo utente.
 class MedicalProvider extends ChangeNotifier {
+  // Dipendenze: Repository per la comunicazione col Backend (API)
   final ProfileRepository _profileRepository = ProfileRepository();
 
-  List<MedicalItem> _allergie = [];
   bool _isLoading = false;
   String? _errorMessage;
-
-  List<MedicalItem> get allergie => _allergie;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  // Carica allergie all'avvio della schermata
+  List<MedicalItem> _allergie = [];
+  List<MedicalItem> get allergie => _allergie;
+
+  // Carica la lista delle allergie dal DB
   Future<void> loadAllergies() async {
     _isLoading = true;
     notifyListeners();
     try {
+      // 1. Delega a ProfileRepository la fetch delle stringhe
       final List<String> strings = await _profileRepository.fetchAllergies();
-      // Convertiamo le stringhe dal DB in oggetti MedicalItem per la UI
+      // 2. Mappa le stringhe in oggetti MedicalItem per la UI
       _allergie = strings.map((e) => MedicalItem(name: e)).toList();
       _errorMessage = null;
     } catch (e) {
@@ -32,11 +36,11 @@ class MedicalProvider extends ChangeNotifier {
     }
   }
 
-  // Aggiunge al DB e aggiorna la UI
+  // Aggiunge una nuova allergia al DB e aggiorna lo stato locale
   Future<bool> addAllergia(String nome) async {
     try {
+      //Delega a ProfileRepository l'aggiunta
       await _profileRepository.addAllergia(nome);
-      // Aggiorniamo la lista locale solo se il server ha risposto OK
       _allergie.add(MedicalItem(name: nome));
       notifyListeners();
       return true;
@@ -47,10 +51,11 @@ class MedicalProvider extends ChangeNotifier {
     }
   }
 
-  // Rimuove dal DB e aggiorna la UI
+  // Rimuove un'allergia dal DB e aggiorna lo stato locale
   Future<bool> removeAllergia(int index) async {
     try {
       final item = _allergie[index];
+      //Delega a ProfileRepository la rimozione
       await _profileRepository.removeAllergia(item.name);
 
       _allergie.removeAt(index);
@@ -66,12 +71,14 @@ class MedicalProvider extends ChangeNotifier {
   List<MedicalItem> _medicinali = [];
   List<MedicalItem> get medicinali => _medicinali;
 
-  // Carica medicinali
+  // Carica la lista dei medicinali dal DB
   Future<void> loadMedicines() async {
     _isLoading = true;
     notifyListeners();
     try {
+      // 1. Delega a ProfileRepository la fetch delle stringhe
       final List<String> strings = await _profileRepository.fetchMedicines();
+      // 2. Mappa le stringhe in oggetti MedicalItem per la UI
       _medicinali = strings.map((e) => MedicalItem(name: e)).toList();
       _errorMessage = null;
     } catch (e) {
@@ -85,6 +92,7 @@ class MedicalProvider extends ChangeNotifier {
   // Aggiunge medicinale
   Future<bool> addMedicinale(String nome) async {
     try {
+      //Delega a ProfileRepository l'aggiunta
       await _profileRepository.addMedicinale(nome);
       _medicinali.add(MedicalItem(name: nome));
       notifyListeners();
@@ -100,6 +108,7 @@ class MedicalProvider extends ChangeNotifier {
   Future<bool> removeMedicinale(int index) async {
     try {
       final item = _medicinali[index];
+      //Delega a ProfileRepository la rimozione
       await _profileRepository.removeMedicinale(item.name);
 
       _medicinali.removeAt(index);
@@ -112,16 +121,15 @@ class MedicalProvider extends ChangeNotifier {
     }
   }
 
-  // ... dentro MedicalProvider ...
-
   List<ContattoEmergenza> _contatti = [];
   List<ContattoEmergenza> get contatti => _contatti;
 
-  // Carica contatti
+  // Carica la lista di ContattiEmergenza
   Future<void> loadContacts() async {
     _isLoading = true;
     notifyListeners();
     try {
+      // Delega a ProfileRepository la fetch dei contatti
       _contatti = await _profileRepository.fetchContacts();
       _errorMessage = null;
     } catch (e) {
@@ -132,10 +140,11 @@ class MedicalProvider extends ChangeNotifier {
     }
   }
 
-  // Aggiungi contatto
+  // Aggiunge un ContattoEmergenza
   Future<bool> addContatto(String nome, String numero) async {
     try {
       final nuovoContatto = ContattoEmergenza(nome: nome, numero: numero);
+      // Delega a ProfileRepository l'aggiunta
       await _profileRepository.addContatto(nuovoContatto);
 
       _contatti.add(nuovoContatto);
@@ -152,6 +161,7 @@ class MedicalProvider extends ChangeNotifier {
   Future<bool> removeContatto(int index) async {
     try {
       final contatto = _contatti[index];
+      // Delega a ProfileRepository la rimozione
       await _profileRepository.removeContatto(contatto);
 
       _contatti.removeAt(index);
@@ -164,17 +174,15 @@ class MedicalProvider extends ChangeNotifier {
     }
   }
 
-
-
-  // Stato Condizioni
-  Condizione _condizioni = Condizione();// Default tutto false [cite: 361]
+  Condizione _condizioni = Condizione();
   Condizione get condizioni => _condizioni;
 
-  // Caricamento dati
+  // Carica Condizioni
   Future<void> loadCondizioni() async {
     _isLoading = true;
     notifyListeners();
     try {
+      // Delega a ProfileRepository la fetch delle condizioni
       _condizioni = await _profileRepository.fetchCondizioni();
       _errorMessage = null;
     } catch (e) {
@@ -187,17 +195,15 @@ class MedicalProvider extends ChangeNotifier {
 
   // Aggiornamento (Toggle Switch)
   Future<void> updateCondizioni(Condizione nuoveCondizioni) async {
-    // 1. Aggiornamento Ottimistico: aggiorniamo subito la UI per reattività
     _condizioni = nuoveCondizioni;
     notifyListeners();
 
     try {
-      // 2. Chiamata al server in background
+      // Delega a ProfileRepository l'aggiornamento
       await _profileRepository.updateCondizioni(nuoveCondizioni);
     } catch (e) {
-      // 3. Rollback in caso di errore (opzionale, ma consigliato)
       _errorMessage = "Errore salvataggio: $e";
-      // Qui potresti ricaricare i dati vecchi dal server
+      // Rollback in caso di errore
       await loadCondizioni();
     }
   }

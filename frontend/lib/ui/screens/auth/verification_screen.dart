@@ -255,13 +255,13 @@ class _VerificationScreenState extends State<VerificationScreen> {
   Widget _buildCodeBox(int index, BuildContext context, double inputCodeFontSize) {
     final boxSize = (MediaQuery.of(context).size.width - 40) / 7;
 
-    // Usiamo RawKeyboardListener per intercettare il Backspace anche a campo vuoto
-    return RawKeyboardListener(
+    // Keyboard listener per intercettare il backspace
+    return KeyboardListener(
       focusNode: FocusNode(), // Nodo fittizio per il listener
-      onKey: (RawKeyEvent event) {
-        if (event is RawKeyDownEvent) {
+      onKeyEvent: (KeyEvent event) {
+        if (event is KeyDownEvent) {
           if (event.logicalKey == LogicalKeyboardKey.backspace) {
-            // Se premo backspace e il campo attuale è vuoto, sposto il focus indietro
+            // Se voglio cancellare un numero lo cancello e vado alla "casella" dell'otp precedente
             if (_codeControllers[index].text.isEmpty && index > 0) {
               _codeFocusNodes[index - 1].requestFocus();
             }
@@ -308,11 +308,11 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
               onChanged: (value) {
                 if (value.length == 1) {
-                  // Inserimento: Passa al prossimo
+                  // Ogni volta che inserisco un numero all'otp, vado avanti passando il focus alla casella successiva
                   if (index < 5) {
                     FocusScope.of(context).requestFocus(_codeFocusNodes[index + 1]);
                   } else {
-                    FocusScope.of(context).unfocus(); // Fine inserimento
+                    FocusScope.of(context).unfocus(); // Non ci sono più numeri da inserire
                   }
                 } else if (value.isEmpty) {
                   // Cancellazione: Sposta il focus al campo precedente

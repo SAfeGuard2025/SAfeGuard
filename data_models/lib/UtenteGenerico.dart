@@ -1,4 +1,6 @@
-// ** File: lib/data_models/UtenteGenerico.dart ** (Manuale)
+// Modello: UtenteGenerico
+// Classe base che definisce i campi anagrafici e di autenticazione comuni
+// a tutti gli utenti del sistema (cittadini normali e soccorritori).
 
 class UtenteGenerico {
   final int? id;
@@ -12,10 +14,10 @@ class UtenteGenerico {
   final String? cittaDiNascita;
   final String? iconaProfilo;
 
-  // NUOVO CAMPO BOOLEANO
   final bool isSoccorritore;
 
   // Costruttore principale
+  // Usato internamente e come target per i costruttori nominati e il fromJson.
   UtenteGenerico({
     this.id,
     this.email,
@@ -26,7 +28,7 @@ class UtenteGenerico {
     this.dataDiNascita,
     this.cittaDiNascita,
     this.iconaProfilo,
-    this.isSoccorritore = false, // Default: Utente normale (false)
+    this.isSoccorritore = false,
   }) : assert(
   email != null || telefono != null,
   'Devi fornire almeno email o telefono per UtenteGenerico',
@@ -43,8 +45,8 @@ class UtenteGenerico {
         DateTime? dataDiNascita,
         String? cittaDiNascita,
         String? iconaProfilo,
-        bool isSoccorritore = false, // Parametro opzionale
-      }) : this(
+        bool isSoccorritore = false,
+      }) : this( // Delega al costruttore principale
     id: id,
     passwordHash: passwordHash,
     email: email,
@@ -68,8 +70,8 @@ class UtenteGenerico {
         DateTime? dataDiNascita,
         String? cittaDiNascita,
         String? iconaProfilo,
-        bool isSoccorritore = false, // Parametro opzionale
-      }) : this(
+        bool isSoccorritore = false,
+      }) : this( // Delega al costruttore principale
     id: id,
     passwordHash: passwordHash,
     email: email,
@@ -82,12 +84,13 @@ class UtenteGenerico {
     isSoccorritore: isSoccorritore,
   );
 
-  // DESERIALIZZAZIONE (JSON -> Oggetto)
+  // Deserializzazione (da JSON a Model): Factory per ricostruire l'oggetto da una Map JSON.
   factory UtenteGenerico.fromJson(Map<String, dynamic> json) {
     return UtenteGenerico(
       id: json['id'] as int?,
       email: json['email'] as String?,
       telefono: json['telefono'] as String?,
+      // Se 'passwordHash' manca, usa un fallback
       passwordHash: json['passwordHash'] as String? ?? 'HASH_NON_RICEVUTO',
       nome: json['nome'] as String?,
       cognome: json['cognome'] as String?,
@@ -101,7 +104,7 @@ class UtenteGenerico {
     );
   }
 
-  // SERIALIZZAZIONE (Oggetto -> JSON)
+  // Serializzazione (Da Model a JSON): Converte l'oggetto in una Map JSON.
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -113,7 +116,7 @@ class UtenteGenerico {
       'dataDiNascita': dataDiNascita?.toIso8601String(),
       'cittaDiNascita': cittaDiNascita,
       'iconaProfilo': iconaProfilo,
-      'isSoccorritore': isSoccorritore, // Salva il booleano
+      'isSoccorritore': isSoccorritore,
     };
   }
 }

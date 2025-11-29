@@ -41,7 +41,6 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      //Header
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -51,7 +50,6 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
         ),
       ),
 
-      //Body
       body: Stack(
         children: [
           Container(
@@ -107,7 +105,6 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                     ),
                     SizedBox(height: smallSpacing),
 
-                    // Input password
                     _buildTextField(
                         "Password",
                         _passController,
@@ -191,7 +188,6 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     );
   }
 
-  // Widget campo di testo
   Widget _buildTextField(
       String hint,
       TextEditingController controller, {

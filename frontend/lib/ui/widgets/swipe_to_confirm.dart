@@ -4,8 +4,8 @@ class SwipeToConfirm extends StatefulWidget {
   final double height;
   final double width;
   final VoidCallback onConfirm;
-  final Widget? thumb; // La freccia (opzionale)
-  final Widget? background; // La barra rossa (opzionale)
+  final Widget? thumb; // La freccia
+  final Widget? background; // La barra rossa
 
   const SwipeToConfirm({
     super.key,
@@ -26,7 +26,7 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
 
   @override
   Widget build(BuildContext context) {
-    // Calcoliamo la larghezza massima scorribile
+    // Larghezza massima scorribile
     final double maxDragDistance = widget.width - widget.height;
 
     return SizedBox(
@@ -35,7 +35,7 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
       child: Stack(
         alignment: Alignment.centerLeft,
         children: [
-          /// 🔴 BACKGROUND DELLA BARRA
+          // Background della barra
           Positioned.fill(
             child: widget.background ??
                 Container(
@@ -56,7 +56,7 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
                 ),
           ),
 
-          /// 👉 THUMB/FRECCIA CHE SI MUOVE
+          //Freccia che si muove
           AnimatedPositioned(
             duration: const Duration(milliseconds: 80),
             left: position,
@@ -86,7 +86,7 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
                   });
                   widget.onConfirm();
                 } else {
-                  // Torna indietro se non ha finito (effetto elastico)
+                  // Torna indietro se non ha finito
                   setState(() {
                     position = 0;
                   });
@@ -94,7 +94,7 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
               },
               child: SizedBox(
                 height: widget.height,
-                width: widget.height, // Il thumb è quadrato
+                width: widget.height,
                 child: widget.thumb ??
                     Container(
                       decoration: const BoxDecoration(
@@ -106,8 +106,6 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
                           color: Colors.white,
                           size: 30
                       ),
-                      // Se vuoi usare l'immagine PNG, usa questo invece dell'Icon:
-                      // child: Image.asset('assets/arrow.png', scale: 4),
                     ),
               ),
             ),

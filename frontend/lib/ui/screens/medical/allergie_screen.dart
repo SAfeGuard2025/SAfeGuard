@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-// --- IMPORTA IL MODELLO ---
-import 'package:data_models/medical_item.dart';
+//Import del provider
 import 'package:provider/provider.dart';
 
 import '../../../providers/medical_provider.dart';
@@ -32,7 +31,6 @@ class _AllergieScreenState extends State<AllergieScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ... tieni le costanti dei colori ...
     const Color bgColor = Color(0xFF12345A);
     const Color cardColor = Color(0xFF0E2A48);
     const Color deleteColor = Color(0xFFFF5555);
@@ -44,8 +42,7 @@ class _AllergieScreenState extends State<AllergieScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // ... tieni HEADER e TITOLO uguali a prima ...
-            // HEADER
+            // Header
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
               child: Row(
@@ -57,10 +54,9 @@ class _AllergieScreenState extends State<AllergieScreen> {
                 ],
               ),
             ),
-            // TITOLO (Copia pure quello di prima)
             const SizedBox(height: 30),
 
-            // LISTA COLLEGATA AL PROVIDER
+            // Lista collegata al provider
             Expanded(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -71,7 +67,7 @@ class _AllergieScreenState extends State<AllergieScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
 
-                  // QUI USIAMO IL CONSUMER
+                  //Consumer
                   child: Consumer<MedicalProvider>(
                     builder: (context, provider, child) {
                       if (provider.isLoading) {
@@ -91,11 +87,8 @@ class _AllergieScreenState extends State<AllergieScreen> {
                         itemBuilder: (context, index) {
                           return _buildItem(
                             text: provider.allergie[index].name,
-                            // Nota: la modifica di una stringa in array semplice è complessa (di solito si cancella e ricrea),
-                            // per semplicità qui permettiamo solo cancellazione o creazione nuova,
-                            // o implementi un updateApi specifico.
                             onEdit: () {
-                              // Per ora disabilitiamo edit diretto o lo gestiamo come delete+add
+                              // Per ora edit diretto è diabilitato
                               _openDialog(isEdit: false);
                             },
                             onDelete: () async {
@@ -112,14 +105,13 @@ class _AllergieScreenState extends State<AllergieScreen> {
             ),
             const SizedBox(height: 20),
 
-            // BOTTONE AGGIUNGI
+            // Bottone aggiungi
             Padding(
               padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 30.0),
               child: InkWell(
                 onTap: () => _openDialog(isEdit: false),
                 child: Container(
                   height: 60,
-                  // ... Stile bottone uguale a prima ...
                   padding: const EdgeInsets.symmetric(horizontal: 25.0),
                   decoration: BoxDecoration(
                     color: addBtnColor,
@@ -179,8 +171,8 @@ class _AllergieScreenState extends State<AllergieScreen> {
     );
   }
 
-  void _openDialog({required bool isEdit, int? index}) {
-    _textController.clear(); // Puliamo sempre per ora
+  void _openDialog({required bool isEdit}) {
+    _textController.clear();
 
     showDialog(
       context: context,
@@ -207,7 +199,7 @@ class _AllergieScreenState extends State<AllergieScreen> {
               style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
               onPressed: () async {
                 if (_textController.text.isNotEmpty) {
-                  // CHIAMATA AL PROVIDER
+                  // Chiamata al provider
                   final success = await Provider.of<MedicalProvider>(context, listen: false)
                       .addAllergia(_textController.text);
 

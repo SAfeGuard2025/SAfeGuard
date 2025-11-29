@@ -8,14 +8,16 @@ import 'package:frontend/repositories/auth_repository.dart';
 import 'package:data_models/UtenteGenerico.dart';
 import 'package:data_models/Utente.dart';
 import 'package:data_models/Soccorritore.dart';
-
 import '../repositories/profile_repository.dart';
 
+// Provider di Stato: AuthProvider
+// Gestisce l'autenticazione, usa ChangeNotifier per notificare la UI
 class AuthProvider extends ChangeNotifier {
+  // Dipendenze: Repository per la comunicazione col Backend (API)
   final AuthRepository _authRepository = AuthRepository();
   final ProfileRepository _profileRepo = ProfileRepository();
 
-  // Istanza GoogleSignIn definita qui per essere usata sia nel login che nel logout
+  // Istanza per il Login Google (per signIn e signOut)
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   bool _isLoading = false;
@@ -25,25 +27,28 @@ class AuthProvider extends ChangeNotifier {
   String? _authToken;
   bool _isRescuer = false;
 
+  // Variabili temporanee usate durante il processo di registrazione/verifica OTP
   String? _tempEmail;
-  String? _tempPhone; // Variabile per il numero di telefono
+  String? _tempPhone;
   String? _tempPassword;
-
   String? _tempNome;
   String? _tempCognome;
 
   int _secondsRemaining = 30;
   Timer? _timer;
 
+  // Getters che espongono lo stato alla UI
   bool get isLoading => _isLoading;
-  bool get isRescuer => _isRescuer; // se è soccorritore è true se no è false
+  bool get isRescuer => _isRescuer;
   String? get errorMessage => _errorMessage;
   int get secondsRemaining => _secondsRemaining;
   UtenteGenerico? get currentUser => _currentUser;
   bool get isLogged => _authToken != null;
 
+  // Tenta il login automatico se trova i dati di sessione salvati
   Future<void> tryAutoLogin() async {
     final prefs = await SharedPreferences.getInstance();
+    // Controlla se esistono i token
     if (!prefs.containsKey('auth_token')) return;
     final token = prefs.getString('auth_token');
     final userDataString = prefs.getString('user_data');
@@ -59,10 +64,38 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // --- LOGIN EMAIL ---
+  // Metodo helper per salvare i dati di sessione (token + utente).
+  Future<void> _saveSession(Map<String, dynamic> response) async {
+    final token = response['token'];
+    final userMap = response['user'];
+
+    // Salva su SharedPreferences per la persistenza
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('auth_token', token);
+    await prefs.setString('user_data', jsonEncode(userMap));
+
+    // Aggiorna lo stato in memoria
+    _authToken = token;
+    _currentUser = _parseUser(userMap);
+  }
+
+  // Metodo per convertire la Map JSON nell'oggetto Utente o Soccorritore
+  UtenteGenerico _parseUser(Map<String, dynamic> json) {
+    final isSoccorritore = (json['isSoccorritore'] == true);
+    _isRescuer = isSoccorritore;
+
+    if (isSoccorritore) {
+      return Soccorritore.fromJson(json);
+    } else {
+      return Utente.fromJson(json);
+    }
+  }
+
+  // Login con Email
   Future<bool> login(String email, String password) async {
     _setLoading(true);
     try {
+      //Delega ad AuthRepository
       final response = await _authRepository.login(email: email, password: password);
       await _saveSession(response);
       _setLoading(false);
@@ -74,9 +107,11 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // Login con Telefono
   Future<bool> loginPhone(String phone, String password) async {
     _setLoading(true);
     try {
+      //Delega ad AuthRepository
       final response = await _authRepository.login(phone: phone, password: password);
       await _saveSession(response);
       _setLoading(false);
@@ -88,12 +123,14 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // --- REGISTRAZIONE EMAIL ---
+  // Registrazione Email (Avvia l'invio OTP)
   Future<bool> register(String email, String password, String nome, String cognome) async {
     _setLoading(true);
     try {
+      //Delega ad AuthRepository
       await _authRepository.register(email, password, nome, cognome);
 
+      // Salva i dati temporanei per il reinvio/completamento verifica
       _tempEmail = email;
       _tempPhone = null;
       _tempPassword = password;
@@ -110,12 +147,14 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // --- REGISTRAZIONE TELEFONO ---
+  // Registrazione Telefono (Avvia l'invio OTP)
   Future<bool> startPhoneAuth(String phoneNumber, {String? password, String? nome, String? cognome}) async {
     _setLoading(true);
     try {
+      //Delega ad AuthRepository
       await _authRepository.sendPhoneOtp(phoneNumber, password: password, nome: nome, cognome: cognome);
 
+      // Salva i dati temporanei per il reinvio/completamento verifica
       _tempPhone = phoneNumber;
       _tempEmail = null;
       _tempPassword = password;
@@ -132,8 +171,9 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // --- VERIFICA OTP (Gestisce sia Email che Telefono) ---
+  // Verifica OTP (Gestisce sia Email che Telefono)
   Future<bool> verifyCode(String code) async {
+    // Validazione base dello stato di sessione
     if (_tempEmail == null && _tempPhone == null) {
       _errorMessage = "Errore sessione. Riprova la registrazione.";
       notifyListeners();
@@ -142,16 +182,19 @@ class AuthProvider extends ChangeNotifier {
 
     _setLoading(true);
     try {
+      //Delega ad AuthRepository
       final response = await _authRepository.verifyOtp(
         email: _tempEmail,
         phone: _tempPhone,
         code: code,
       );
 
+      // Se la verifica è andata a buon fine, il backend restituisce il token di sessione
       if (response.containsKey('token')) {
         await _saveSession(response);
       }
 
+      // Pulizia stato temporaneo
       stopTimer();
       _tempEmail = null; _tempPhone = null; _tempPassword = null;
       _tempNome = null; _tempCognome = null;
@@ -165,16 +208,18 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // --- RESEND OTP (RINVIA CODICE) ---
+  // Resend OTP (Reinvia Codice)
   Future<void> resendOtp() async {
     _setLoading(true);
     try {
+      // Logica per rinviare il codice basata sull'ultima modalità usata
       if (_tempEmail != null && _tempPassword != null && _tempNome != null && _tempCognome != null) {
+        //Delega ad AuthRepository
         await _authRepository.register(_tempEmail!, _tempPassword!, _tempNome!, _tempCognome!);
         startTimer();
         _errorMessage = null;
       } else if (_tempPhone != null) {
-        // Se ho tutti i dati, uso sendPhoneOtp con password e anagrafica
+        // Rinvia OTP Telefono
         await _authRepository.sendPhoneOtp(
             _tempPhone!,
             password: _tempPassword,
@@ -193,13 +238,12 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // --- LOGOUT MODIFICATO ---
+  // Logout Modificato
   Future<void> logout() async {
-    // 1. Disconnessione da Google per forzare la scelta account al prossimo login
+    // 1. Disconnessione da Google
     try {
       if (await _googleSignIn.isSignedIn()) {
-        await _googleSignIn.signOut();
-        // Nota: disconnect() revocherebbe completamente i permessi, signOut() basta per cambiare account
+        await _googleSignIn.signOut(); // Disconnette l'account Google
       }
     } catch (e) {
       print("Errore logout Google: $e");
@@ -217,119 +261,11 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _saveSession(Map<String, dynamic> response) async {
-    final token = response['token'];
-    final userMap = response['user'];
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', token);
-    await prefs.setString('user_data', jsonEncode(userMap));
-    _authToken = token;
-    _currentUser = _parseUser(userMap);
-  }
-
-  UtenteGenerico _parseUser(Map<String, dynamic> json) {
-    final isSoccorritore = (json['isSoccorritore'] == true);
-    _isRescuer = isSoccorritore;
-
-    if (isSoccorritore) {
-      return Soccorritore.fromJson(json);
-    } else {
-      return Utente.fromJson(json);
-    }
-  }
-
-  void startTimer() {
-    _secondsRemaining = 30;
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_secondsRemaining == 0) {
-        timer.cancel();
-      } else {
-        _secondsRemaining--;
-        notifyListeners();
-      }
-    });
-    notifyListeners();
-  }
-
-  void stopTimer() {
-    _timer?.cancel();
-    _secondsRemaining = 0;
-    notifyListeners();
-  }
-
-  void _setLoading(bool value) {
-    _isLoading = value;
-    if (value) _errorMessage = null;
-    notifyListeners();
-  }
-
-  String _cleanError(Object e) {
-    return e.toString().replaceAll("Exception: ", "");
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  // --- RICARICAMENTO DATI DAL SERVER ---
-  Future<void> reloadUser() async {
-    // Se non siamo loggati, inutile ricaricare
-    if (_currentUser?.id == null) return;
-
-    try {
-      // 1. Scarica il profilo aggiornato
-      final UtenteGenerico? updatedUser = await _profileRepo.getUserProfile();
-
-      if (updatedUser != null) {
-        // 2. Aggiorna la variabile in memoria
-        _currentUser = updatedUser;
-
-        // 3. Aggiorna lo stato "isRescuer" (per sicurezza)
-        _isRescuer = updatedUser.isSoccorritore;
-
-        // 4. Aggiorna le SharedPreferences (Sessione persistente)
-        final prefs = await SharedPreferences.getInstance();
-        final currentToken = prefs.getString('auth_token');
-
-        if (currentToken != null) {
-          await prefs.setString('user_data', jsonEncode(updatedUser.toJson()));
-        }
-
-        // 5. Notifica la UI
-        notifyListeners();
-      }
-    } catch (e) {
-      print("Errore ricaricamento profilo: $e");
-    }
-  }
-
-  // Helper per aggiornare l'utente manualmente (Optimistic Update)
-  void updateUserLocally({String? nome, String? cognome, String? telefono, String? citta}) {
-    if (_currentUser != null) {
-      // Se è un CITTADINO (Utente)
-      if (_currentUser is Utente) {
-        final oldUser = _currentUser as Utente;
-        _currentUser = oldUser.copyWith(
-          nome: nome ?? oldUser.nome,
-          cognome: cognome ?? oldUser.cognome,
-          telefono: telefono ?? oldUser.telefono,
-          cittaDiNascita: citta ?? oldUser.cittaDiNascita,
-        );
-      }
-      // Se è un SOCCORRITORE, aspettiamo il reloadUser o implementiamo logica simile
-      notifyListeners();
-    }
-  }
-
-  // --- GESTIONE GOOGLE ---
+  // Gestione Google
   Future<bool> signInWithGoogle() async {
     _setLoading(true);
     try {
-      // 1. Apre il popup nativo di Google
-      // Nota: grazie al logout modificato, se l'utente aveva fatto logout, qui chiederà l'account
+      // 1. Avvia il processo di autenticazione Google
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
@@ -337,16 +273,16 @@ class AuthProvider extends ChangeNotifier {
         return false; // Utente ha annullato
       }
 
-      // 2. Ottiene i token (idToken e accessToken)
+      // 2. Ottiene l'ID Token necessario per l'autenticazione lato server
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
       final String? idToken = googleAuth.idToken;
 
       if (idToken == null) throw Exception("Impossibile recuperare ID Token Google");
 
-      // 3. Chiama il Backend
+      // 3. Chiama il Backend inviando l'ID Token (Login/Registrazione Social)
       final response = await _authRepository.loginWithGoogle(idToken);
 
-      // 4. Salva la sessione (usa il tuo metodo esistente _saveSession)
+      // 4. Salva la sessione
       await _saveSession(response);
 
       _setLoading(false);
@@ -358,11 +294,11 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // --- GESTIONE APPLE ---
+  // Gestione Apple
   Future<bool> signInWithApple() async {
     _setLoading(true);
     try {
-      // 1. Apre il popup nativo Apple
+      // 1. Avvia il processo di autenticazione Apple
       final credential = await SignInWithApple.getAppleIDCredential(
         scopes: [
           AppleIDAuthorizationScopes.email,
@@ -370,7 +306,7 @@ class AuthProvider extends ChangeNotifier {
         ],
       );
 
-      // 2. Chiama il Backend
+      // 2. Chiama il Backend inviando i token e i dati anagrafici
       final response = await _authRepository.loginWithApple(
         identityToken: credential.identityToken!,
         email: credential.email,
@@ -388,5 +324,97 @@ class AuthProvider extends ChangeNotifier {
       _setLoading(false);
       return false;
     }
+  }
+
+  // Ricarica tutti i dati dell'utente dal server.
+  Future<void> reloadUser() async {
+    if (_currentUser?.id == null) return;
+
+    try {
+      // 1. Scarica il profilo aggiornato (delega a ProfileRepository)
+      final UtenteGenerico? updatedUser = await _profileRepo.getUserProfile();
+
+      if (updatedUser != null) {
+        // 2. Aggiorna lo stato in memoria
+        _currentUser = updatedUser;
+        _isRescuer = updatedUser.isSoccorritore;
+
+        final prefs = await SharedPreferences.getInstance();
+        final currentToken = prefs.getString('auth_token');
+
+        if (currentToken != null) {
+          await prefs.setString('user_data', jsonEncode(updatedUser.toJson()));
+        }
+
+        // 3. Notifica la UI
+        notifyListeners();
+      }
+    } catch (e) {
+      print("Errore ricaricamento profilo: $e");
+    }
+  }
+
+  // Helper per aggiornare l'utente manualmente
+  // Usato per aggiornare immediatamente la UI dopo un'azione
+  void updateUserLocally({String? nome, String? cognome, String? telefono, String? citta}) {
+    if (_currentUser != null) {
+      if (_currentUser is Utente) {
+        final oldUser = _currentUser as Utente;
+        _currentUser = oldUser.copyWith(
+          nome: nome ?? oldUser.nome,
+          cognome: cognome ?? oldUser.cognome,
+          telefono: telefono ?? oldUser.telefono,
+          cittaDiNascita: citta ?? oldUser.cittaDiNascita,
+        );
+      } else if (_currentUser is Soccorritore) {
+        final oldUser = _currentUser as Soccorritore;
+        _currentUser = oldUser.copyWith(
+          nome: nome ?? oldUser.nome,
+          cognome: cognome ?? oldUser.cognome,
+          telefono: telefono ?? oldUser.telefono,
+        );
+        notifyListeners();
+      }
+    }
+  }
+
+  // Avvia il timer per l'OTP
+  void startTimer() {
+    _secondsRemaining = 30;
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_secondsRemaining == 0) {
+        timer.cancel();
+      } else {
+        _secondsRemaining--;
+        notifyListeners();
+      }
+    });
+    notifyListeners();
+  }
+
+  // Ferma il timer
+  void stopTimer() {
+    _timer?.cancel();
+    _secondsRemaining = 0;
+    notifyListeners();
+  }
+
+  // Controlla lo stato di caricamento e pulisce il messaggio di errore
+  void _setLoading(bool value) {
+    _isLoading = value;
+    if (value) _errorMessage = null;
+    notifyListeners();
+  }
+
+  // Helper per pulire l'output di un errore
+  String _cleanError(Object e) {
+    return e.toString().replaceAll("Exception: ", "");
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 }

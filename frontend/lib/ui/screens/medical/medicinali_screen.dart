@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-// IMPORT MODELLO E PROVIDER
-import 'package:data_models/medical_item.dart';
+// Import provider
 import 'package:frontend/providers/medical_provider.dart';
 
 class MedicinaliScreen extends StatefulWidget {
@@ -40,7 +39,7 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // HEADER
+            // Header
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
               child: Row(
@@ -53,7 +52,7 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
               ),
             ),
 
-            // TITOLO
+            // Titolo
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
@@ -82,7 +81,7 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
             ),
             const SizedBox(height: 30),
 
-            // LISTA COLLEGATA AL PROVIDER
+            // Lista collegata al provider
             Expanded(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -109,7 +108,8 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
                         itemBuilder: (context, index) {
                           return _buildItem(
                             text: provider.medicinali[index].name,
-                            onEdit: () => _openDialog(isEdit: false), // Edit disabilitato per ora
+                            //Edit disabilitato
+                            onEdit: () => _openDialog(isEdit: false),
                             onDelete: () async {
                               await provider.removeMedicinale(index);
                             },
@@ -124,7 +124,7 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
             ),
             const SizedBox(height: 20),
 
-            // AGGIUNGI
+            // Aggiungi
             Padding(
               padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 30.0),
               child: InkWell(
@@ -163,7 +163,7 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
     );
   }
 
-  // WIDGET ITEM
+  //Widget item
   Widget _buildItem({
     required String text,
     required VoidCallback onEdit,
@@ -202,8 +202,8 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
     );
   }
 
-  // DIALOGO
-  void _openDialog({required bool isEdit, int? index}) {
+  // Dialogo
+  void _openDialog({required bool isEdit}) {
     _textController.clear();
 
     showDialog(

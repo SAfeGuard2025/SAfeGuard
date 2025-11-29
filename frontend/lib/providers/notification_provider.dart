@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:data_models/Notifica.dart';
 import '../repositories/profile_repository.dart';
 
+// Provider di Stato: NotificationProvider
+// Gestisce lo stato e la persistenza delle preferenze di notifica dell'utente.
 class NotificationProvider extends ChangeNotifier {
+  // Dipendenza: Repository per la comunicazione con il Backend/Database
   final ProfileRepository _profileRepository = ProfileRepository();
 
   Notifica _notifiche = Notifica();
@@ -13,12 +16,13 @@ class NotificationProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  // Carica le notifiche all'avvio
+  // Carica le preferenze di notifica all'avvio della schermata
   Future<void> loadNotifiche() async {
     _isLoading = true;
     notifyListeners();
 
     try {
+      // Delega a ProfileRepository la fetch delle notifiche
       _notifiche = await _profileRepository.fetchNotifiche();
       _errorMessage = null;
     } catch (e) {
@@ -29,9 +33,8 @@ class NotificationProvider extends ChangeNotifier {
     }
   }
 
-  // Aggiorna le notifiche (chiamato dagli switch)
+  // Aggiorna le preferenze di notifiche
   Future<void> updateNotifiche(Notifica nuoveNotifiche) async {
-    // Aggiornamento ottimistico della UI
     _notifiche = nuoveNotifiche;
     notifyListeners();
 
@@ -39,7 +42,7 @@ class NotificationProvider extends ChangeNotifier {
       await _profileRepository.updateNotifiche(nuoveNotifiche);
     } catch (e) {
       _errorMessage = "Errore salvataggio: $e";
-      // Rollback in caso di errore (ricarica i dati vecchi)
+      // Rollback in caso di errore
       await loadNotifiche();
     }
   }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:data_models/Condizione.dart';
 import '../../../providers/medical_provider.dart';
 
 class CondizioniMedicheScreen extends StatefulWidget {
@@ -32,7 +31,7 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // --- HEADER ---
+            //Header
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
               child: Row(
@@ -45,7 +44,7 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
               ),
             ),
 
-            // ICONA E TITOLO
+            // Icona e titolo
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
@@ -72,7 +71,7 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
 
             const SizedBox(height: 30),
 
-            // --- CARD SWITCH ---
+            // Card switch
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -84,7 +83,7 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
                 child: Padding(
                   padding: const EdgeInsets.all(25.0),
 
-                  // CONSUMER DEL PROVIDER
+                  // Consumer
                   child: Consumer<MedicalProvider>(
                     builder: (context, provider, child) {
                       if (provider.isLoading) {
@@ -167,6 +166,7 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
     );
   }
 
+  //Il widget per costruire le varie selezioni
   Widget _buildSwitchTile(
       String title,
       bool value,

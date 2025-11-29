@@ -22,7 +22,6 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   Widget build(BuildContext context) {
     final isRescuer = context.watch<AuthProvider>().isRescuer;
     final isLogged = context.watch<AuthProvider>().isLogged;
-    // --- 1. CONFIGURAZIONE STILE IN BASE AL RUOLO ---
     final Color backgroundColor = isRescuer
         ? const Color(0xFF995618) // Marrone/Arancio (Soccorritore)
         : const Color(0xFF16273F); // Blu Scuro (Cittadino)
@@ -30,7 +29,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
     final Color selectedItemColor = const Color(0xFFEF923D); // Arancione attivo
     final Color unselectedItemColor = Colors.white;
 
-    // --- 2. LISTA ICONE ---
+    // Lista icone
     final List<IconData> navIcons = [
 
       ?isLogged ? Icons.home_outlined : null,

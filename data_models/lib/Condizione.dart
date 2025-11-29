@@ -1,4 +1,4 @@
-// ** Model: Condizione **
+// Modello: Condizione
 // Gestisce lo stato delle disabilità nel profilo utente.
 // Usato principalmente nella schermata "Condizioni Fisiche".
 
@@ -20,8 +20,8 @@ class Condizione {
   });
 
   // Metodo copyWith: Fondamentale per la UI Flutter (Switch/Checkbox).
-  // Dato che la classe è 'final' (immutabile), quando l'utente cambia una switch,
-  // non modifichiamo l'oggetto corrente ma ne creiamo una copia identica con solo quel campo aggiornato.
+  // Permette di creare una nuova istanza dell'oggetto, modificando solo i campi specificati
+  // mantenendo gli altri invariati.
   Condizione copyWith({
     bool? disabilitaMotorie,
     bool? disabilitaVisive,
@@ -30,6 +30,7 @@ class Condizione {
     bool? disabilitaPsichiche,
   }) {
     return Condizione(
+      // Se il parametro è nullo (non è stato fornito), usa il valore corrente
       disabilitaMotorie: disabilitaMotorie ?? this.disabilitaMotorie,
       disabilitaVisive: disabilitaVisive ?? this.disabilitaVisive,
       disabilitaUditive: disabilitaUditive ?? this.disabilitaUditive,
@@ -38,7 +39,8 @@ class Condizione {
     );
   }
 
-  // Serializzazione: Converte l'oggetto in Mappa per il salvataggio nel DB (tramite UserRepository).
+  // Serializzazione (Da Model a JSON): Converte l'oggetto in una Map JSON.
+  // Questo formato è quello richiesto dal Repository per il salvataggio nel database.
   Map<String, dynamic> toJson() => {
     'disabilitaMotorie': disabilitaMotorie,
     'disabilitaVisive': disabilitaVisive,
@@ -47,10 +49,11 @@ class Condizione {
     'disabilitaPsichiche': disabilitaPsichiche,
   };
 
-  // Deserializzazione: Ricostruisce l'oggetto dal DB.
-  // Nota: usiamo '?? false' per garantire robustezza anche se il campo manca nel JSON.
+  // Deserializzazione (da JSON a Model): Factory per ricostruire l'oggetto da una Map JSON.
+  // Viene usato dal ProfileService per convertire i dati grezzi del DB in un oggetto Dart tipizzato.
   factory Condizione.fromJson(Map<String, dynamic> json) {
     return Condizione(
+      // Usa '?? false' per garantire robustezza.
       disabilitaMotorie: json['disabilitaMotorie'] ?? false,
       disabilitaVisive: json['disabilitaVisive'] ?? false,
       disabilitaUditive: json['disabilitaUditive'] ?? false,

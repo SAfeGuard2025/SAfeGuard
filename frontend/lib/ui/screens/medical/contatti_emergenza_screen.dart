@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-// IMPORT MODELLO UFFICIALE E PROVIDER
+// Import modello ufficiale e provider
 import 'package:data_models/ContattoEmergenza.dart';
 import 'package:frontend/providers/medical_provider.dart';
 
@@ -42,7 +42,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // HEADER
+            // Header
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
               child: Row(
@@ -55,7 +55,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
               ),
             ),
 
-            // TITOLO
+            // Titolo
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
@@ -85,7 +85,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
             ),
             const SizedBox(height: 30),
 
-            // LISTA COLLEGATA AL PROVIDER
+            // Lista collegata al provider
             Expanded(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -128,7 +128,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
             ),
             const SizedBox(height: 20),
 
-            // AGGIUNGI
+            // Aggiungi
             Padding(
               padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 30.0),
               child: InkWell(
@@ -182,7 +182,6 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
     );
   }
 
-  // WIDGET ITEM
   Widget _buildItem({
     required ContattoEmergenza item,
     required VoidCallback onEdit,
@@ -208,7 +207,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  item.nome, // Usa i campi di ContattoEmergenza
+                  item.nome,
                   style: const TextStyle(color: Colors.white70, fontSize: 14),
                 ),
               ],
@@ -231,8 +230,8 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
     );
   }
 
-  // DIALOGO
-  void _openDialog({required bool isEdit, int? index}) {
+  // Dialogo
+  void _openDialog({required bool isEdit}) {
     _numberController.clear();
     _nameController.clear();
 
