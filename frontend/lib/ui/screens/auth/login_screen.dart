@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:frontend/ui/screens/auth/email_login_screen.dart';
 import 'package:frontend/ui/screens/auth/phone_login_screen.dart';
 import 'package:frontend/providers/auth_provider.dart';
@@ -7,65 +6,12 @@ import 'package:frontend/ui/screens/auth/registration_screen.dart';
 import 'package:frontend/ui/screens/home/home_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
+import 'package:frontend/ui/widgets/google_logo.dart';
 
 // Schermata Principale di Accesso
 // Offre diverse opzioni di login (Social, Email, Telefono).
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
-
-  // Widget Helper per costruire i bottoni Social/Classici
-  Widget _buildSocialButton({
-    required String text,
-    required Color backgroundColor,
-    required Color textColor,
-    IconData? icon,
-    String? imagePath,
-    Color? iconColor,
-    VoidCallback? onTap,
-    required double fontSize,
-  }) {
-    final double buttonHeight = fontSize * 3.5;
-
-    return SizedBox(
-      width: double.infinity,
-      height: buttonHeight,
-      child: ElevatedButton(
-        onPressed: onTap ?? () {},
-        style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor,
-          foregroundColor: textColor,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            const SizedBox(width: 10),
-            if (imagePath != null)
-              Image.asset(imagePath, height: fontSize * 1.5)
-            else if (icon != null)
-              Icon(icon, color: iconColor ?? textColor, size: fontSize * 1.5),
-
-            // Testo del Bottone centrato
-            Expanded(
-              child: Center(
-                child: Text(
-                  text,
-                  style: TextStyle(
-                    fontSize: fontSize,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 24),
-          ],
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,8 +30,10 @@ class LoginScreen extends StatelessWidget {
     final double subtitleFontSize = referenceSize * 0.035;
     final double buttonTextFontSize = referenceSize * 0.04;
 
-    return Scaffold(
+    // Dimensione standard per le icone nei pulsanti (basata sul testo)
+    final double iconSize = buttonTextFontSize * 1.5;
 
+    return Scaffold(
       appBar: AppBar(
         backgroundColor: darkBlue,
         elevation: 0,
@@ -222,7 +170,8 @@ class LoginScreen extends StatelessWidget {
                         // Bottone Login Apple
                         _buildSocialButton(
                           text: "Continua con Apple",
-                          icon: Icons.apple,
+                          icon: Icon(Icons.apple, color: Colors.white, size: iconSize),
+                          iconSize: iconSize,
                           backgroundColor: Colors.black,
                           textColor: Colors.white,
                           fontSize: buttonTextFontSize,
@@ -237,10 +186,11 @@ class LoginScreen extends StatelessWidget {
                         ),
                         SizedBox(height: verticalSpacing),
 
-                        // Bottone Login Google
+                        // Bottone Login Google (MODIFICATO con ChromeLogoIcon)
                         _buildSocialButton(
                           text: "Continua con Google",
-                          icon: FontAwesomeIcons.google,
+                          icon: ChromeLogoIcon(size: iconSize),
+                          iconSize: iconSize,
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
                           fontSize: buttonTextFontSize,
@@ -258,10 +208,10 @@ class LoginScreen extends StatelessWidget {
                         // Bottone Login Email
                         _buildSocialButton(
                           text: "Continua con Email",
-                          icon: Icons.alternate_email,
+                          icon: Icon(Icons.alternate_email, color: darkBlue, size: iconSize),
+                          iconSize: iconSize,
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
-                          iconColor: darkBlue,
                           fontSize: buttonTextFontSize,
                           onTap: () => Navigator.push(
                             context,
@@ -275,10 +225,10 @@ class LoginScreen extends StatelessWidget {
                         // Bottone Login Telefono
                         _buildSocialButton(
                           text: "Continua con Telefono",
-                          icon: Icons.phone,
+                          icon: Icon(Icons.phone, color: darkBlue, size: iconSize),
+                          iconSize: iconSize,
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
-                          iconColor: darkBlue,
                           fontSize: buttonTextFontSize,
                           onTap: () => Navigator.push(
                             context,
@@ -326,6 +276,60 @@ class LoginScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Widget Helper per costruire i bottoni Social/Classici (AGGIORNATO)
+  Widget _buildSocialButton({
+    required String text,
+    required Color backgroundColor,
+    required Color textColor,
+    required Widget icon, // Ora accetta un Widget generico
+    required double iconSize,
+    VoidCallback? onTap,
+    required double fontSize,
+  }) {
+    final double buttonHeight = fontSize * 3.5;
+
+    return SizedBox(
+      width: double.infinity,
+      height: buttonHeight,
+      child: ElevatedButton(
+        onPressed: onTap ?? () {},
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor,
+          foregroundColor: textColor,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            const SizedBox(width: 10),
+
+            // Renderizza direttamente il widget passato
+            icon,
+
+            // Testo del Bottone centrato
+            Expanded(
+              child: Center(
+                child: Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+
+            // Bilanciamento visivo a destra (dimensione icona + padding)
+            SizedBox(width: iconSize + 10),
+          ],
+        ),
       ),
     );
   }

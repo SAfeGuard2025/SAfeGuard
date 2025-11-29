@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:frontend/ui/screens/auth/email_register_screen.dart';
 import 'package:frontend/ui/screens/auth/login_screen.dart';
 import 'package:frontend/ui/screens/auth/phone_register_screen.dart';
 import 'package:frontend/ui/screens/home/home_screen.dart';
 import 'package:frontend/ui/style/color_palette.dart';
+import 'package:frontend/ui/widgets/google_logo.dart';
 import 'package:provider/provider.dart';
 
 import '../../../providers/auth_provider.dart';
@@ -30,6 +30,9 @@ class RegistrationScreen extends StatelessWidget {
     final double titleFontSize = referenceSize * 0.065;
     final double subtitleFontSize = referenceSize * 0.035;
     final double buttonTextFontSize = referenceSize * 0.04;
+
+    // Dimensione standard per le icone nei pulsanti (basata sul testo)
+    final double iconSize = buttonTextFontSize * 1.5;
 
     //Header
     return Scaffold(
@@ -133,7 +136,7 @@ class RegistrationScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 1),
+                                color: Colors.white.withOpacity(0.8),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -163,20 +166,23 @@ class RegistrationScreen extends StatelessWidget {
                         // Bottone Registrazione Apple
                         _buildSocialButton(
                           text: "Continua con Apple",
-                          icon: Icons.apple,
+                          icon: Icon(Icons.apple, color: Colors.white, size: iconSize),
                           backgroundColor: Colors.black,
                           textColor: Colors.white,
                           fontSize: buttonTextFontSize,
+                          iconSize: iconSize,
                         ),
                         SizedBox(height: verticalSpacing),
 
                         // Bottone Registrazione Google
                         _buildSocialButton(
                           text: "Continua con Google",
-                          icon: FontAwesomeIcons.google,
+                          // Qui richiama il widget dal file esterno importato
+                          icon: ChromeLogoIcon(size: iconSize),
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
                           fontSize: buttonTextFontSize,
+                          iconSize: iconSize,
                           onTap: () async {
                             final success = await authProvider.signInWithGoogle();
                             if (success && context.mounted) {
@@ -191,11 +197,11 @@ class RegistrationScreen extends StatelessWidget {
                         // Bottone Registrazione Email
                         _buildSocialButton(
                           text: "Continua con Email",
-                          icon: Icons.alternate_email,
+                          icon: Icon(Icons.alternate_email, color: darkBlue, size: iconSize),
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
-                          iconColor: darkBlue,
                           fontSize: buttonTextFontSize,
+                          iconSize: iconSize,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -208,11 +214,11 @@ class RegistrationScreen extends StatelessWidget {
                         // Bottone Registrazione Telefono
                         _buildSocialButton(
                           text: "Continua con Telefono",
-                          icon: Icons.phone,
+                          icon: Icon(Icons.phone, color: darkBlue, size: iconSize),
                           backgroundColor: Colors.white,
                           textColor: Colors.black,
-                          iconColor: darkBlue,
                           fontSize: buttonTextFontSize,
+                          iconSize: iconSize,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -266,9 +272,8 @@ class RegistrationScreen extends StatelessWidget {
     required String text,
     required Color backgroundColor,
     required Color textColor,
-    IconData? icon,
-    String? imagePath,
-    Color? iconColor,
+    required Widget icon,
+    required double iconSize,
     VoidCallback? onTap,
     required double fontSize,
   }) {
@@ -291,10 +296,9 @@ class RegistrationScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             const SizedBox(width: 10),
-            if (imagePath != null)
-              Image.asset(imagePath, height: fontSize * 1.5)
-            else if (icon != null)
-              Icon(icon, color: iconColor ?? textColor, size: fontSize * 1.5),
+
+            // Renderizza direttamente il widget passato
+            icon,
 
             // Testo centrato
             Expanded(
@@ -308,7 +312,9 @@ class RegistrationScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 24),
+
+            // Bilanciamento visivo a destra (dimensione icona + padding)
+            SizedBox(width: iconSize + 10),
           ],
         ),
       ),
