@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/ui/style/color_palette.dart';
 
 class SwipeToConfirm extends StatefulWidget {
   final double height;
@@ -47,7 +48,7 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
-                color: widget.backgroundColor ?? const Color(0xFF8B1D1D),
+                color: widget.backgroundColor ?? ColorPalette.swipeDarkRed,
                 borderRadius: BorderRadius.circular(widget.height / 2),
               ),
               child: Center(

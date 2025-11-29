@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/ui/style/color_palette.dart';
 
 class EmergencyItem {
   final String label;
@@ -111,7 +112,7 @@ class _EmergencyDropdownMenuState extends State<EmergencyDropdownMenu> {
                 // Azione per l'emergenza specifica
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF0000),
+                backgroundColor: ColorPalette.emergencyButtonRed,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
                 elevation: 0,
               ),

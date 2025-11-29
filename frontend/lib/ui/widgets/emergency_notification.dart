@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/emergency_provider.dart';
 import 'package:provider/provider.dart'; // serve per .watch()
+import 'package:frontend/ui/style/color_palette.dart';
 
 class EmergencyNotification extends StatefulWidget {
   const EmergencyNotification({super.key});
@@ -36,7 +37,7 @@ class _EmergencyNotification extends State<EmergencyNotification> {
 
     // Colori della notifica: blu per il soccorritore e rosso per il cittadino.
     // Ho scelto in modo da creare maggiore contrasto nella homepage in modo che la notifica non possa sfuggire
-    Color notificationColor = isRescuer ? Color(0xFF1000ef) : Color(0xFFEF0009);
+    Color notificationColor = isRescuer ? ColorPalette.electricBlue : ColorPalette.primaryBrightRed;
     // stessa Icon utilizzata per gli avvisi. Messa cosi dò maggiore coerenza e fa capire all'utente a quale pagina andare per approfondire l'evento
     const emergencyIcon = Icons.notifications_none;
 

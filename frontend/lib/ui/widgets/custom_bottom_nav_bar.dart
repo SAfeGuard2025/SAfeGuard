@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
+import 'package:frontend/ui/style/color_palette.dart';
 
 class CustomBottomNavBar extends StatefulWidget {
   // Funzione di callback: comunica alla Home quale icona è stata premuta
@@ -23,10 +24,10 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
     final isRescuer = context.watch<AuthProvider>().isRescuer;
     final isLogged = context.watch<AuthProvider>().isLogged;
     final Color backgroundColor = isRescuer
-        ? const Color(0xFF995618) // Marrone/Arancio (Soccorritore)
-        : const Color(0xFF16273F); // Blu Scuro (Cittadino)
+        ? ColorPalette.navBarRescuerBackground // Marrone/Arancio (Soccorritore)
+        : ColorPalette.navBarUserBackground; // Blu Scuro (Cittadino)
 
-    final Color selectedItemColor = const Color(0xFFEF923D); // Arancione attivo
+    final Color selectedItemColor = ColorPalette.primaryOrange; // Arancione attivo
     final Color unselectedItemColor = Colors.white;
 
     // Lista icone
