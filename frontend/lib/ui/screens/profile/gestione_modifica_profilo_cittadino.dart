@@ -59,18 +59,21 @@ class _GestioneModificaProfiloCittadinoState
         citta: _indirizzoController.text.trim(),
       );
 
-      if (mounted) {
-        Provider.of<AuthProvider>(context, listen: false).updateUserLocally(
-          nome: _nomeController.text.trim(),
-          cognome: _cognomeController.text.trim(),
-          telefono: _telefonoController.text.trim(),
-        );
-        await Provider.of<AuthProvider>(context, listen: false).reloadUser();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Profilo aggiornato con successo!"), backgroundColor: Colors.green),
-        );
-        Navigator.pop(context);
-      }
+      if (!mounted) return;
+
+      Provider.of<AuthProvider>(context, listen: false).updateUserLocally(
+        nome: _nomeController.text.trim(),
+        cognome: _cognomeController.text.trim(),
+        telefono: _telefonoController.text.trim(),
+      );
+      await Provider.of<AuthProvider>(context, listen: false).reloadUser();
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Profilo aggiornato con successo!"), backgroundColor: Colors.green),
+      );
+      Navigator.pop(context);
+
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
