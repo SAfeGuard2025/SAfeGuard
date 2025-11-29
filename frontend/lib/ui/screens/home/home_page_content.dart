@@ -5,6 +5,8 @@ import 'package:frontend/ui/screens/medical/contatti_emergenza_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/widgets/emergency_item.dart';
+import 'package:frontend/ui/widgets/emergency_notification.dart';
+import 'package:frontend/providers/emergency_provider.dart';
 
 class HomePageContent extends StatelessWidget {
   const HomePageContent({super.key});
@@ -19,6 +21,7 @@ class HomePageContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final isRescuer = context.watch<AuthProvider>().isRescuer;
 
+    final hasActiveAlert = context.watch<EmergencyProvider>().isSendingSos;
 
     // Permette lo scroll se lo schermo è piccolo
     return SingleChildScrollView(
@@ -28,11 +31,14 @@ class HomePageContent extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 10),
-            /*
-            // se ci sono avvisi recenti si deve attivare
-            _buildEmergencyNotification(),
-             */
-            const SizedBox(height: 25),
+
+            if (hasActiveAlert) ...[ // se c'è un'allerta mostra la notifica
+              _buildEmergencyNotification(),
+              const SizedBox(height: 25), // spazio dopo la notifica
+            ] else ...[
+              const SizedBox(height: 5), // se non c'è la notifica metto solo uno spazio
+            ],
+
             _buildMapPlaceholder(isRescuer),
             const SizedBox(height: 20),
             if(!isRescuer) _buildEmergencyContactsButton(context),
@@ -48,52 +54,12 @@ class HomePageContent extends StatelessWidget {
     );
   }
 
-  /*// costruzione della notifica
-  // mettere controllo su isLogged
-
+  // costruzione della notifica
   Widget _buildEmergencyNotification() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      decoration: BoxDecoration(
-        color: primaryRed,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Icon(Icons.house_siding_rounded, color: Colors.white, size: 28),
-          SizedBox(width: 15),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Incendio",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              Text(
-                "Incendio in Via Roma, 14",
-                style: TextStyle(color: Colors.white, fontSize: 14),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+    return EmergencyNotification();
   }
 
- */
+
 
   Widget _buildMapPlaceholder(bool isRescuer) {
     return Container(
