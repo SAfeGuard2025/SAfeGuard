@@ -3,7 +3,9 @@ import 'dart:io';
 
 class JWTService {
   // Recupera la chiave dalle variabili d'ambiente
-  String get _secret => Platform.environment['JWT_SECRET'] ?? 'FALLBACK_DEV_SECRET_DO_NOT_USE_IN_PROD';
+  String get _secret =>
+      Platform.environment['JWT_SECRET'] ??
+      'FALLBACK_DEV_SECRET_DO_NOT_USE_IN_PROD';
 
   // Genera un token JWT (Header.Payload.Signature)
   String generateToken(int userId, String userType) {
@@ -31,7 +33,9 @@ class JWTService {
       if (parts.length != 3) return null;
 
       // Decodifica Payload
-      final payloadString = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+      final payloadString = utf8.decode(
+        base64Url.decode(base64Url.normalize(parts[1])),
+      );
       final payload = jsonDecode(payloadString);
 
       // Controlla se il token è scaduto

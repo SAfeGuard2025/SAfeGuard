@@ -11,7 +11,6 @@ import 'package:backend/controllers/VerificationController.dart';
 import 'package:backend/controllers/ProfileController.dart';
 import 'package:backend/controllers/AuthGuard.dart';
 
-
 void main() async {
   // 1. Configurazione ambiente
   // Carica le variabili dal file .env e determina la porta del server
@@ -20,7 +19,8 @@ void main() async {
   final int port = int.parse(portStr);
 
   // Recupera l'ID del database e ferma l'app in assenza
-  final projectId = Platform.environment['FIREBASE_PROJECT_ID'] ?? env['FIREBASE_PROJECT_ID'];
+  final projectId =
+      Platform.environment['FIREBASE_PROJECT_ID'] ?? env['FIREBASE_PROJECT_ID'];
 
   if (projectId == null) {
     print('❌ ERRORE CRITICO: Variabile FIREBASE_PROJECT_ID mancante.');
@@ -56,7 +56,10 @@ void main() async {
   final profileApi = Router();
 
   // Lettura dati
-  profileApi.get('/', profileController.getProfile); // Nota: il path base è già /api/profile
+  profileApi.get(
+    '/',
+    profileController.getProfile,
+  ); // Nota: il path base è già /api/profile
 
   // Modifica dati
   profileApi.put('/anagrafica', profileController.updateAnagrafica);
@@ -74,29 +77,26 @@ void main() async {
   profileApi.delete('/allergie', profileController.removeAllergia);
   profileApi.delete('/medicinali', profileController.removeMedicinale);
   profileApi.delete('/contatti', profileController.removeContatto);
-  profileApi.delete('/', profileController.deleteAccount); // DELETE sull'utente stesso
+  profileApi.delete(
+    '/',
+    profileController.deleteAccount,
+  ); // DELETE sull'utente stesso
 
   // 6. Mounting & Middleware
   // Collega il router profilo a '/api/profile'
   // Passa attraverso il controller AuthGuard per controllare il token di sessione
-  app.mount('/api/profile', Pipeline()
-      .addMiddleware(authGuard.middleware)
-      .addHandler(profileApi)
+  app.mount(
+    '/api/profile',
+    Pipeline().addMiddleware(authGuard.middleware).addHandler(profileApi),
   );
 
   // 7. Pipeline Server
   // Aggiunge il logging delle richieste a tutte le chiamate
-  final handler = Pipeline()
-      .addMiddleware(logRequests())
-      .addHandler(app);
+  final handler = Pipeline().addMiddleware(logRequests()).addHandler(app);
 
   // 8. Avvio Server
   // Mette in ascolto il server sull'indirizzo IPv4 e porta configurata
-  final server = await io.serve(
-      handler,
-      InternetAddress.anyIPv4,
-      port
-  );
+  final server = await io.serve(handler, InternetAddress.anyIPv4, port);
 
   print(' Server in ascolto su http://${server.address.host}:${server.port}');
 }

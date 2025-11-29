@@ -55,7 +55,9 @@ class LoginService {
     final String fullName = payload['name'] ?? 'Utente Google';
 
     // 3. Controllo esistenza utente nel Database
-    Map<String, dynamic>? userData = await _userRepository.findUserByEmail(email);
+    Map<String, dynamic>? userData = await _userRepository.findUserByEmail(
+      email,
+    );
 
     UtenteGenerico user;
     String userType;
@@ -79,7 +81,9 @@ class LoginService {
         'email': email,
         // Fallback per nome/cognome se Google non li fornisce separati
         'nome': firstName ?? fullName.split(' ').first,
-        'cognome': lastName ?? (fullName.contains(' ') ? fullName.split(' ').last : ''),
+        'cognome':
+            lastName ??
+            (fullName.contains(' ') ? fullName.split(' ').last : ''),
         'telefono': null,
         'passwordHash': '',
         'dataRegistrazione': DateTime.now().toIso8601String(),
@@ -191,14 +195,18 @@ class LoginService {
 
     // Prende l'email dal token o dal body della richiesta
     final String tokenEmail = (payload['email'] as String? ?? '').toLowerCase();
-    final String finalEmail = tokenEmail.isNotEmpty ? tokenEmail : (email?.toLowerCase() ?? '');
+    final String finalEmail = tokenEmail.isNotEmpty
+        ? tokenEmail
+        : (email?.toLowerCase() ?? '');
 
     if (finalEmail.isEmpty) {
       throw Exception('Impossibile recuperare l\'email dall\'ID Apple.');
     }
 
     // 2. Controllo esistenza utente nel Database
-    Map<String, dynamic>? userData = await _userRepository.findUserByEmail(finalEmail);
+    Map<String, dynamic>? userData = await _userRepository.findUserByEmail(
+      finalEmail,
+    );
 
     UtenteGenerico user;
     final isSoccorritore = _isSoccorritore(finalEmail);
@@ -207,7 +215,9 @@ class LoginService {
     if (userData != null) {
       // Caso A: Utente già esistente (Login)
       userData.remove('passwordHash');
-      user = isSoccorritore ? Soccorritore.fromJson(userData) : Utente.fromJson(userData);
+      user = isSoccorritore
+          ? Soccorritore.fromJson(userData)
+          : Utente.fromJson(userData);
     } else {
       // Caso B: Primo accesso (Registrazione Automatica)
       final newUserMap = {
@@ -227,7 +237,9 @@ class LoginService {
         collection: userType,
       );
 
-      user = isSoccorritore ? Soccorritore.fromJson(createdUserData) : Utente.fromJson(createdUserData);
+      user = isSoccorritore
+          ? Soccorritore.fromJson(createdUserData)
+          : Utente.fromJson(createdUserData);
     }
 
     // 3. Generazione Token Interno

@@ -16,7 +16,9 @@ class AuthGuard {
       final authHeader = request.headers['authorization'];
 
       if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-        return _unauthorizedResponse('Token di autorizzazione mancante o malformato.');
+        return _unauthorizedResponse(
+          'Token di autorizzazione mancante o malformato.',
+        );
       }
 
       // 3. Estrazione e validazione token di sessione
@@ -25,18 +27,19 @@ class AuthGuard {
       final payload = _jwtService.verifyToken(token);
 
       if (payload == null) {
-        return _unauthorizedResponse('Token non valido o scaduto. Effettuare nuovamente il login.');
+        return _unauthorizedResponse(
+          'Token non valido o scaduto. Effettuare nuovamente il login.',
+        );
       }
 
       // 4. Context Injection
       // Clona la richiesta aggiungendo i dati utente nel "context".
       // Accessibile via: request.context['user']['id']
-      final updatedRequest = request.change(context: {
-        'user': {
-          'id': payload['id'],
-          'type': payload['type'],
-        }
-      });
+      final updatedRequest = request.change(
+        context: {
+          'user': {'id': payload['id'], 'type': payload['type']},
+        },
+      );
 
       // 5. Prosecuzione della catena di handler
       // Passa il controllo al prossimo handler con la richiesta aggiornata
@@ -48,10 +51,7 @@ class AuthGuard {
   Response _unauthorizedResponse(String message) {
     return Response(
       401, // HTTP Status Code: Unauthorized
-      body: jsonEncode({
-        'success': false,
-        'message': message,
-      }),
+      body: jsonEncode({'success': false, 'message': message}),
       headers: {'content-type': 'application/json'},
     );
   }

@@ -17,7 +17,8 @@ class LoginController {
     try {
       // Lettura e validazione body
       final String body = await request.readAsString();
-      if (body.isEmpty) return _buildErrorResponse(400, 'Body della richiesta vuoto');
+      if (body.isEmpty)
+        return _buildErrorResponse(400, 'Body della richiesta vuoto');
 
       final Map<String, dynamic> credentials = jsonDecode(body);
 
@@ -26,7 +27,10 @@ class LoginController {
       final password = credentials['password'] as String?;
 
       if ((email == null && telefono == null) || password == null) {
-        return _buildErrorResponse(400, 'Email/Telefono e Password sono obbligatori.');
+        return _buildErrorResponse(
+          400,
+          'Email/Telefono e Password sono obbligatori.',
+        );
       }
 
       // Chiamata al LoginService per la logica di autenticazione
@@ -61,7 +65,10 @@ class LoginController {
       final googleToken = payload['id_token'] as String?;
 
       if (googleToken == null || googleToken.isEmpty) {
-        return _buildErrorResponse(400, 'Token Google mancante nella richiesta.');
+        return _buildErrorResponse(
+          400,
+          'Token Google mancante nella richiesta.',
+        );
       }
 
       // Delega al LoginService per la verifica del token e la creazione del JWT
@@ -91,7 +98,10 @@ class LoginController {
       final lastName = payload['familyName'] as String?;
 
       if (identityToken == null || identityToken.isEmpty) {
-        return _buildErrorResponse(400, 'Token Apple (identityToken) mancante.');
+        return _buildErrorResponse(
+          400,
+          'Token Apple (identityToken) mancante.',
+        );
       }
 
       // Delega al LoginService
@@ -134,7 +144,8 @@ class LoginController {
 
     final responseBody = {
       'success': true,
-      'message': 'Login avvenuto con successo. Tipo: $tipoUtente, ID: $assignedId',
+      'message':
+          'Login avvenuto con successo. Tipo: $tipoUtente, ID: $assignedId',
       'user': user.toJson()..remove('passwordHash'), // Rimuove dati sensibili
       'token': token,
     };

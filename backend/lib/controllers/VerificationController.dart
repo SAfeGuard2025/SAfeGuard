@@ -13,11 +13,16 @@ class VerificationController {
 
       final Map<String, dynamic> data = jsonDecode(body);
       final String? email = (data['email'] as String?)?.toLowerCase();
-      final String? telefono = (data['telefono'] as String?)?.replaceAll(' ', '');
+      final String? telefono = (data['telefono'] as String?)?.replaceAll(
+        ' ',
+        '',
+      );
       final String? code = data['code']; // Codice OTP inviato dal frontend
 
       if (code == null || (email == null && telefono == null)) {
-        return _errorResponse('Dati mancanti (Email/Telefono e Codice richiesti).');
+        return _errorResponse(
+          'Dati mancanti (Email/Telefono e Codice richiesti).',
+        );
       }
 
       // Logica Ibrida: Email o Telefono
@@ -31,16 +36,19 @@ class VerificationController {
         docId = email;
         fieldNameForQuery = 'email';
       } else {
-
         collectionName = 'phone_verifications';
         docId = telefono!;
         fieldNameForQuery = 'telefono';
       }
 
       // 1. Recupero OTP dal DB
-      final verifyDocRef = Firestore.instance.collection(collectionName).document(docId);
+      final verifyDocRef = Firestore.instance
+          .collection(collectionName)
+          .document(docId);
       if (!await verifyDocRef.exists) {
-        return _errorResponse('Nessuna richiesta di verifica trovata o scaduta.');
+        return _errorResponse(
+          'Nessuna richiesta di verifica trovata o scaduta.',
+        );
       }
 
       final verifyDoc = await verifyDocRef.get();
@@ -48,7 +56,6 @@ class VerificationController {
 
       // 2. Confronto OTP
       if (serverOtp == code) {
-
         // Aggiornamente stato utente
         // Trova l'utente corrispondente usando l'email/telefono
         final usersQuery = await Firestore.instance
@@ -58,15 +65,14 @@ class VerificationController {
 
         if (usersQuery.isNotEmpty) {
           final userDoc = usersQuery.first;
-          await Firestore.instance.collection('utenti').document(userDoc.id).update({
-            'attivo': true,
-            'email_verified': true,
-          });
+          await Firestore.instance
+              .collection('utenti')
+              .document(userDoc.id)
+              .update({'attivo': true, 'email_verified': true});
         }
 
         //  Cancelliazzione dell'OTP usato
         await verifyDocRef.delete();
-
 
         return Response.ok(
           jsonEncode({'success': true, 'message': 'Verifica riuscita.'}),
@@ -75,7 +81,6 @@ class VerificationController {
       } else {
         return _errorResponse('Codice OTP errato.');
       }
-
     } catch (e) {
       return Response.internalServerError(
         body: jsonEncode({'success': false, 'message': 'Errore server: $e'}),

@@ -57,7 +57,11 @@ class ProfileService {
   Future<bool> updatePermessi(int userId, Permesso permessi) async {
     try {
       // Delega al UserRepository l'aggiornamento del campo 'permessi' con il JSON dell'oggetto
-      await _userRepository.updateUserField(userId, 'permessi', permessi.toJson());
+      await _userRepository.updateUserField(
+        userId,
+        'permessi',
+        permessi.toJson(),
+      );
       return true;
     } catch (e) {
       print("Errore update permessi: $e");
@@ -69,7 +73,11 @@ class ProfileService {
   Future<bool> updateCondizioni(int userId, Condizione condizioni) async {
     try {
       // Delega al UserRepository l'aggiornamento del campo 'condizioni' con il JSON dell'oggetto
-      await _userRepository.updateUserField(userId, 'condizioni', condizioni.toJson());
+      await _userRepository.updateUserField(
+        userId,
+        'condizioni',
+        condizioni.toJson(),
+      );
       return true;
     } catch (e) {
       print("Errore update condizioni: $e");
@@ -81,7 +89,11 @@ class ProfileService {
   Future<bool> updateNotifiche(int userId, Notifica notifiche) async {
     try {
       // Delega al UserRepository l'aggiornamento del campo 'notifiche' con il JSON dell'oggetto
-      await _userRepository.updateUserField(userId, 'notifiche', notifiche.toJson());
+      await _userRepository.updateUserField(
+        userId,
+        'notifiche',
+        notifiche.toJson(),
+      );
       return true;
     } catch (e) {
       print("Errore update notifiche: $e");
@@ -90,7 +102,8 @@ class ProfileService {
   }
 
   // 5. UPDATE Aanagrafica
-  Future<bool> updateAnagrafica(int userId, {
+  Future<bool> updateAnagrafica(
+    int userId, {
     String? nome,
     String? cognome,
     String? telefono,
@@ -105,13 +118,15 @@ class ProfileService {
       final currentUserData = await _userRepository.findUserById(userId);
       if (currentUserData == null) return false;
 
-      final String currentEmail = (currentUserData['email'] as String? ?? '').toLowerCase();
+      final String currentEmail = (currentUserData['email'] as String? ?? '')
+          .toLowerCase();
 
       // 1. Aggiornamenti campi semplici
       if (nome != null) updates['nome'] = nome;
       if (cognome != null) updates['cognome'] = cognome;
       if (citta != null) updates['cittaDiNascita'] = citta;
-      if (dataNascita != null) updates['dataDiNascita'] = dataNascita.toIso8601String();
+      if (dataNascita != null)
+        updates['dataDiNascita'] = dataNascita.toIso8601String();
 
       // 2. Logica Email
       if (email != null && email.isNotEmpty) {
@@ -119,17 +134,20 @@ class ProfileService {
 
         // CONTROLLO CRITICO: Procedi solo se l'email è CAMBIATA
         if (normalizedNewEmail != currentEmail) {
-
           // A. Sicurezza Domini Riservati
           // Blocca solo se stai cambiando email VERSO un dominio soccorritore
           if (RescuerConfig.isSoccorritore(normalizedNewEmail)) {
-            print("Errore: Impossibile passare a un'email istituzionale riservata.");
+            print(
+              "Errore: Impossibile passare a un'email istituzionale riservata.",
+            );
             return false;
           }
 
           // B. Controllo Duplicati
           // Verifica se la NUOVA email è usata da qualcun altro
-          final existingUser = await _userRepository.findUserByEmail(normalizedNewEmail);
+          final existingUser = await _userRepository.findUserByEmail(
+            normalizedNewEmail,
+          );
           if (existingUser != null) {
             print("Errore: Email $normalizedNewEmail già in uso.");
             return false;
@@ -147,7 +165,9 @@ class ProfileService {
 
         // Controlla solo se il numero è diverso da quello attuale
         if (cleanPhone != currentPhone) {
-          final existingUser = await _userRepository.findUserByPhone(cleanPhone);
+          final existingUser = await _userRepository.findUserByPhone(
+            cleanPhone,
+          );
           if (existingUser != null && existingUser['id'] != userId) {
             print("Errore: Telefono $cleanPhone già in uso.");
             return false;
@@ -161,7 +181,6 @@ class ProfileService {
         await _userRepository.updateUserGeneric(userId, updates);
       }
       return true;
-
     } catch (e) {
       print("Errore update anagrafica: $e");
       return false;
@@ -188,20 +207,36 @@ class ProfileService {
 
   // 8. Gestione Contatti Emergenza
   Future<void> addContatto(int userId, ContattoEmergenza contatto) async {
-    await _userRepository.addToArrayField(userId, 'contattiEmergenza', contatto.toJson());
+    await _userRepository.addToArrayField(
+      userId,
+      'contattiEmergenza',
+      contatto.toJson(),
+    );
   }
 
   Future<void> removeContatto(int userId, ContattoEmergenza contatto) async {
-    await _userRepository.removeFromArrayField(userId, 'contattiEmergenza', contatto.toJson());
+    await _userRepository.removeFromArrayField(
+      userId,
+      'contattiEmergenza',
+      contatto.toJson(),
+    );
   }
 
   // 9. Gestione Account
-  Future<String?> updatePassword(int userId, String oldPassword, String newPassword) async {
+  Future<String?> updatePassword(
+    int userId,
+    String oldPassword,
+    String newPassword,
+  ) async {
     try {
       final userData = await _userRepository.findUserById(userId);
       if (userData == null) return "Utente non trovato";
 
-      await _userRepository.updateUserField(userId, 'passwordHash', _hashPassword(newPassword));
+      await _userRepository.updateUserField(
+        userId,
+        'passwordHash',
+        _hashPassword(newPassword),
+      );
       return null;
     } catch (e) {
       return "Errore cambio password: $e";
