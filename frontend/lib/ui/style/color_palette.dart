@@ -4,9 +4,7 @@ class ColorPalette {
   // Costruttore privato per impedire l'istanziamento
   ColorPalette._();
 
-  // ---------------------------------------------------------------------------
-  // BLU E SFONDI SCURI
-  // ---------------------------------------------------------------------------
+  // Blu e Sfondi Scuri (Tema Utente)
 
   /// Blu molto scuro (quasi nero). Usato per sfondi Auth e Login.
   static const Color backgroundDeepBlue = Color(0xFF041528);
@@ -36,9 +34,8 @@ class ColorPalette {
 
   static const Color gradientDeepBlue = Color.fromARGB(255, 10, 30, 50);
 
-  // ---------------------------------------------------------------------------
-  // ARANCIONI (Tema Soccorritore & Accent)
-  // ---------------------------------------------------------------------------
+
+  // Arancioni (Tema Soccorritore & Accent)
 
   /// Arancione primario vivace. (Nota: Unificato 0xFFEF923D e 0xFFEF932D).
   static const Color primaryOrange = Color(0xFFEF923D);
@@ -55,9 +52,8 @@ class ColorPalette {
   /// Marrone/Arancione scuro per Navigation Bar del Soccorritore.
   static const Color navBarRescuerBackground = Color(0xFF995618);
 
-  // ---------------------------------------------------------------------------
-  // ROSSI (Emergenza & Cancellazione)
-  // ---------------------------------------------------------------------------
+
+  // Rossi (Emergenza & Cancellazione)
 
   /// Rosso acceso (Puro). Bottone SOS.
   static const Color emergencyButtonRed = Color(0xFFFF0000);
@@ -71,9 +67,8 @@ class ColorPalette {
   /// Rosso scuro sangue. Sfondo dello swipe.
   static const Color swipeDarkRed = Color(0xFF8B1D1D);
 
-  // ---------------------------------------------------------------------------
-  // VARI (Gialli, Ciani)
-  // ---------------------------------------------------------------------------
+
+  // Varie (Gialli, Ciani)
 
   /// Giallo ape (Evidenziatore).
   static const Color accentBeeYellow = Color(0xFFFFFF00);

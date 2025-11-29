@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/ui/style/color_palette.dart';
 
+// Schermata Mappa
+// Widget placeholder per la visualizzazione della mappa e delle posizioni degli allarmi.
 class MapScreen extends StatefulWidget{
   const MapScreen({super.key});
 
@@ -20,9 +23,7 @@ class _MapScreenState extends State<MapScreen> {
       width: double.infinity,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: const Color(
-          0xFF0E2A48, // Un blu leggermente più chiaro dello sfondo
-        ),
+        color: ColorPalette.backgroundDarkBlue,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.white54, width: 2),
         boxShadow: [

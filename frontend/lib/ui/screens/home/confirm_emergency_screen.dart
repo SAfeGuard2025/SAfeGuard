@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:frontend/ui/widgets/swipe_to_confirm.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Schermata di Conferma Emergenza (SOS)
+// Presenta un'interfaccia ad alto contrasto (rosso) e richiede uno swipe per confermare l'allarme.
 class ConfirmEmergencyScreen extends StatelessWidget {
   const ConfirmEmergencyScreen({super.key});
 

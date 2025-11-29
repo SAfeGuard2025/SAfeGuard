@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Widget di Scorrimento per conferma
+// Un componente UI che richiede uno swipe orizzontale completo per eseguire una callback.
 class SwipeToConfirm extends StatefulWidget {
   final double height;
   final double width;
   final VoidCallback onConfirm;
-  final Widget? thumb; // La freccia
+
+  // Parametri di personalizzazione
+  final Widget? thumb;          // Widget custom per la freccia
   final String text;            // Testo personalizzabile
   final TextStyle? textStyle;   // Stile testo personalizzabile
-  final Color? sliderColor;     // Colore freccia
-  final Color? backgroundColor; // Colore sfondo barra
-  final Color? iconColor;       // Colore icona
+  final Color? sliderColor;     // Colore della freccia
+  final Color? backgroundColor; // Colore dello sfondo della barra
+  final Color? iconColor;       // Colore dell'icona
 
   const SwipeToConfirm({
     super.key,
@@ -30,6 +34,7 @@ class SwipeToConfirm extends StatefulWidget {
 }
 
 class _SwipeToConfirmState extends State<SwipeToConfirm> {
+  // Posizione orizzontale attuale del dito
   double position = 0;
   bool confirmed = false;
 
@@ -55,10 +60,6 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
                 child: Text(
                   widget.text,
                   textAlign: TextAlign.center,
-                  // MODIFICA QUI:
-                  // Se non passi uno stile personalizzato, usa quello di default.
-                  // Ho impostato il font size al 30% dell'altezza dello slider.
-                  // Esempio: altezza 70 -> font 21 | altezza 80 -> font 24
                   style: widget.textStyle ?? TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -71,15 +72,17 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
 
           // Thumb (Freccia che si muove)
           AnimatedPositioned(
-            duration: const Duration(milliseconds: 80),
+            duration: const Duration(milliseconds: 80), // Breve animazione per il reset
             left: position,
             top: 0,
             bottom: 0,
             child: GestureDetector(
+              // Aggiornamento della posizione durante il trascinamento
               onHorizontalDragUpdate: (details) {
                 if (confirmed) return;
 
                 setState(() {
+                  // Aggiunge la distanza trascinata alla posizione attuale
                   position += details.delta.dx;
                   if (position < 0) position = 0;
                   if (position > maxDragDistance) {
@@ -90,17 +93,21 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
               onHorizontalDragEnd: (_) {
                 if (confirmed) return;
 
+                // Se la posizione è vicina al massimo, conferma l'azione
                 if (position >= maxDragDistance - 5) {
                   setState(() {
                     confirmed = true;
                   });
                   widget.onConfirm();
                 } else {
+                  // Se non è arrivato alla fine, resetta la posizione all'inizio
                   setState(() {
                     position = 0;
                   });
                 }
               },
+
+              // Contenuto visivo del Thumb
               child: SizedBox(
                 height: widget.height,
                 width: widget.height,
@@ -120,7 +127,6 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
                       child: Icon(
                         Icons.arrow_forward,
                         color: widget.iconColor ?? Colors.white,
-                        // L'icona scala in base all'altezza dello slider (60%)
                         size: widget.height * 0.6,
                       ),
                     ),

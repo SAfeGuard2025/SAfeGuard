@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Barra di Navigazione Inferiore Personalizzata
+// Un widget custom che gestisce la navigazione e lo stile in base al ruolo utente.
 class CustomBottomNavBar extends StatefulWidget {
   // Funzione di callback: comunica alla Home quale icona è stata premuta
   final Function(int) onIconTapped;
@@ -21,8 +23,11 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
 
   @override
   Widget build(BuildContext context) {
+    // Accesso allo stato di autenticazione e al ruolo utente
     final isRescuer = context.watch<AuthProvider>().isRescuer;
     final isLogged = context.watch<AuthProvider>().isLogged;
+
+    // Colore di sfondo dinamico basato sul ruolo
     final Color backgroundColor = isRescuer
         ? ColorPalette.navBarRescuerBackground // Marrone/Arancio (Soccorritore)
         : ColorPalette.navBarUserBackground; // Blu Scuro (Cittadino)
@@ -32,7 +37,6 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
 
     // Lista icone
     final List<IconData> navIcons = [
-
       ?isLogged ? Icons.home_outlined : null,
       ?isLogged ? Icons.report_problem_outlined : null,
       Icons.map_outlined,
@@ -57,13 +61,14 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
+        // Genera i pulsanti per ogni icona nella lista
         children: List.generate(navIcons.length, (index) {
           final isSelected = _selectedIndex == index;
 
           return InkWell(
             onTap: () {
               setState(() {
-                _selectedIndex = index;
+                _selectedIndex = index; // Aggiorna l'indice selezionato
               });
               // Avvisa la pagina padre (Home) del cambio
               widget.onIconTapped(index);
@@ -79,6 +84,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
                     color: isSelected ? selectedItemColor : unselectedItemColor,
                     size: 28,
                   ),
+
                   // Pallino indicatore sotto l'icona selezionata
                   if (isSelected)
                     Container(
@@ -91,7 +97,8 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
                       ),
                     )
                   else
-                    const SizedBox(height: 9), // Spazio vuoto per mantenere l'allineamento
+                    // Spazio vuoto per mantenere l'allineamento
+                    const SizedBox(height: 9),
                 ],
               ),
             ),

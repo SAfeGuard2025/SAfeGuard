@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+// Schermata Report Specifico
+// Placeholder per la sezione dedicata ai report o statistiche dettagliate.
 class ReportsScreen extends StatefulWidget{
   const ReportsScreen({super.key});
 

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/emergency_provider.dart';
-import 'package:provider/provider.dart'; // serve per .watch()
+import 'package:provider/provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Widget di Notifica di Emergenza
+// Mostra un banner colorato quando un'emergenza è attiva.
 class EmergencyNotification extends StatefulWidget {
   const EmergencyNotification({super.key});
 
@@ -14,33 +16,39 @@ class EmergencyNotification extends StatefulWidget {
 class _EmergencyNotification extends State<EmergencyNotification> {
   @override
   Widget build(BuildContext context) {
+    // 1. Controllo Stato Login
+    // Utilizza watch per reagire al cambio di stato di login.
     final isLogged = context.watch<AuthProvider>().isLogged;
     
-    // se non è loggato non mostro nulla
+    // Se non è loggato non mostro nulla
     if (!isLogged) {
-      return Text("");
+      return const SizedBox.shrink();
     }
 
-    // vedo se c'è un'allerta attiva
+    // 2. Controllo Allerta Attiva
+    // Controlla se è in corso l'invio di un SOS.
     final alert = context.watch<EmergencyProvider>().isSendingSos;
 
-    // se non c'è la notifica è chiusa
+    // Se non c'è l'allerta, la notifica deve rimanere chiusa.
     if(!alert){
       return const SizedBox.shrink();
     }
 
-    // mi serve per i colori
+    // 3. Determinazione del Ruolo e Colori
     final isRescuer = context.watch<AuthProvider>().isRescuer;
 
-    const titolo = "Titolo"; // prende il titolo dell'emergenza (deve essere implementato assieme all'indirizzo in emergency provider)
-    const indirizzo = "indirizzo 104"; // prende l'indirizzo dell'emergenza
+    // Testo temporaneo (da implementare tramite EmergencyProvider)
+    const titolo = "Titolo";
+    const indirizzo = "indirizzo 104";
 
-    // Colori della notifica: blu per il soccorritore e rosso per il cittadino.
-    // Ho scelto in modo da creare maggiore contrasto nella homepage in modo che la notifica non possa sfuggire
+    // Colori dinamici basati sul ruolo per il massimo contrasto:
+    // Blu elettrico per il Soccorritore, Rosso vivo per il Cittadino (pericolo).
     Color notificationColor = isRescuer ? ColorPalette.electricBlue : ColorPalette.primaryBrightRed;
-    // stessa Icon utilizzata per gli avvisi. Messa cosi dò maggiore coerenza e fa capire all'utente a quale pagina andare per approfondire l'evento
+
+    // Icona fissa per coerenza visiva con la pagina degli avvisi.
     const emergencyIcon = Icons.notifications_none;
 
+    // Layout del Banner di Notifica
     return Padding(
       padding: const EdgeInsetsGeometry.symmetric(
         horizontal: 16.0,
@@ -57,15 +65,17 @@ class _EmergencyNotification extends State<EmergencyNotification> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
+            // Icona a sinistra
             const Icon(emergencyIcon, color: Colors.white, size: 36.0),
             SizedBox(width: 16.0), // spazio tra l'icona e il testo
-            // Parte del testo (dovrebbe essere responsive)
+
+            // Contenitore del testo
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  // testo del titolo
+                  // Titolo
                   Text(
                     titolo,
                     style: const TextStyle(
@@ -74,7 +84,7 @@ class _EmergencyNotification extends State<EmergencyNotification> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  //testo dell'indirizzo
+                  // Indirizzo
                   Text(
                     indirizzo,
                     style: const TextStyle(color: Colors.white, fontSize: 14.0),
