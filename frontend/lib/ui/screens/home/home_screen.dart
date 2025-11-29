@@ -22,10 +22,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Lista dei widget/schermate visualizzati
   final List<Widget> _pages = [
-    const HomePageContent(),       // 0. HOME
-    const ReportsScreen(),         // 1. REPORT
-    const MapScreen(),             // 2. MAPPA
-    const Center(                  // 3. AVVISI
+    const HomePageContent(), // 0. HOME
+    const ReportsScreen(), // 1. REPORT
+    const MapScreen(), // 2. MAPPA
+    const Center(
+      // 3. AVVISI
       child: Text(
         "Avvisi\n(In lavorazione)",
         textAlign: TextAlign.center,
@@ -48,8 +49,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final isRescuer = context.watch<AuthProvider>().isRescuer;
 
     // Colori di sfondo e selezione dinamici
-    final backgroundColor = isRescuer ? ColorPalette.primaryOrange : ColorPalette.backgroundDarkBlue;
-    final selectedColor = isRescuer ? ColorPalette.backgroundDarkBlue : ColorPalette.primaryOrange;
+    final backgroundColor = isRescuer
+        ? ColorPalette.primaryOrange
+        : ColorPalette.backgroundDarkBlue;
+    final selectedColor = isRescuer
+        ? ColorPalette.backgroundDarkBlue
+        : ColorPalette.primaryOrange;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -73,8 +78,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   indicatorColor: selectedColor.withValues(alpha: 0.2),
                   selectedIconTheme: IconThemeData(color: selectedColor),
                   selectedLabelTextStyle: TextStyle(
-                      color: selectedColor,
-                      fontWeight: FontWeight.bold
+                    color: selectedColor,
+                    fontWeight: FontWeight.bold,
                   ),
                   unselectedIconTheme: const IconThemeData(color: Colors.grey),
                   destinations: const [
@@ -107,8 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
 
               // Divisore verticale tra sidebar e contenuto
-              if (isDesktop)
-                const VerticalDivider(thickness: 1, width: 1),
+              if (isDesktop) const VerticalDivider(thickness: 1, width: 1),
 
               // Contenuto centrale
               Expanded(

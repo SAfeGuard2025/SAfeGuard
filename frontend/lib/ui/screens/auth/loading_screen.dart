@@ -22,7 +22,10 @@ class _LoadingScreenState extends State<LoadingScreen> {
   void initState() {
     super.initState();
     // Avvia il tentativo di auto-login appena il widget viene inizializzato.
-    _autoLoginFuture = Provider.of<AuthProvider>(context, listen: false).tryAutoLogin();
+    _autoLoginFuture = Provider.of<AuthProvider>(
+      context,
+      listen: false,
+    ).tryAutoLogin();
   }
 
   @override
@@ -31,7 +34,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
     final Size screenSize = MediaQuery.of(context).size;
     final double screenHeight = screenSize.height;
     final double screenWidth = screenSize.width;
-    final double referenceSize = screenHeight < screenWidth ? screenHeight : screenWidth;
+    final double referenceSize = screenHeight < screenWidth
+        ? screenHeight
+        : screenWidth;
     final double titleFontSize = referenceSize * 0.08;
     final double logoSize = referenceSize * 0.45;
     final double mainTextFontSize = referenceSize * 0.055;
@@ -99,7 +104,10 @@ class _LoadingScreenState extends State<LoadingScreen> {
               // Suggerimento extra
               Text(
                 'Consiglio: non andare nel panico.',
-                style: TextStyle(color: Colors.white70, fontSize: secondaryTextFontSize),
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: secondaryTextFontSize,
+                ),
               ),
               SizedBox(height: screenHeight * 0.015),
 
@@ -123,7 +131,10 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
                   if (!context.mounted) return; // Controllo di sicurezza
 
-                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                  final authProvider = Provider.of<AuthProvider>(
+                    context,
+                    listen: false,
+                  );
 
                   if (authProvider.isLogged) {
                     // Se loggato -> home screen

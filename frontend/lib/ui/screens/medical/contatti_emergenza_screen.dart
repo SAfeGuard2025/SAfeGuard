@@ -10,7 +10,8 @@ import 'package:frontend/ui/style/color_palette.dart';
 class ContattiEmergenzaScreen extends StatefulWidget {
   const ContattiEmergenzaScreen({super.key});
   @override
-  State<ContattiEmergenzaScreen> createState() => _ContattiEmergenzaScreenState();
+  State<ContattiEmergenzaScreen> createState() =>
+      _ContattiEmergenzaScreenState();
 }
 
 class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
@@ -48,11 +49,18 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
           children: [
             // Header con bottone indietro-
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 10.0,
+              ),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 28),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -72,7 +80,11 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
                       color: ColorPalette.accentMediumOrange,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.phone_in_talk, color: Colors.blueAccent, size: 40),
+                    child: const Icon(
+                      Icons.phone_in_talk,
+                      color: Colors.blueAccent,
+                      size: 40,
+                    ),
                   ),
                   const SizedBox(width: 20),
                   const Text(
@@ -98,7 +110,10 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
                   borderRadius: BorderRadius.circular(25.0),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 10.0,
+                    horizontal: 5.0,
+                  ),
                   // Consumer: ascolta i cambiamenti nella lista contatti
                   child: Consumer<MedicalProvider>(
                     builder: (context, provider, child) {
@@ -106,11 +121,19 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
                         return const Center(child: CircularProgressIndicator());
                       }
                       if (provider.contatti.isEmpty) {
-                        return const Center(child: Text("Nessun contatto aggiunto", style: TextStyle(color: Colors.white)));
+                        return const Center(
+                          child: Text(
+                            "Nessun contatto aggiunto",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        );
                       }
 
                       return ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 15.0,
+                          vertical: 10.0,
+                        ),
                         itemCount: provider.contatti.length,
                         separatorBuilder: (context, index) =>
                             Divider(color: Colors.white.withValues(alpha: 0.1)),
@@ -138,7 +161,11 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
 
             // Pulsante Aggiungi Contatto
             Padding(
-              padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 30.0),
+              padding: const EdgeInsets.only(
+                left: 20.0,
+                right: 20.0,
+                bottom: 30.0,
+              ),
               child: InkWell(
                 onTap: () => _openDialog(isEdit: false),
                 child: Container(
@@ -250,7 +277,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: ColorPalette.backgroundDarkBlue ,
+          backgroundColor: ColorPalette.backgroundDarkBlue,
           title: const Text(
             "Nuovo contatto",
             style: TextStyle(color: Colors.white),
@@ -295,18 +322,23 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
             // Pulsante Annulla
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Annulla", style: TextStyle(color: Colors.white70)),
+              child: const Text(
+                "Annulla",
+                style: TextStyle(color: Colors.white70),
+              ),
             ),
             // Pulsante Salva e Logica di Validazione
-            ElevatedButton(   //Inserimento di un numero con controllo sui campi vuoti e validazione numerica
+            ElevatedButton(
+              //Inserimento di un numero con controllo sui campi vuoti e validazione numerica
               style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
               onPressed: () async {
-
                 final nome = _nameController.text.trim();
                 final numero = _numberController.text.trim();
                 if (nome.isEmpty || numero.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Per favore, compila tutti i campi.")),
+                    const SnackBar(
+                      content: Text("Per favore, compila tutti i campi."),
+                    ),
                   );
                   return;
                 }
@@ -316,7 +348,9 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
                 if (!isNumeroValido) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text("Il numero inserito non è valido (usa solo cifre)."),
+                      content: Text(
+                        "Il numero inserito non è valido (usa solo cifre).",
+                      ),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -324,8 +358,10 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
                 }
 
                 // Aggiunta del contatto tramite provider
-                final success = await Provider.of<MedicalProvider>(context, listen: false)
-                    .addContatto(nome, numero);
+                final success = await Provider.of<MedicalProvider>(
+                  context,
+                  listen: false,
+                ).addContatto(nome, numero);
 
                 if (success && context.mounted) {
                   Navigator.pop(context);

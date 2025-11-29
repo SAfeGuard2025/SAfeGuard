@@ -33,7 +33,10 @@ class HomePageContent extends StatelessWidget {
     final double horizontalPadding = isWideScreen ? screenWidth * 0.08 : 15.0;
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 10.0),
+      padding: EdgeInsets.symmetric(
+        horizontal: horizontalPadding,
+        vertical: 10.0,
+      ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -108,7 +111,11 @@ class HomePageContent extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           FittedBox(
-              child: Icon(Icons.map_outlined, color: Colors.white70, size: isWideScreen ? 80 : 50)
+            child: Icon(
+              Icons.map_outlined,
+              color: Colors.white70,
+              size: isWideScreen ? 80 : 50,
+            ),
           ),
           const SizedBox(height: 10),
           Text(
@@ -122,8 +129,8 @@ class HomePageContent extends StatelessWidget {
           Text(
             "(Futura)",
             style: TextStyle(
-                color: Colors.white70,
-                fontSize: isWideScreen ? 18 : 14
+              color: Colors.white70,
+              fontSize: isWideScreen ? 18 : 14,
             ),
           ),
         ],
@@ -132,7 +139,10 @@ class HomePageContent extends StatelessWidget {
   }
 
   // Pulsante "Contatti di Emergenza" o "Registrati"
-  Widget _buildEmergencyContactsButton(BuildContext context, bool isWideScreen) {
+  Widget _buildEmergencyContactsButton(
+    BuildContext context,
+    bool isWideScreen,
+  ) {
     final isLogged = context.watch<AuthProvider>().isLogged;
 
     // Stile del pulsante
@@ -140,8 +150,8 @@ class HomePageContent extends StatelessWidget {
       backgroundColor: isLogged ? amberOrange : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       padding: EdgeInsets.symmetric(
-          horizontal: isWideScreen ? 60 : 30,
-          vertical: isWideScreen ? 20 : 12
+        horizontal: isWideScreen ? 60 : 30,
+        vertical: isWideScreen ? 20 : 12,
       ),
       elevation: 5,
     );
@@ -158,7 +168,9 @@ class HomePageContent extends StatelessWidget {
         onPressed: () {
           // Naviga a Contatti Emergenza se loggato, altrimenti a Registrazione
           final route = isLogged
-              ? MaterialPageRoute(builder: (_) => const ContattiEmergenzaScreen())
+              ? MaterialPageRoute(
+                  builder: (_) => const ContattiEmergenzaScreen(),
+                )
               : MaterialPageRoute(builder: (_) => const RegistrationScreen());
           Navigator.push(context, route);
         },
@@ -167,10 +179,18 @@ class HomePageContent extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Icona mostrata solo se loggato
-            if(isLogged) Icon(Icons.person_pin_circle, color: darkBlue, size: isWideScreen ? 34 : 24),
-            if(isLogged) const SizedBox(width: 10),
+            if (isLogged)
+              Icon(
+                Icons.person_pin_circle,
+                color: darkBlue,
+                size: isWideScreen ? 34 : 24,
+              ),
+            if (isLogged) const SizedBox(width: 10),
             // Testo che cambia in base allo stato di login
-            Text(isLogged ? "Contatti di Emergenza" : "Registrati", style: textStyle),
+            Text(
+              isLogged ? "Contatti di Emergenza" : "Registrati",
+              style: textStyle,
+            ),
           ],
         ),
       ),
@@ -199,7 +219,7 @@ class HomePageContent extends StatelessWidget {
               spreadRadius: 2,
               blurRadius: 10,
               offset: const Offset(0, 5),
-            )
+            ),
           ],
         ),
         // Inserimento pulsante
@@ -213,20 +233,23 @@ class HomePageContent extends StatelessWidget {
     return SizedBox(
       width: isWideScreen ? 500 : double.infinity,
       child: EmergencyDropdownMenu(
-          items: [
-            EmergencyItem(label: "Terremoto", icon: Icons.waves),
-            EmergencyItem(label: "Incendio", icon: Icons.local_fire_department),
-            EmergencyItem(label: "Tsunami", icon: Icons.water),
-            EmergencyItem(label: "Alluvione", icon: Icons.flood),
-            EmergencyItem(label: "Malessere", icon: Icons.medical_services),
-            EmergencyItem(label: "Bomba", icon: Icons.warning),
-          ],
-          onSelected: (item) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              // Placeholder per la logica di gestione dell'emergenza specifica selezionata
-              SnackBar(content: Text("Selezionato: ${item.label}"), backgroundColor: Colors.black),
-            );
-          }
+        items: [
+          EmergencyItem(label: "Terremoto", icon: Icons.waves),
+          EmergencyItem(label: "Incendio", icon: Icons.local_fire_department),
+          EmergencyItem(label: "Tsunami", icon: Icons.water),
+          EmergencyItem(label: "Alluvione", icon: Icons.flood),
+          EmergencyItem(label: "Malessere", icon: Icons.medical_services),
+          EmergencyItem(label: "Bomba", icon: Icons.warning),
+        ],
+        onSelected: (item) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            // Placeholder per la logica di gestione dell'emergenza specifica selezionata
+            SnackBar(
+              content: Text("Selezionato: ${item.label}"),
+              backgroundColor: Colors.black,
+            ),
+          );
+        },
       ),
     );
   }

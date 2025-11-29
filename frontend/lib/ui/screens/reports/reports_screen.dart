@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 // Schermata Report Specifico
 // Placeholder per la sezione dedicata ai report o statistiche dettagliate.
-class ReportsScreen extends StatefulWidget{
+class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
 
   @override
@@ -11,8 +11,7 @@ class ReportsScreen extends StatefulWidget{
 
 class _ReportsScreenState extends State<ReportsScreen> {
   @override
-  Widget build(BuildContext context)
-  {
+  Widget build(BuildContext context) {
     return Center(
       child: Text(
         "Report specifico\n(In lavoramento)",

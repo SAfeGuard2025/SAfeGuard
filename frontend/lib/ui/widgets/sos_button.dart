@@ -47,26 +47,26 @@ class SosButton extends StatelessWidget {
                 // 4. SFONDO INTERNO
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    // Uso un gradiente per renderlo "diverso" e dare effetto 3D
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        // Parte da un rosso leggermente più scuro del primary
-                        ColorPalette.sosDarkRed,
-                        // Finisce in un rosso molto scuro/bordeaux
-                        Colors.red.shade700,
-                      ],
+                  shape: BoxShape.circle,
+                  // Uso un gradiente per renderlo "diverso" e dare effetto 3D
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      // Parte da un rosso leggermente più scuro del primary
+                      ColorPalette.sosDarkRed,
+                      // Finisce in un rosso molto scuro/bordeaux
+                      Colors.red.shade700,
+                    ],
+                  ),
+                  boxShadow: [
+                    // Aggiunta un'ombra interna leggera per staccarlo dal bordo bianco
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 4,
+                      offset: const Offset(2, 2),
                     ),
-                    boxShadow: [
-                      // Aggiunta un'ombra interna leggera per staccarlo dal bordo bianco
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        blurRadius: 4,
-                        offset: const Offset(2, 2),
-                      )
-                    ]
+                  ],
                 ),
                 child: Text(
                   'SOS',

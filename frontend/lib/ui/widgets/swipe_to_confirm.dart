@@ -9,12 +9,12 @@ class SwipeToConfirm extends StatefulWidget {
   final VoidCallback onConfirm;
 
   // Parametri di personalizzazione
-  final Widget? thumb;          // Widget custom per la freccia
-  final String text;            // Testo personalizzabile
-  final TextStyle? textStyle;   // Stile testo personalizzabile
-  final Color? sliderColor;     // Colore della freccia
+  final Widget? thumb; // Widget custom per la freccia
+  final String text; // Testo personalizzabile
+  final TextStyle? textStyle; // Stile testo personalizzabile
+  final Color? sliderColor; // Colore della freccia
   final Color? backgroundColor; // Colore dello sfondo della barra
-  final Color? iconColor;       // Colore dell'icona
+  final Color? iconColor; // Colore dell'icona
 
   const SwipeToConfirm({
     super.key,
@@ -60,11 +60,13 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
                 child: Text(
                   widget.text,
                   textAlign: TextAlign.center,
-                  style: widget.textStyle ?? TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: widget.height * 0.25,
-                  ),
+                  style:
+                      widget.textStyle ??
+                      TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: widget.height * 0.25,
+                      ),
                 ),
               ),
             ),
@@ -72,7 +74,9 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
 
           // Thumb (Freccia che si muove)
           AnimatedPositioned(
-            duration: const Duration(milliseconds: 80), // Breve animazione per il reset
+            duration: const Duration(
+              milliseconds: 80,
+            ), // Breve animazione per il reset
             left: position,
             top: 0,
             bottom: 0,
@@ -111,7 +115,8 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
               child: SizedBox(
                 height: widget.height,
                 width: widget.height,
-                child: widget.thumb ??
+                child:
+                    widget.thumb ??
                     Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
@@ -121,7 +126,7 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
                             color: Colors.black.withValues(alpha: 0.2),
                             blurRadius: 4,
                             spreadRadius: 1,
-                          )
+                          ),
                         ],
                       ),
                       child: Icon(

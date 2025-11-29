@@ -9,10 +9,7 @@ class CustomBottomNavBar extends StatefulWidget {
   // Funzione di callback: comunica alla Home quale icona è stata premuta
   final Function(int) onIconTapped;
 
-  const CustomBottomNavBar({
-    super.key,
-    required this.onIconTapped,
-  });
+  const CustomBottomNavBar({super.key, required this.onIconTapped});
 
   @override
   State<CustomBottomNavBar> createState() => _CustomBottomNavBarState();
@@ -29,10 +26,12 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
 
     // Colore di sfondo dinamico basato sul ruolo
     final Color backgroundColor = isRescuer
-        ? ColorPalette.navBarRescuerBackground // Marrone/Arancio (Soccorritore)
+        ? ColorPalette
+              .navBarRescuerBackground // Marrone/Arancio (Soccorritore)
         : ColorPalette.navBarUserBackground; // Blu Scuro (Cittadino)
 
-    final Color selectedItemColor = ColorPalette.primaryOrange; // Arancione attivo
+    final Color selectedItemColor =
+        ColorPalette.primaryOrange; // Arancione attivo
     final Color unselectedItemColor = Colors.white;
 
     // Lista icone

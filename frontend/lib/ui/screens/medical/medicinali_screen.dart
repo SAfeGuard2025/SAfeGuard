@@ -44,11 +44,18 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
           children: [
             // Header con bottone indietro
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 10.0,
+              ),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 28),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -68,7 +75,11 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
                       color: ColorPalette.accentMediumOrange,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.medication_liquid, color: Colors.white, size: 40),
+                    child: const Icon(
+                      Icons.medication_liquid,
+                      color: Colors.white,
+                      size: 40,
+                    ),
                   ),
                   const SizedBox(width: 20),
                   const Text(
@@ -93,7 +104,10 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
                   borderRadius: BorderRadius.circular(25.0),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 10.0,
+                    horizontal: 5.0,
+                  ),
                   // Consumer: ascolta i cambiamenti nella lista medicinali
                   child: Consumer<MedicalProvider>(
                     builder: (context, provider, child) {
@@ -101,11 +115,19 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
                         return const Center(child: CircularProgressIndicator());
                       }
                       if (provider.medicinali.isEmpty) {
-                        return const Center(child: Text("Nessun farmaco inserito", style: TextStyle(color: Colors.white)));
+                        return const Center(
+                          child: Text(
+                            "Nessun farmaco inserito",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        );
                       }
 
                       return ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 15.0,
+                          vertical: 10.0,
+                        ),
                         itemCount: provider.medicinali.length,
                         separatorBuilder: (context, index) =>
                             Divider(color: Colors.white.withValues(alpha: .1)),
@@ -133,7 +155,11 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
 
             // Pulsante Aggiungi Farmaco
             Padding(
-              padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 30.0),
+              padding: const EdgeInsets.only(
+                left: 20.0,
+                right: 20.0,
+                bottom: 30.0,
+              ),
               child: InkWell(
                 onTap: () => _openDialog(isEdit: false),
                 child: Container(
@@ -249,8 +275,10 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
               onPressed: () async {
                 if (_textController.text.isNotEmpty) {
                   // Chiama il provider per aggiungere il nuovo farmaco
-                  final success = await Provider.of<MedicalProvider>(context, listen: false)
-                      .addMedicinale(_textController.text);
+                  final success = await Provider.of<MedicalProvider>(
+                    context,
+                    listen: false,
+                  ).addMedicinale(_textController.text);
 
                   if (success && context.mounted) {
                     Navigator.pop(context);

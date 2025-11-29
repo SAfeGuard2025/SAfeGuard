@@ -9,11 +9,11 @@ class CondizioniMedicheScreen extends StatefulWidget {
   const CondizioniMedicheScreen({super.key});
 
   @override
-  State<CondizioniMedicheScreen> createState() => _CondizioniMedicheScreenState();
+  State<CondizioniMedicheScreen> createState() =>
+      _CondizioniMedicheScreenState();
 }
 
 class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
-
   @override
   void initState() {
     super.initState();
@@ -36,11 +36,18 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
           children: [
             // Header con bottone indietro
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 10.0,
+              ),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 28),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -102,10 +109,10 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
                           _buildSwitchTile(
                             "Disabilità motorie",
                             cond.disabilitaMotorie,
-                                (val) {
+                            (val) {
                               provider.updateCondizioni(
-                                  // Crea un nuovo oggetto CondizioniMediche con il campo aggiornato
-                                  cond.copyWith(disabilitaMotorie: val)
+                                // Crea un nuovo oggetto CondizioniMediche con il campo aggiornato
+                                cond.copyWith(disabilitaMotorie: val),
                               );
                             },
                             activeSwitchColor,
@@ -116,9 +123,9 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
                           _buildSwitchTile(
                             "Disabilità visive",
                             cond.disabilitaVisive,
-                                (val) {
+                            (val) {
                               provider.updateCondizioni(
-                                  cond.copyWith(disabilitaVisive: val)
+                                cond.copyWith(disabilitaVisive: val),
                               );
                             },
                             activeSwitchColor,
@@ -129,9 +136,9 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
                           _buildSwitchTile(
                             "Disabilità uditive",
                             cond.disabilitaUditive,
-                                (val) {
+                            (val) {
                               provider.updateCondizioni(
-                                  cond.copyWith(disabilitaUditive: val)
+                                cond.copyWith(disabilitaUditive: val),
                               );
                             },
                             activeSwitchColor,
@@ -142,9 +149,9 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
                           _buildSwitchTile(
                             "Disabilità intellettive",
                             cond.disabilitaIntellettive,
-                                (val) {
+                            (val) {
                               provider.updateCondizioni(
-                                  cond.copyWith(disabilitaIntellettive: val)
+                                cond.copyWith(disabilitaIntellettive: val),
                               );
                             },
                             activeSwitchColor,
@@ -155,9 +162,9 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
                           _buildSwitchTile(
                             "Disabilità psichiche",
                             cond.disabilitaPsichiche,
-                                (val) {
+                            (val) {
                               provider.updateCondizioni(
-                                  cond.copyWith(disabilitaPsichiche: val)
+                                cond.copyWith(disabilitaPsichiche: val),
                               );
                             },
                             activeSwitchColor,
@@ -178,11 +185,11 @@ class _CondizioniMedicheScreenState extends State<CondizioniMedicheScreen> {
 
   //Widget Helper: Tile con Switch
   Widget _buildSwitchTile(
-      String title,
-      bool value,
-      Function(bool) onChanged,
-      Color activeColor,
-      ) {
+    String title,
+    bool value,
+    Function(bool) onChanged,
+    Color activeColor,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Row(

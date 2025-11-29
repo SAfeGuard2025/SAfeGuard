@@ -31,13 +31,15 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         // Naviga alla schermata di Login e rimuove tutte le schermate precedenti
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const LoginScreen()),
-              (Route<dynamic> route) => false,
+          (Route<dynamic> route) => false,
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Disconnessione fallita. Riprova: ${e.toString()}')),
+          SnackBar(
+            content: Text('Disconnessione fallita. Riprova: ${e.toString()}'),
+          ),
         );
       }
     }
@@ -60,9 +62,15 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         : "Utente";
 
     // Logica responsive e color palette basata sul ruolo dell'utente
-    final kCardColor = isRescuer ? ColorPalette.cardDarkOrange : ColorPalette.backgroundMidBlue;
-    final kBackgroundColor = isRescuer ? ColorPalette.primaryOrange : ColorPalette.backgroundDarkBlue;
-    final Color kAccentOrange = !isRescuer ? ColorPalette.primaryOrange : ColorPalette.backgroundDarkBlue;
+    final kCardColor = isRescuer
+        ? ColorPalette.cardDarkOrange
+        : ColorPalette.backgroundMidBlue;
+    final kBackgroundColor = isRescuer
+        ? ColorPalette.primaryOrange
+        : ColorPalette.backgroundDarkBlue;
+    final Color kAccentOrange = !isRescuer
+        ? ColorPalette.primaryOrange
+        : ColorPalette.backgroundDarkBlue;
 
     final size = MediaQuery.of(context).size;
     final bool isWideScreen = size.width > 700;
@@ -76,7 +84,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         Icons.notifications_active,
         Colors.yellow,
         kCardColor,
-            () => _navigateTo(context, const GestioneNotificheCittadino()),
+        () => _navigateTo(context, const GestioneNotificheCittadino()),
         isWideScreen,
       ),
       // 2. Cartella Clinica (Visibile solo per il Cittadino)
@@ -87,7 +95,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           Icons.medical_services_outlined,
           Colors.white,
           kCardColor,
-              () => _navigateTo(context, const GestioneCartellaClinicaCittadino()),
+          () => _navigateTo(context, const GestioneCartellaClinicaCittadino()),
           isWideScreen,
         ),
       // 3. Permessi
@@ -97,7 +105,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         Icons.security,
         Colors.blueAccent,
         kCardColor,
-            () => _navigateTo(context, const GestionePermessiCittadino()),
+        () => _navigateTo(context, const GestionePermessiCittadino()),
         isWideScreen,
       ),
       // 4. Modifica Profilo
@@ -107,7 +115,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         Icons.settings,
         Colors.grey,
         kCardColor,
-            () => _navigateTo(context, const GestioneModificaProfiloCittadino()),
+        () => _navigateTo(context, const GestioneModificaProfiloCittadino()),
         isWideScreen,
       ),
     ];
@@ -121,7 +129,10 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         elevation: 0,
         title: Text(
           isRescuer ? "Dashboard Soccorritore" : "Profilo Cittadino",
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         actions: [
           IconButton(
@@ -137,7 +148,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             constraints: const BoxConstraints(maxWidth: 1000),
             child: Column(
               children: [
-
                 // Header Utente (Avatar e Nome)
                 Padding(
                   padding: const EdgeInsets.all(20.0),
@@ -149,7 +159,11 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         backgroundColor: kAccentOrange,
                         child: CircleAvatar(
                           radius: isWideScreen ? 56 : 42,
-                          backgroundImage: AssetImage(isRescuer ? "assets/cavalluccioSoccorritore.png" : "assets/cavalluccio.png"),
+                          backgroundImage: AssetImage(
+                            isRescuer
+                                ? "assets/cavalluccioSoccorritore.png"
+                                : "assets/cavalluccio.png",
+                          ),
                         ),
                       ),
                       const SizedBox(width: 20),
@@ -210,7 +224,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                             child: Row(
                               children: settingCards.map((card) {
                                 return Padding(
-                                  padding: EdgeInsets.only(right: isWideScreen ? 25.0 : 15.0),
+                                  padding: EdgeInsets.only(
+                                    right: isWideScreen ? 25.0 : 15.0,
+                                  ),
                                   child: card,
                                 );
                               }).toList(),
@@ -230,7 +246,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                             child: Column(
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       "Richieste di aiuto",
@@ -276,14 +293,14 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   // Widget Helper: Card per le Impostazioni
   Widget _buildSettingCard(
-      String title,
-      String subtitle,
-      IconData icon,
-      Color iconColor,
-      Color bgColor,
-      VoidCallback onTap,
-      bool isWideScreen,
-      ) {
+    String title,
+    String subtitle,
+    IconData icon,
+    Color iconColor,
+    Color bgColor,
+    VoidCallback onTap,
+    bool isWideScreen,
+  ) {
     final double cardWidth = isWideScreen ? 200 : 140;
     final double cardHeight = isWideScreen ? 180 : 160;
     final double iconSize = isWideScreen ? 50 : 40;
@@ -297,15 +314,15 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         height: cardHeight,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 5,
-                offset: const Offset(0, 4),
-              )
-            ]
+          color: bgColor,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 5,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

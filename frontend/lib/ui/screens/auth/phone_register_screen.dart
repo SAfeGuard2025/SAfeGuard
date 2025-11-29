@@ -15,7 +15,9 @@ class PhoneRegisterScreen extends StatefulWidget {
 
 class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
   // Controller per il telefono (preimpostato su +39)
-  final TextEditingController _phoneController = TextEditingController(text: "+39");
+  final TextEditingController _phoneController = TextEditingController(
+    text: "+39",
+  );
   final TextEditingController _passController = TextEditingController();
   final TextEditingController _repeatPassController = TextEditingController();
 
@@ -36,7 +38,9 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
     final Size screenSize = MediaQuery.of(context).size;
     final double screenHeight = screenSize.height;
     final double screenWidth = screenSize.width;
-    final double referenceSize = screenHeight < screenWidth ? screenHeight : screenWidth;
+    final double referenceSize = screenHeight < screenWidth
+        ? screenHeight
+        : screenWidth;
     final double titleFontSize = referenceSize * 0.075;
     final double contentFontSize = referenceSize * 0.045;
     final double verticalPadding = screenHeight * 0.04;
@@ -51,7 +55,6 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
       resizeToAvoidBottomInset: false,
       extendBodyBehindAppBar: true,
       backgroundColor: ColorPalette.backgroundDeepBlue, // Colore di sicurezza
-
       // Header con bottone indietro
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -78,7 +81,7 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
               child: SingleChildScrollView(
                 // 3. GESTIONE SPAZIO TASTIERA MANUALE
                 padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom + 20
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 20,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -97,23 +100,44 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                     SizedBox(height: largeSpacing),
 
                     // Campi Anagrafici
-                    _buildTextField("Nome", _nameController, isPassword: false, contentVerticalPadding: 12, fontSize: contentFontSize),
+                    _buildTextField(
+                      "Nome",
+                      _nameController,
+                      isPassword: false,
+                      contentVerticalPadding: 12,
+                      fontSize: contentFontSize,
+                    ),
                     SizedBox(height: smallSpacing),
 
-                    _buildTextField("Cognome", _surnameController, isPassword: false, contentVerticalPadding: 12, fontSize: contentFontSize),
+                    _buildTextField(
+                      "Cognome",
+                      _surnameController,
+                      isPassword: false,
+                      contentVerticalPadding: 12,
+                      fontSize: contentFontSize,
+                    ),
                     SizedBox(height: smallSpacing),
 
                     // Input telefono
                     TextField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
-                      style: TextStyle(color: Colors.black, fontSize: contentFontSize),
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: contentFontSize,
+                      ),
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: Colors.white,
                         hintText: "+39 ...",
-                        hintStyle: TextStyle(color: Colors.grey, fontSize: contentFontSize),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+                        hintStyle: TextStyle(
+                          color: Colors.grey,
+                          fontSize: contentFontSize,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 25,
+                          vertical: 12,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
                           borderSide: BorderSide.none,
@@ -123,10 +147,22 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                     SizedBox(height: smallSpacing),
 
                     // Password
-                    _buildTextField("Password", _passController, isPassword: true, contentVerticalPadding: 12, fontSize: contentFontSize),
+                    _buildTextField(
+                      "Password",
+                      _passController,
+                      isPassword: true,
+                      contentVerticalPadding: 12,
+                      fontSize: contentFontSize,
+                    ),
                     SizedBox(height: smallSpacing),
 
-                    _buildTextField("Ripeti Password", _repeatPassController, isPassword: true, contentVerticalPadding: 12, fontSize: contentFontSize),
+                    _buildTextField(
+                      "Ripeti Password",
+                      _repeatPassController,
+                      isPassword: true,
+                      contentVerticalPadding: 12,
+                      fontSize: contentFontSize,
+                    ),
 
                     // Messaggio di errore del provider
                     if (authProvider.errorMessage != null)
@@ -135,7 +171,10 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                         child: Text(
                           authProvider.errorMessage!,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
 
@@ -148,64 +187,101 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
                         onPressed: authProvider.isLoading
                             ? null
                             : () async {
-                          final navigator = Navigator.of(context);
-                          final messenger = ScaffoldMessenger.of(context);
-                          final phone = _phoneController.text.trim().replaceAll(' ', '');
-                          final nome = _nameController.text.trim();
-                          final cognome = _surnameController.text.trim();
-                          final password = _passController.text;
+                                final navigator = Navigator.of(context);
+                                final messenger = ScaffoldMessenger.of(context);
+                                final phone = _phoneController.text
+                                    .trim()
+                                    .replaceAll(' ', '');
+                                final nome = _nameController.text.trim();
+                                final cognome = _surnameController.text.trim();
+                                final password = _passController.text;
 
-                          // Validazione base lato client
-                          if (phone.isEmpty || phone.length < 5) {
-                            messenger.showSnackBar(const SnackBar(content: Text("Inserisci un numero valido")));
-                            return;
-                          }
-                          if (nome.isEmpty || cognome.isEmpty) {
-                            messenger.showSnackBar(const SnackBar(content: Text("Nome e Cognome obbligatori")));
-                            return;
-                          }
-                          if (password != _repeatPassController.text) {
-                            messenger.showSnackBar(const SnackBar(content: Text("Le password non coincidono")));
-                            return;
-                          }
-                          if (password.isEmpty) {
-                            messenger.showSnackBar(const SnackBar(content: Text("Inserisci una password")));
-                            return;
-                          }
+                                // Validazione base lato client
+                                if (phone.isEmpty || phone.length < 5) {
+                                  messenger.showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        "Inserisci un numero valido",
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
+                                if (nome.isEmpty || cognome.isEmpty) {
+                                  messenger.showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        "Nome e Cognome obbligatori",
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
+                                if (password != _repeatPassController.text) {
+                                  messenger.showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        "Le password non coincidono",
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
+                                if (password.isEmpty) {
+                                  messenger.showSnackBar(
+                                    const SnackBar(
+                                      content: Text("Inserisci una password"),
+                                    ),
+                                  );
+                                  return;
+                                }
 
-                          // 1. Avvia l'autenticazione telefonica (che registra l'utente e invia l'OTP)
-                          bool success = await authProvider.startPhoneAuth(
-                              phone,
-                              password: password,
-                              nome: nome,
-                              cognome: cognome
-                          );
+                                // 1. Avvia l'autenticazione telefonica (che registra l'utente e invia l'OTP)
+                                bool success = await authProvider
+                                    .startPhoneAuth(
+                                      phone,
+                                      password: password,
+                                      nome: nome,
+                                      cognome: cognome,
+                                    );
 
-                          // 2. Navigazione in caso di successo
-                          if (success && mounted) {
-                            // Invia l'utente alla schermata di verifica OTP
-                            navigator.push(MaterialPageRoute(builder: (context) => const VerificationScreen()));
-                          }
-                        },
+                                // 2. Navigazione in caso di successo
+                                if (success && mounted) {
+                                  // Invia l'utente alla schermata di verifica OTP
+                                  navigator.push(
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const VerificationScreen(),
+                                    ),
+                                  );
+                                }
+                              },
 
                         // Stile del bottone
                         style: ElevatedButton.styleFrom(
                           backgroundColor: buttonColor,
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                          side: const BorderSide(color: Colors.white12, width: 1),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          side: const BorderSide(
+                            color: Colors.white12,
+                            width: 1,
+                          ),
                         ),
 
                         // Contenuto del bottone
                         child: authProvider.isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
                             : Text(
-                            "REGISTRATI",
-                            style: TextStyle(
-                                fontSize: referenceSize * 0.05,
-                                fontWeight: FontWeight.bold
-                            )
-                        ),
+                                "REGISTRATI",
+                                style: TextStyle(
+                                  fontSize: referenceSize * 0.05,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
                     SizedBox(height: verticalPadding),
@@ -220,7 +296,13 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
   }
 
   // Widget Helper per costruire i campi di testo
-  Widget _buildTextField(String hint, TextEditingController controller, {required bool isPassword, double contentVerticalPadding = 20, required double fontSize}) {
+  Widget _buildTextField(
+    String hint,
+    TextEditingController controller, {
+    required bool isPassword,
+    double contentVerticalPadding = 20,
+    required double fontSize,
+  }) {
     bool obscureText = isPassword ? !_isPasswordVisible : false;
 
     return TextField(
@@ -232,18 +314,24 @@ class _PhoneRegisterScreenState extends State<PhoneRegisterScreen> {
         fillColor: Colors.white,
         hintText: hint,
         hintStyle: TextStyle(color: Colors.grey, fontSize: fontSize),
-        contentPadding: EdgeInsets.symmetric(horizontal: 25, vertical: contentVerticalPadding),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: 25,
+          vertical: contentVerticalPadding,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
+        ),
 
         suffixIcon: isPassword
             ? IconButton(
-          icon: Icon(
-            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-            color: Colors.grey,
-            size: fontSize * 1.5,
-          ),
-          onPressed: _togglePasswordVisibility,
-        )
+                icon: Icon(
+                  _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  color: Colors.grey,
+                  size: fontSize * 1.5,
+                ),
+                onPressed: _togglePasswordVisibility,
+              )
             : null,
       ),
     );

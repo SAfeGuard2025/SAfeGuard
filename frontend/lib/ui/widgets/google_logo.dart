@@ -4,10 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 class ChromeLogoIcon extends StatelessWidget {
   final double size;
 
-  const ChromeLogoIcon({
-    super.key,
-    this.size = 100.0,
-  });
+  const ChromeLogoIcon({super.key, this.size = 100.0});
 
   @override
   Widget build(BuildContext context) {

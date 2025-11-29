@@ -32,7 +32,9 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
     final Size screenSize = MediaQuery.of(context).size;
     final double screenHeight = screenSize.height;
     final double screenWidth = screenSize.width;
-    final double referenceSize = screenHeight < screenWidth ? screenHeight : screenWidth;
+    final double referenceSize = screenHeight < screenWidth
+        ? screenHeight
+        : screenWidth;
 
     final double titleFontSize = referenceSize * 0.075;
     final double contentFontSize = referenceSize * 0.045;
@@ -76,7 +78,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
               child: SingleChildScrollView(
                 // 3. Aggiunta padding per spingere il contenuto su quando esce la tastiera
                 padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom + 20
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 20,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -97,21 +99,21 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
 
                     // Campo Email
                     _buildTextField(
-                        "Email",
-                        _emailController,
-                        isPassword: false,
-                        contentVerticalPadding: 16,
-                        fontSize: contentFontSize
+                      "Email",
+                      _emailController,
+                      isPassword: false,
+                      contentVerticalPadding: 16,
+                      fontSize: contentFontSize,
                     ),
                     SizedBox(height: smallSpacing),
 
                     // Campo Password
                     _buildTextField(
-                        "Password",
-                        _passController,
-                        isPassword: true,
-                        contentVerticalPadding: 16,
-                        fontSize: contentFontSize
+                      "Password",
+                      _passController,
+                      isPassword: true,
+                      contentVerticalPadding: 16,
+                      fontSize: contentFontSize,
                     ),
 
                     if (authProvider.errorMessage != null)
@@ -136,55 +138,74 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                         onPressed: authProvider.isLoading
                             ? null
                             : () async {
-                          final navigator = Navigator.of(context);
-                          final messenger = ScaffoldMessenger.of(context);
+                                final navigator = Navigator.of(context);
+                                final messenger = ScaffoldMessenger.of(context);
 
-                          if (_emailController.text.isEmpty || _passController.text.isEmpty) {
-                            messenger.showSnackBar(
-                              const SnackBar(content: Text("Inserisci email e password")),
-                            );
-                            return;
-                          }
+                                if (_emailController.text.isEmpty ||
+                                    _passController.text.isEmpty) {
+                                  messenger.showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        "Inserisci email e password",
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
 
-                          String result = await authProvider.login(
-                            _emailController.text.trim(),
-                            _passController.text,
-                          );
-                          // 2. Se il login ha successo, naviga alla Home e rimuove tutte le schermate precedenti
-                          if (result == 'success') {
-                            // Login OK -> Home
-                            navigator.pushAndRemoveUntil(
-                              MaterialPageRoute(builder: (context) => const HomeScreen()),
-                                  (route) => false,
-                            );
-                          } else if (result == 'verification_needed') {
-                            // Login Bloccato -> Verifica OTP
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Account non verificato. Inserisci il codice inviato via email.")),
-                            );
-                            navigator.push(
-                              MaterialPageRoute(builder: (context) => const VerificationScreen()),
-                            );
-                          }
-                        },
+                                String result = await authProvider.login(
+                                  _emailController.text.trim(),
+                                  _passController.text,
+                                );
+                                // 2. Se il login ha successo, naviga alla Home e rimuove tutte le schermate precedenti
+                                if (result == 'success') {
+                                  // Login OK -> Home
+                                  navigator.pushAndRemoveUntil(
+                                    MaterialPageRoute(
+                                      builder: (context) => const HomeScreen(),
+                                    ),
+                                    (route) => false,
+                                  );
+                                } else if (result == 'verification_needed') {
+                                  // Login Bloccato -> Verifica OTP
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        "Account non verificato. Inserisci il codice inviato via email.",
+                                      ),
+                                    ),
+                                  );
+                                  navigator.push(
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const VerificationScreen(),
+                                    ),
+                                  );
+                                }
+                              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: buttonColor,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                           ),
-                          side: const BorderSide(color: Colors.white12, width: 1),
-                        ),
-                        child: authProvider.isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : Text(
-                          "ACCEDI",
-                          style: TextStyle(
-                            fontSize: referenceSize * 0.07,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.0,
+                          side: const BorderSide(
+                            color: Colors.white12,
+                            width: 1,
                           ),
                         ),
+                        child: authProvider.isLoading
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                            : Text(
+                                "ACCEDI",
+                                style: TextStyle(
+                                  fontSize: referenceSize * 0.07,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
                       ),
                     ),
 
@@ -201,12 +222,12 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
 
   // Widget Helper per costruire i campi di testo
   Widget _buildTextField(
-      String hint,
-      TextEditingController controller, {
-        required bool isPassword,
-        double contentVerticalPadding = 20,
-        required double fontSize
-      }) {
+    String hint,
+    TextEditingController controller, {
+    required bool isPassword,
+    double contentVerticalPadding = 20,
+    required double fontSize,
+  }) {
     // Determina se il testo deve essere oscurato
     bool obscureText = isPassword ? !_isPasswordVisible : false;
 
@@ -233,13 +254,13 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
         // Icona per la visibilità della password
         suffixIcon: isPassword
             ? IconButton(
-          icon: Icon(
-            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-            color: Colors.grey,
-            size: fontSize * 1.5,
-          ),
-          onPressed: _togglePasswordVisibility,
-        )
+                icon: Icon(
+                  _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  color: Colors.grey,
+                  size: fontSize * 1.5,
+                ),
+                onPressed: _togglePasswordVisibility,
+              )
             : null,
       ),
     );

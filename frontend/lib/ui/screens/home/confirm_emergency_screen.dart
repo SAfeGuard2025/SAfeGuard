@@ -37,7 +37,6 @@ class ConfirmEmergencyScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-
               // 1. Immagine SOS
               Expanded(
                 flex: 4,
@@ -86,7 +85,9 @@ class ConfirmEmergencyScreen extends StatelessWidget {
                   height: isWideScreen ? 80 : 70,
                   onConfirm: () {
                     // Logica eseguita dopo lo swipe completato
-                    Navigator.of(context).pop(); // Chiude la schermata di conferma
+                    Navigator.of(
+                      context,
+                    ).pop(); // Chiude la schermata di conferma
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text("SOS INVIATO!"),

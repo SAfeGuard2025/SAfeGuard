@@ -40,7 +40,9 @@ class _GestioneModificaProfiloCittadinoState
     _cognomeController = TextEditingController(text: user?.cognome ?? "");
     _emailController = TextEditingController(text: user?.email ?? "");
     _telefonoController = TextEditingController(text: user?.telefono ?? "");
-    _indirizzoController = TextEditingController(text: user?.cittaDiNascita ?? "");
+    _indirizzoController = TextEditingController(
+      text: user?.cittaDiNascita ?? "",
+    );
   }
 
   @override
@@ -81,10 +83,12 @@ class _GestioneModificaProfiloCittadinoState
 
       // Notifica e navigazione
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Profilo aggiornato con successo!"), backgroundColor: Colors.green),
+        const SnackBar(
+          content: Text("Profilo aggiornato con successo!"),
+          backgroundColor: Colors.green,
+        ),
       );
       Navigator.pop(context);
-
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -104,9 +108,15 @@ class _GestioneModificaProfiloCittadinoState
 
     final isRescuer = context.watch<AuthProvider>().isRescuer;
 
-    Color bgColor = isRescuer ? ColorPalette.primaryOrange : ColorPalette.backgroundMidBlue;
-    Color cardColor = isRescuer ? ColorPalette.cardDarkOrange: ColorPalette.backgroundDarkBlue;
-    Color accentColor = isRescuer ? ColorPalette.backgroundMidBlue : ColorPalette.primaryOrange;
+    Color bgColor = isRescuer
+        ? ColorPalette.primaryOrange
+        : ColorPalette.backgroundMidBlue;
+    Color cardColor = isRescuer
+        ? ColorPalette.cardDarkOrange
+        : ColorPalette.backgroundDarkBlue;
+    Color accentColor = isRescuer
+        ? ColorPalette.backgroundMidBlue
+        : ColorPalette.primaryOrange;
     const Color iconColor = ColorPalette.iconAccentYellow;
 
     final double titleSize = isWideScreen ? 50 : 28;
@@ -124,7 +134,6 @@ class _GestioneModificaProfiloCittadinoState
             constraints: const BoxConstraints(maxWidth: 900),
             child: Column(
               children: [
-
                 // Header con bottone indietro e titolo
                 Padding(
                   padding: const EdgeInsets.symmetric(
@@ -173,49 +182,108 @@ class _GestioneModificaProfiloCittadinoState
                           decoration: BoxDecoration(
                             color: cardColor,
                             borderRadius: BorderRadius.circular(25.0),
-                            boxShadow: isWideScreen ? [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.2),
-                                blurRadius: 10,
-                                offset: const Offset(0, 5),
-                              )
-                            ] : [],
+                            boxShadow: isWideScreen
+                                ? [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.2,
+                                      ),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 5),
+                                    ),
+                                  ]
+                                : [],
                           ),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-
                               // Campi Nome e Cognome (affiancati su wide screen)
                               if (isWideScreen)
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Expanded(child: _buildField("Nome", _nomeController, labelSize: labelFontSize, inputSize: inputFontSize)),
+                                    Expanded(
+                                      child: _buildField(
+                                        "Nome",
+                                        _nomeController,
+                                        labelSize: labelFontSize,
+                                        inputSize: inputFontSize,
+                                      ),
+                                    ),
                                     const SizedBox(width: 30),
-                                    Expanded(child: _buildField("Cognome", _cognomeController, labelSize: labelFontSize, inputSize: inputFontSize)),
+                                    Expanded(
+                                      child: _buildField(
+                                        "Cognome",
+                                        _cognomeController,
+                                        labelSize: labelFontSize,
+                                        inputSize: inputFontSize,
+                                      ),
+                                    ),
                                   ],
                                 )
                               else ...[
-                                _buildField("Nome", _nomeController, labelSize: labelFontSize, inputSize: inputFontSize),
-                                _buildField("Cognome", _cognomeController, labelSize: labelFontSize, inputSize: inputFontSize),
+                                _buildField(
+                                  "Nome",
+                                  _nomeController,
+                                  labelSize: labelFontSize,
+                                  inputSize: inputFontSize,
+                                ),
+                                _buildField(
+                                  "Cognome",
+                                  _cognomeController,
+                                  labelSize: labelFontSize,
+                                  inputSize: inputFontSize,
+                                ),
                               ],
 
                               // Campo Email
-                              _buildField("Email", _emailController, isEmail: true, labelSize: labelFontSize, inputSize: inputFontSize),
+                              _buildField(
+                                "Email",
+                                _emailController,
+                                isEmail: true,
+                                labelSize: labelFontSize,
+                                inputSize: inputFontSize,
+                              ),
 
                               // Campi Telefono e Città (affiancati su wide screen)
                               if (isWideScreen)
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Expanded(child: _buildField("Telefono", _telefonoController, isPhone: true, labelSize: labelFontSize, inputSize: inputFontSize)),
+                                    Expanded(
+                                      child: _buildField(
+                                        "Telefono",
+                                        _telefonoController,
+                                        isPhone: true,
+                                        labelSize: labelFontSize,
+                                        inputSize: inputFontSize,
+                                      ),
+                                    ),
                                     const SizedBox(width: 30),
-                                    Expanded(child: _buildField("Città", _indirizzoController, labelSize: labelFontSize, inputSize: inputFontSize)),
+                                    Expanded(
+                                      child: _buildField(
+                                        "Città",
+                                        _indirizzoController,
+                                        labelSize: labelFontSize,
+                                        inputSize: inputFontSize,
+                                      ),
+                                    ),
                                   ],
                                 )
                               else ...[
-                                _buildField("Telefono", _telefonoController, isPhone: true, labelSize: labelFontSize, inputSize: inputFontSize),
-                                _buildField("Città", _indirizzoController, labelSize: labelFontSize, inputSize: inputFontSize),
+                                _buildField(
+                                  "Telefono",
+                                  _telefonoController,
+                                  isPhone: true,
+                                  labelSize: labelFontSize,
+                                  inputSize: inputFontSize,
+                                ),
+                                _buildField(
+                                  "Città",
+                                  _indirizzoController,
+                                  labelSize: labelFontSize,
+                                  inputSize: inputFontSize,
+                                ),
                               ],
 
                               const SizedBox(height: 40),
@@ -233,15 +301,17 @@ class _GestioneModificaProfiloCittadinoState
                                   ),
                                   onPressed: _isLoading ? null : _saveProfile,
                                   child: _isLoading
-                                      ? const CircularProgressIndicator(color: Colors.white)
+                                      ? const CircularProgressIndicator(
+                                          color: Colors.white,
+                                        )
                                       : Text(
-                                    "SALVA MODIFICHE",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: buttonFontSize,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                          "SALVA MODIFICHE",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: buttonFontSize,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
                                 ),
                               ),
                             ],
@@ -261,14 +331,14 @@ class _GestioneModificaProfiloCittadinoState
 
   // Widget Helper per i campi di input
   Widget _buildField(
-      String label,
-      TextEditingController controller, {
-        bool isEmail = false,
-        bool isPhone = false,
-        bool isReadOnly = false,
-        required double labelSize,
-        required double inputSize,
-      }) {
+    String label,
+    TextEditingController controller, {
+    bool isEmail = false,
+    bool isPhone = false,
+    bool isReadOnly = false,
+    required double labelSize,
+    required double inputSize,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20.0),
       child: Column(
@@ -292,8 +362,8 @@ class _GestioneModificaProfiloCittadinoState
                 ? TextInputType.emailAddress
                 : (isPhone ? TextInputType.phone : TextInputType.text),
             style: TextStyle(
-                color: isReadOnly ? Colors.white54 : Colors.white,
-                fontSize: inputSize
+              color: isReadOnly ? Colors.white54 : Colors.white,
+              fontSize: inputSize,
             ),
             decoration: InputDecoration(
               filled: true,

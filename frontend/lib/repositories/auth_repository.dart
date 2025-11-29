@@ -7,7 +7,6 @@ import 'package:http/http.dart' as http;
 // Repository: AuthRepository
 // Responsabile di tutte le chiamate API relative ad autenticazione, registrazione e verifica.
 class AuthRepository {
-
   // Metodo per determinare l'URL base del Backend in base alla piattaforma
   String get _baseUrl {
     String host = 'http://localhost';
@@ -18,7 +17,11 @@ class AuthRepository {
   }
 
   // Login tramite email o telefono
-  Future<Map<String, dynamic>> login({String? email, String? phone, required String password}) async {
+  Future<Map<String, dynamic>> login({
+    String? email,
+    String? phone,
+    required String password,
+  }) async {
     final url = Uri.parse('$_baseUrl/api/auth/login');
 
     // Costruisce il body dinamicamente in base ai dati forniti
@@ -40,7 +43,8 @@ class AuthRepository {
 
       if (response.statusCode == 200) {
         return responseBody;
-      } else if (response.statusCode == 403 && responseBody['error'] == 'USER_NOT_VERIFIED') {
+      } else if (response.statusCode == 403 &&
+          responseBody['error'] == 'USER_NOT_VERIFIED') {
         // Ritorniamo la mappa con l'errore specifico invece di lanciare un'eccezione generica
         return responseBody;
       } else {
@@ -52,7 +56,12 @@ class AuthRepository {
   }
 
   // Registrazione con email o telefono
-  Future<void> register(String identifier, String password, String nome, String cognome) async {
+  Future<void> register(
+    String identifier,
+    String password,
+    String nome,
+    String cognome,
+  ) async {
     final url = Uri.parse('$_baseUrl/api/auth/register');
 
     // Tenta di determinare se l'identificatore è un numero di telefono (inizia con + o cifre)
@@ -88,7 +97,12 @@ class AuthRepository {
   }
 
   // Invio OTP Telefono
-  Future<void> sendPhoneOtp(String phoneNumber, {String? password, String? nome, String? cognome}) async {
+  Future<void> sendPhoneOtp(
+    String phoneNumber, {
+    String? password,
+    String? nome,
+    String? cognome,
+  }) async {
     final url = Uri.parse('$_baseUrl/api/auth/register');
     try {
       final Map<String, dynamic> body = {
@@ -119,7 +133,11 @@ class AuthRepository {
 
   // Verifica OTP
   // Verifica per email o telefono. Restituisce token se login completato.
-  Future<Map<String, dynamic>> verifyOtp({String? email, String? phone, required String code}) async {
+  Future<Map<String, dynamic>> verifyOtp({
+    String? email,
+    String? phone,
+    required String code,
+  }) async {
     final url = Uri.parse('$_baseUrl/api/verify');
     final Map<String, dynamic> requestBody = {'code': code};
     if (email != null) requestBody['email'] = email;
@@ -149,19 +167,21 @@ class AuthRepository {
 
     try {
       final response = await http.post(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'id_token': idToken}), // Invia l'ID Token Google al backend
-    );
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'id_token': idToken,
+        }), // Invia l'ID Token Google al backend
+      );
 
-    final Map<String, dynamic> body = jsonDecode(response.body);
-    if (response.statusCode == 200) {
-    return body;
-    } else {
-    throw Exception(body['message'] ?? "Errore login Google");
-    }
+      final Map<String, dynamic> body = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return body;
+      } else {
+        throw Exception(body['message'] ?? "Errore login Google");
+      }
     } catch (e) {
-    throw Exception("Errore connessione: $e");
+      throw Exception("Errore connessione: $e");
     }
   }
 
@@ -176,24 +196,24 @@ class AuthRepository {
 
     try {
       final response = await http.post(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-      'identityToken': identityToken, // Token di identità Apple
-      'email': email,
-      'givenName': firstName,
-      'familyName': lastName,
-      }),
-    );
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'identityToken': identityToken, // Token di identità Apple
+          'email': email,
+          'givenName': firstName,
+          'familyName': lastName,
+        }),
+      );
 
-    final Map<String, dynamic> body = jsonDecode(response.body);
-    if (response.statusCode == 200) {
-    return body;
-    } else {
-    throw Exception(body['message'] ?? "Errore login Apple");
-    }
+      final Map<String, dynamic> body = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return body;
+      } else {
+        throw Exception(body['message'] ?? "Errore login Apple");
+      }
     } catch (e) {
-    throw Exception("Errore connessione: $e");
+      throw Exception("Errore connessione: $e");
     }
   }
 }

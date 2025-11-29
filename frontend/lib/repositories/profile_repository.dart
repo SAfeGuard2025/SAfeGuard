@@ -14,7 +14,6 @@ import 'package:flutter/foundation.dart';
 // ** Repository: ProfileRepository **
 // Classe che gestisce le chiamate API per la lettura e modifica del profilo utente.
 class ProfileRepository {
-
   // Metodo per determinare l'URL base del Backend in base alla piattaforma
   String get _baseUrl {
     String host = 'http://localhost';
@@ -142,7 +141,9 @@ class ProfileRepository {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: jsonEncode({'medicinale': farmaco}), // Invia il medicinale da rimuovere
+      body: jsonEncode({
+        'medicinale': farmaco,
+      }), // Invia il medicinale da rimuovere
     );
 
     if (response.statusCode != 200) {
@@ -184,7 +185,9 @@ class ProfileRepository {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: jsonEncode(contatto.toJson()), // Serializza l'oggetto ContattoEmergenza
+      body: jsonEncode(
+        contatto.toJson(),
+      ), // Serializza l'oggetto ContattoEmergenza
     );
 
     if (response.statusCode != 201) {
@@ -227,7 +230,9 @@ class ProfileRepository {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['condizioni'] != null) {
-        return Condizione.fromJson(data['condizioni']); // Deserializza l'oggetto nidificato
+        return Condizione.fromJson(
+          data['condizioni'],
+        ); // Deserializza l'oggetto nidificato
       }
       return Condizione(); // Ritorna l'oggetto di default se non trovato
     } else {
@@ -270,7 +275,9 @@ class ProfileRepository {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['permessi'] != null) {
-        return Permesso.fromJson(data['permessi']); // Deserializza l'oggetto nidificato
+        return Permesso.fromJson(
+          data['permessi'],
+        ); // Deserializza l'oggetto nidificato
       }
       return Permesso(); // Ritorna l'oggetto di default se non trovato
     } else {
@@ -313,7 +320,9 @@ class ProfileRepository {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['notifiche'] != null) {
-        return Notifica.fromJson(data['notifiche']); // Deserializza l'oggetto nidificato
+        return Notifica.fromJson(
+          data['notifiche'],
+        ); // Deserializza l'oggetto nidificato
       }
       return Notifica(); // Ritorna l'oggetto di default se non trovato
     } else {

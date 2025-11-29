@@ -11,11 +11,7 @@ class BubbleBackground extends StatelessWidget {
   final BubbleType type;
   final Widget? child;
 
-  const BubbleBackground({
-    super.key,
-    required this.type,
-    this.child,
-  });
+  const BubbleBackground({super.key, required this.type, this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -52,16 +48,27 @@ class _BubblePainter extends CustomPainter {
     // Nota: Uso ColorPalette.backgroundDeepBlue come base, ma ne modifico
     // l'opacità o la luminosità per creare i livelli di profondità.
     final Color mainBlue = ColorPalette.backgroundDeepBlue;
-    final Color lighterBlue = Color(0xFF1E3A5F); // Un blu leggermente più chiaro per gli sfondi
-    final Color darkerBlue = Color(0xFF0D1B2A);  // Un blu quasi nero per il primo piano
+    final Color lighterBlue = Color(
+      0xFF1E3A5F,
+    ); // Un blu leggermente più chiaro per gli sfondi
+    final Color darkerBlue = Color(
+      0xFF0D1B2A,
+    ); // Un blu quasi nero per il primo piano
 
-    final Paint paintMain = Paint()..color = mainBlue..style = PaintingStyle.fill;
-    final Paint paintLight = Paint()..color = lighterBlue..style = PaintingStyle.fill;
-    final Paint paintDark = Paint()..color = darkerBlue..style = PaintingStyle.fill;
+    final Paint paintMain = Paint()
+      ..color = mainBlue
+      ..style = PaintingStyle.fill;
+    final Paint paintLight = Paint()
+      ..color = lighterBlue
+      ..style = PaintingStyle.fill;
+    final Paint paintDark = Paint()
+      ..color = darkerBlue
+      ..style = PaintingStyle.fill;
 
     // Vernice specifica per il Type 3 (bolle su sfondo scuro)
     final Paint paintType3Overlay = Paint()
-      ..color = Colors.white.withValues(alpha: 0.05) // Molto sottile
+      ..color = Colors.white
+          .withValues(alpha: 0.05) // Molto sottile
       ..style = PaintingStyle.fill;
 
     switch (type) {
@@ -79,7 +86,13 @@ class _BubblePainter extends CustomPainter {
 
   // REPLICA backgroundBubbles1.png (RegistrationScreen)
   // Una grande curva a destra, una grande a sinistra e una scura in basso.
-  void _drawType1(Canvas canvas, Paint paintMain, Paint paintDark, double w, double h) {
+  void _drawType1(
+    Canvas canvas,
+    Paint paintMain,
+    Paint paintDark,
+    double w,
+    double h,
+  ) {
     // 1. Grande cerchio sullo sfondo (destra)
     canvas.drawCircle(
       Offset(w * 0.8, h * 0.65), // Centro spostato in alto a destra
@@ -104,7 +117,14 @@ class _BubblePainter extends CustomPainter {
 
   // REPLICA backgroundBubbles2.png (LoginScreen)
   // Tre colline distinte.
-  void _drawType2(Canvas canvas, Paint paintMain, Paint paintLight, Paint paintDark, double w, double h) {
+  void _drawType2(
+    Canvas canvas,
+    Paint paintMain,
+    Paint paintLight,
+    Paint paintDark,
+    double w,
+    double h,
+  ) {
     // 1. Collina posteriore (Destra) - Quella più chiara/alta
     // Modifichiamo leggermente il colore per differenziarla
     canvas.drawCircle(
@@ -132,18 +152,10 @@ class _BubblePainter extends CustomPainter {
   // Sfondo scuro con archi sottili appena visibili.
   void _drawType3(Canvas canvas, Paint paintOverlay, double w, double h) {
     // Arco in alto a sinistra
-    canvas.drawCircle(
-      Offset(0, 0),
-      w * 0.7,
-      paintOverlay,
-    );
+    canvas.drawCircle(Offset(0, 0), w * 0.7, paintOverlay);
 
     // Arco in basso a destra
-    canvas.drawCircle(
-      Offset(w, h),
-      w * 0.8,
-      paintOverlay,
-    );
+    canvas.drawCircle(Offset(w, h), w * 0.8, paintOverlay);
   }
 
   @override

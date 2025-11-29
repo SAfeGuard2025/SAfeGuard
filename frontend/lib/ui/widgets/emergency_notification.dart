@@ -19,7 +19,7 @@ class _EmergencyNotification extends State<EmergencyNotification> {
     // 1. Controllo Stato Login
     // Utilizza watch per reagire al cambio di stato di login.
     final isLogged = context.watch<AuthProvider>().isLogged;
-    
+
     // Se non è loggato non mostro nulla
     if (!isLogged) {
       return const SizedBox.shrink();
@@ -30,7 +30,7 @@ class _EmergencyNotification extends State<EmergencyNotification> {
     final alert = context.watch<EmergencyProvider>().isSendingSos;
 
     // Se non c'è l'allerta, la notifica deve rimanere chiusa.
-    if(!alert){
+    if (!alert) {
       return const SizedBox.shrink();
     }
 
@@ -43,7 +43,9 @@ class _EmergencyNotification extends State<EmergencyNotification> {
 
     // Colori dinamici basati sul ruolo per il massimo contrasto:
     // Blu elettrico per il Soccorritore, Rosso vivo per il Cittadino (pericolo).
-    Color notificationColor = isRescuer ? ColorPalette.electricBlue : ColorPalette.primaryBrightRed;
+    Color notificationColor = isRescuer
+        ? ColorPalette.electricBlue
+        : ColorPalette.primaryBrightRed;
 
     // Icona fissa per coerenza visiva con la pagina degli avvisi.
     const emergencyIcon = Icons.notifications_none;
@@ -68,7 +70,6 @@ class _EmergencyNotification extends State<EmergencyNotification> {
             // Icona a sinistra
             const Icon(emergencyIcon, color: Colors.white, size: 36.0),
             SizedBox(width: 16.0), // spazio tra l'icona e il testo
-
             // Contenitore del testo
             Expanded(
               child: Column(

@@ -3,7 +3,7 @@ import 'package:frontend/ui/style/color_palette.dart';
 
 // Schermata Mappa
 // Widget placeholder per la visualizzazione della mappa e delle posizioni degli allarmi.
-class MapScreen extends StatefulWidget{
+class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
   @override
@@ -12,10 +12,9 @@ class MapScreen extends StatefulWidget{
 
 class _MapScreenState extends State<MapScreen> {
   @override
-  Widget build(BuildContext context)
-    {
-      return _buildMapPlaceholder();
-    }
+  Widget build(BuildContext context) {
+    return _buildMapPlaceholder();
+  }
 
   Widget _buildMapPlaceholder() {
     return Container(

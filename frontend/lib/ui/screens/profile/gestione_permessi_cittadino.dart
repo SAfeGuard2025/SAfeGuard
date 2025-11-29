@@ -15,7 +15,6 @@ class GestionePermessiCittadino extends StatefulWidget {
 }
 
 class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
-
   @override
   void initState() {
     super.initState();
@@ -32,9 +31,15 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
     final bool isWideScreen = size.width > 700;
 
     final isRescuer = context.watch<AuthProvider>().isRescuer;
-    Color cardColor = isRescuer ? ColorPalette.cardDarkOrange : ColorPalette.backgroundDarkBlue;
-    Color bgColor = isRescuer ? ColorPalette.primaryOrange : ColorPalette.backgroundMidBlue;
-    Color activeColor = isRescuer ? ColorPalette.backgroundMidBlue : ColorPalette.primaryOrange;
+    Color cardColor = isRescuer
+        ? ColorPalette.cardDarkOrange
+        : ColorPalette.backgroundDarkBlue;
+    Color bgColor = isRescuer
+        ? ColorPalette.primaryOrange
+        : ColorPalette.backgroundMidBlue;
+    Color activeColor = isRescuer
+        ? ColorPalette.backgroundMidBlue
+        : ColorPalette.primaryOrange;
 
     final double titleSize = isWideScreen ? 40 : 30;
     final double headerIconSize = isWideScreen ? 50 : 40;
@@ -90,91 +95,97 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
                     decoration: BoxDecoration(
                       color: cardColor,
                       borderRadius: BorderRadius.circular(25.0),
-                      boxShadow: isWideScreen ? [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        )
-                      ] : [],
+                      boxShadow: isWideScreen
+                          ? [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.2),
+                                blurRadius: 10,
+                                offset: const Offset(0, 5),
+                              ),
+                            ]
+                          : [],
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(20.0),
                       // Consumer: Ascolta i cambiamenti nel PermissionProvider
                       child: Consumer<PermissionProvider>(
                         builder: (context, provider, child) {
-
                           if (provider.isLoading) {
-                            return const Center(child: CircularProgressIndicator(color: Colors.white));
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                              ),
+                            );
                           }
 
                           if (provider.errorMessage != null) {
                             return Center(
-                                child: Text(
-                                    "Errore: ${provider.errorMessage}",
-                                    style: const TextStyle(color: Colors.redAccent)
-                                )
+                              child: Text(
+                                "Errore: ${provider.errorMessage}",
+                                style: const TextStyle(color: Colors.redAccent),
+                              ),
                             );
                           }
 
-                          final permessi = provider.permessi; // Oggetto Permessi corrente
+                          final permessi =
+                              provider.permessi; // Oggetto Permessi corrente
 
                           return ListView(
                             physics: const BouncingScrollPhysics(),
                             children: [
                               // Switch 1: Accesso alla Posizione
                               _buildSwitchItem(
-                                  "Accesso alla posizione",
-                                  permessi.posizione,
-                                      (val) {
-                                    provider.updatePermessi(
-                                        permessi.copyWith(posizione: val)
-                                    );
-                                  },
-                                  activeColor,
-                                  isWideScreen
+                                "Accesso alla posizione",
+                                permessi.posizione,
+                                (val) {
+                                  provider.updatePermessi(
+                                    permessi.copyWith(posizione: val),
+                                  );
+                                },
+                                activeColor,
+                                isWideScreen,
                               ),
                               const SizedBox(height: 20),
 
                               // Switch 2: Accesso ai Contatti
                               _buildSwitchItem(
-                                  "Accesso ai contatti",
-                                  permessi.contatti,
-                                      (val) {
-                                    provider.updatePermessi(
-                                        permessi.copyWith(contatti: val)
-                                    );
-                                  },
-                                  activeColor,
-                                  isWideScreen
+                                "Accesso ai contatti",
+                                permessi.contatti,
+                                (val) {
+                                  provider.updatePermessi(
+                                    permessi.copyWith(contatti: val),
+                                  );
+                                },
+                                activeColor,
+                                isWideScreen,
                               ),
                               const SizedBox(height: 20),
 
                               // Switch 3: Notifiche di Sistema
                               _buildSwitchItem(
-                                  "Notifiche di sistema",
-                                  permessi.notificheSistema,
-                                      (val) {
-                                    provider.updatePermessi(
-                                        permessi.copyWith(notificheSistema: val)
-                                    );
-                                  },
-                                  activeColor,
-                                  isWideScreen
+                                "Notifiche di sistema",
+                                permessi.notificheSistema,
+                                (val) {
+                                  provider.updatePermessi(
+                                    permessi.copyWith(notificheSistema: val),
+                                  );
+                                },
+                                activeColor,
+                                isWideScreen,
                               ),
                               const SizedBox(height: 20),
 
                               // Switch 4: Accesso al Bluetooth
                               _buildSwitchItem(
-                                  "Accesso al Bluetooth",
-                                  permessi.bluetooth,
-                                      (val) {
-                                    provider.updatePermessi(
-                                        permessi.copyWith(bluetooth: val)
-                                    );
-                                  },
-                                  activeColor,
-                                  isWideScreen
+                                "Accesso al Bluetooth",
+                                permessi.bluetooth,
+                                (val) {
+                                  provider.updatePermessi(
+                                    permessi.copyWith(bluetooth: val),
+                                  );
+                                },
+                                activeColor,
+                                isWideScreen,
                               ),
                             ],
                           );
@@ -194,12 +205,12 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
 
   // Widget Helper: Elemento Switch per la lista
   Widget _buildSwitchItem(
-      String title,
-      bool value,
-      Function(bool) onChanged,
-      Color activeColor,
-      bool isWideScreen,
-      ) {
+    String title,
+    bool value,
+    Function(bool) onChanged,
+    Color activeColor,
+    bool isWideScreen,
+  ) {
     final double labelSize = isWideScreen ? 22 : 18;
 
     return Row(

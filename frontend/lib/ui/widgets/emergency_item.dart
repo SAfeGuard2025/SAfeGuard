@@ -52,7 +52,8 @@ class _EmergencyDropdownMenuState extends State<EmergencyDropdownMenu> {
       _overlayEntry = null;
     } else {
       // Apertura del menu
-      final RenderBox renderBox = _buttonKey.currentContext!.findRenderObject() as RenderBox;
+      final RenderBox renderBox =
+          _buttonKey.currentContext!.findRenderObject() as RenderBox;
       // Posizione globale e dimensione del pulsante attuale
       final Offset offset = renderBox.localToGlobal(Offset.zero);
       final size = renderBox.size;
@@ -60,7 +61,8 @@ class _EmergencyDropdownMenuState extends State<EmergencyDropdownMenu> {
       // Calcola l'altezza necessaria per tutti gli elementi e l'intestazione fissa
       final double itemsTotalHeight = _itemHeight * widget.items.length;
       const double safetyMargin = 30.0;
-      final double menuHeight = itemsTotalHeight + _fixedButtonHeight + safetyMargin;
+      final double menuHeight =
+          itemsTotalHeight + _fixedButtonHeight + safetyMargin;
 
       // Crea e inserisce l'OverlayEntry
       _overlayEntry = _createOverlayEntry(offset, size, menuHeight);
@@ -73,7 +75,11 @@ class _EmergencyDropdownMenuState extends State<EmergencyDropdownMenu> {
   }
 
   // Costruzione dell'OverlayEntry
-  OverlayEntry _createOverlayEntry(Offset offset, Size size, double menuHeight) {
+  OverlayEntry _createOverlayEntry(
+    Offset offset,
+    Size size,
+    double menuHeight,
+  ) {
     return OverlayEntry(
       builder: (context) {
         return Positioned(
@@ -109,7 +115,12 @@ class _EmergencyDropdownMenuState extends State<EmergencyDropdownMenu> {
           ),
         ],
       ),
-      padding: const EdgeInsets.only(top: 10.0, left: 16.0, right: 16.0, bottom: 16.0),
+      padding: const EdgeInsets.only(
+        top: 10.0,
+        left: 16.0,
+        right: 16.0,
+        bottom: 16.0,
+      ),
 
       child: Column(
         mainAxisSize: MainAxisSize.max,
@@ -124,13 +135,22 @@ class _EmergencyDropdownMenuState extends State<EmergencyDropdownMenu> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: ColorPalette.emergencyButtonRed,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
                 elevation: 0,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: const [
-                  Text("Emergenza specifica", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                  Text(
+                    "Emergenza specifica",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
                   Icon(Icons.arrow_forward_ios, color: Colors.white, size: 18),
                 ],
               ),
@@ -140,21 +160,34 @@ class _EmergencyDropdownMenuState extends State<EmergencyDropdownMenu> {
           const Divider(height: 1, color: Colors.grey),
 
           // Lista dinamica degli elementi
-          ...widget.items.map((item) => InkWell(
-            onTap: () {
-              widget.onSelected(item);
-              _toggleMenu(); // Chiudi il menu dopo la selezione
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Row(
-                children: [
-                  Expanded(child: Text(item.label, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500))),
-                  Icon(item.icon, size: 30, color: Colors.grey.shade700),
-                ],
-              ),
-            ),
-          )).toList().reversed, // Inversione per l'ordine visuale dal basso verso l'alto
+          ...widget.items
+              .map(
+                (item) => InkWell(
+                  onTap: () {
+                    widget.onSelected(item);
+                    _toggleMenu(); // Chiudi il menu dopo la selezione
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item.label,
+                            style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        Icon(item.icon, size: 30, color: Colors.grey.shade700),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+              .toList()
+              .reversed, // Inversione per l'ordine visuale dal basso verso l'alto
           const Spacer(),
         ],
       ),

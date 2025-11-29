@@ -24,7 +24,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
   // Controller e FocusNode
   final List<TextEditingController> _codeControllers = List.generate(
     6,
-        (_) => TextEditingController(),
+    (_) => TextEditingController(),
   );
   final List<FocusNode> _codeFocusNodes = List.generate(6, (_) => FocusNode());
 
@@ -49,7 +49,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
     final Size screenSize = MediaQuery.of(context).size;
     final double screenHeight = screenSize.height;
     final double screenWidth = screenSize.width;
-    final double referenceSize = screenHeight < screenWidth ? screenHeight : screenWidth;
+    final double referenceSize = screenHeight < screenWidth
+        ? screenHeight
+        : screenWidth;
     final double titleFontSize = referenceSize * 0.075;
     final double subtitleFontSize = referenceSize * 0.04;
     final double inputCodeFontSize = referenceSize * 0.06;
@@ -84,9 +86,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 return SingleChildScrollView(
                   // Gestione padding tastiera
                   padding: EdgeInsets.only(
-                      left: 20,
-                      right: 20,
-                      bottom: MediaQuery.of(context).viewInsets.bottom + 20
+                    left: 20,
+                    right: 20,
+                    bottom: MediaQuery.of(context).viewInsets.bottom + 20,
                   ),
                   // ConstrainedBox + IntrinsicHeight servono per far funzionare lo Spacer()
                   // all'interno di una SingleChildScrollView
@@ -102,7 +104,11 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
                           // Tasto Indietro
                           IconButton(
-                            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 30),
+                            icon: const Icon(
+                              Icons.arrow_back,
+                              color: Colors.white,
+                              size: 30,
+                            ),
                             onPressed: () => Navigator.pop(context),
                           ),
 
@@ -120,12 +126,19 @@ class _VerificationScreenState extends State<VerificationScreen> {
                           SizedBox(height: verticalSpacing),
                           Text(
                             "Abbiamo inviato un codice OTP.\nInseriscilo per verificare la tua identità.",
-                            style: TextStyle(color: textWhite, fontSize: subtitleFontSize, height: 1.5),
+                            style: TextStyle(
+                              color: textWhite,
+                              fontSize: subtitleFontSize,
+                              height: 1.5,
+                            ),
                           ),
                           SizedBox(height: largeSpacing),
 
                           // Griglia di input (6 Cifre)
-                          _buildVerificationCodeInput(context, inputCodeFontSize),
+                          _buildVerificationCodeInput(
+                            context,
+                            inputCodeFontSize,
+                          ),
 
                           // Messaggio di errore dal Provider
                           if (authProvider.errorMessage != null)
@@ -134,7 +147,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
                               child: Center(
                                 child: Text(
                                   authProvider.errorMessage!,
-                                  style: const TextStyle(color: Colors.redAccent, fontSize: 16),
+                                  style: const TextStyle(
+                                    color: Colors.redAccent,
+                                    fontSize: 16,
+                                  ),
                                   textAlign: TextAlign.center,
                                 ),
                               ),
@@ -151,38 +167,48 @@ class _VerificationScreenState extends State<VerificationScreen> {
                               onPressed: authProvider.isLoading
                                   ? null
                                   : () async {
-                                final code = _getVerificationCode();
-                                // Validazione lato client: codice completo a 6 cifre
-                                if (code.length < 6) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text("Inserisci il codice completo a 6 cifre"),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                  return;
-                                }
+                                      final code = _getVerificationCode();
+                                      // Validazione lato client: codice completo a 6 cifre
+                                      if (code.length < 6) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              "Inserisci il codice completo a 6 cifre",
+                                            ),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                        return;
+                                      }
 
-                                final navigator = Navigator.of(context);
-                                final messenger = ScaffoldMessenger.of(context);
+                                      final navigator = Navigator.of(context);
+                                      final messenger = ScaffoldMessenger.of(
+                                        context,
+                                      );
 
-                                // Chiamata al Provider per la verifica
-                                bool success = await authProvider.verifyCode(code);
+                                      // Chiamata al Provider per la verifica
+                                      bool success = await authProvider
+                                          .verifyCode(code);
 
-                                if (success && context.mounted) {
-                                  messenger.showSnackBar(
-                                    const SnackBar(content: Text("Verifica riuscita!")),
-                                  );
-                                  // Naviga alla schermata di Login/Home e rimuove tutte le schermate precedenti
-                                  navigator.pushAndRemoveUntil(
-                                    MaterialPageRoute(
-                                      // Dopo la verifica, l'utente accede o torna al Login
-                                      builder: (context) => const LoginScreen(),
-                                    ),
-                                        (route) => false,
-                                  );
-                                }
-                              },
+                                      if (success && context.mounted) {
+                                        messenger.showSnackBar(
+                                          const SnackBar(
+                                            content: Text("Verifica riuscita!"),
+                                          ),
+                                        );
+                                        // Naviga alla schermata di Login/Home e rimuove tutte le schermate precedenti
+                                        navigator.pushAndRemoveUntil(
+                                          MaterialPageRoute(
+                                            // Dopo la verifica, l'utente accede o torna al Login
+                                            builder: (context) =>
+                                                const LoginScreen(),
+                                          ),
+                                          (route) => false,
+                                        );
+                                      }
+                                    },
 
                               // Stile del bottone
                               style: ElevatedButton.styleFrom(
@@ -196,15 +222,17 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
                               // Contenuto del bottone
                               child: authProvider.isLoading
-                                  ? const CircularProgressIndicator(color: Colors.white)
+                                  ? const CircularProgressIndicator(
+                                      color: Colors.white,
+                                    )
                                   : Text(
-                                "VERIFICA",
-                                style: TextStyle(
-                                  fontSize: buttonFontSize,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.5,
-                                ),
-                              ),
+                                      "VERIFICA",
+                                      style: TextStyle(
+                                        fontSize: buttonFontSize,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1.5,
+                                      ),
+                                    ),
                             ),
                           ),
 
@@ -216,16 +244,26 @@ class _VerificationScreenState extends State<VerificationScreen> {
                               children: [
                                 Text(
                                   "Non hai ricevuto il codice?",
-                                  style: TextStyle(color: textWhite, fontSize: subtitleFontSize * 0.8),
+                                  style: TextStyle(
+                                    color: textWhite,
+                                    fontSize: subtitleFontSize * 0.8,
+                                  ),
                                 ),
                                 SizedBox(height: verticalSpacing / 4),
                                 GestureDetector(
                                   onTap: () {
                                     // Permetti il rinvio solo se il timer è a zero
                                     if (authProvider.secondsRemaining == 0) {
-                                      authProvider.resendOtp(); // Usato resendOtp del provider
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text("Nuovo codice inviato!")),
+                                      authProvider
+                                          .resendOtp(); // Usato resendOtp del provider
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            "Nuovo codice inviato!",
+                                          ),
+                                        ),
                                       );
                                       // Resetta i campi e il focus
                                       for (var c in _codeControllers) {
@@ -246,7 +284,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                       fontSize: subtitleFontSize * 0.8,
                                       fontStyle: FontStyle.italic,
                                       decoration: TextDecoration.underline,
-                                      decorationColor: authProvider.secondsRemaining == 0
+                                      decorationColor:
+                                          authProvider.secondsRemaining == 0
                                           ? textWhite
                                           : textWhite.withValues(alpha: 0.5),
                                     ),
@@ -271,26 +310,39 @@ class _VerificationScreenState extends State<VerificationScreen> {
   }
 
   // Widget Helper per la Griglia di input del Codice OTP
-  Widget _buildVerificationCodeInput(BuildContext context, double inputCodeFontSize) {
+  Widget _buildVerificationCodeInput(
+    BuildContext context,
+    double inputCodeFontSize,
+  ) {
     return Column(
       children: [
         // Prima riga
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: List.generate(3, (index) => _buildCodeBox(index, context, inputCodeFontSize)),
+          children: List.generate(
+            3,
+            (index) => _buildCodeBox(index, context, inputCodeFontSize),
+          ),
         ),
         SizedBox(height: MediaQuery.of(context).size.height * 0.02),
         // Seconda riga
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: List.generate(3, (index) => _buildCodeBox(index + 3, context, inputCodeFontSize)),
+          children: List.generate(
+            3,
+            (index) => _buildCodeBox(index + 3, context, inputCodeFontSize),
+          ),
         ),
       ],
     );
   }
 
   // Widget Helper per la singola Casella di input
-  Widget _buildCodeBox(int index, BuildContext context, double inputCodeFontSize) {
+  Widget _buildCodeBox(
+    int index,
+    BuildContext context,
+    double inputCodeFontSize,
+  ) {
     // Calcola la dimensione della casella per adattarsi allo schermo
     final boxSize = (MediaQuery.of(context).size.width - 40) / 7;
 
@@ -352,9 +404,13 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 if (value.length == 1) {
                   // Se viene inserita una cifra, sposta il focus in avanti
                   if (index < 5) {
-                    FocusScope.of(context).requestFocus(_codeFocusNodes[index + 1]);
+                    FocusScope.of(
+                      context,
+                    ).requestFocus(_codeFocusNodes[index + 1]);
                   } else {
-                    FocusScope.of(context).unfocus(); // Se è l'ultima casella, nasconde la tastiera
+                    FocusScope.of(
+                      context,
+                    ).unfocus(); // Se è l'ultima casella, nasconde la tastiera
                   }
                 }
               },

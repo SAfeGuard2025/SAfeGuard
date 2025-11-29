@@ -95,7 +95,10 @@ class AuthProvider extends ChangeNotifier {
   Future<String> login(String email, String password) async {
     _setLoading(true);
     try {
-      final response = await _authRepository.login(email: email, password: password);
+      final response = await _authRepository.login(
+        email: email,
+        password: password,
+      );
 
       // CASO 1: Login Successo
       if (response.containsKey('token')) {
@@ -117,7 +120,6 @@ class AuthProvider extends ChangeNotifier {
 
       _setLoading(false);
       return 'failed';
-
     } catch (e) {
       _errorMessage = _cleanError(e);
       _setLoading(false);
@@ -130,7 +132,10 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
     try {
       // Delega ad AuthRepository
-      final response = await _authRepository.login(phone: phone, password: password);
+      final response = await _authRepository.login(
+        phone: phone,
+        password: password,
+      );
 
       // CASO 1: Login avvenuto con successo (il token è presente)
       if (response.containsKey('token')) {
@@ -154,7 +159,6 @@ class AuthProvider extends ChangeNotifier {
       // Caso fallback
       _setLoading(false);
       return 'failed';
-
     } catch (e) {
       _errorMessage = _cleanError(e);
       _setLoading(false);
@@ -163,7 +167,12 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // Registrazione Email (Avvia l'invio OTP)
-  Future<bool> register(String email, String password, String nome, String cognome) async {
+  Future<bool> register(
+    String email,
+    String password,
+    String nome,
+    String cognome,
+  ) async {
     _setLoading(true);
     try {
       //Delega ad AuthRepository
@@ -187,11 +196,21 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // Registrazione Telefono (Avvia l'invio OTP)
-  Future<bool> startPhoneAuth(String phoneNumber, {String? password, String? nome, String? cognome}) async {
+  Future<bool> startPhoneAuth(
+    String phoneNumber, {
+    String? password,
+    String? nome,
+    String? cognome,
+  }) async {
     _setLoading(true);
     try {
       //Delega ad AuthRepository
-      await _authRepository.sendPhoneOtp(phoneNumber, password: password, nome: nome, cognome: cognome);
+      await _authRepository.sendPhoneOtp(
+        phoneNumber,
+        password: password,
+        nome: nome,
+        cognome: cognome,
+      );
 
       // Salva i dati temporanei per il reinvio/completamento verifica
       _tempPhone = phoneNumber;
@@ -235,8 +254,11 @@ class AuthProvider extends ChangeNotifier {
 
       // Pulizia stato temporaneo
       stopTimer();
-      _tempEmail = null; _tempPhone = null; _tempPassword = null;
-      _tempNome = null; _tempCognome = null;
+      _tempEmail = null;
+      _tempPhone = null;
+      _tempPassword = null;
+      _tempNome = null;
+      _tempCognome = null;
 
       _setLoading(false);
       return true;
@@ -252,18 +274,26 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
     try {
       // Logica per rinviare il codice basata sull'ultima modalità usata
-      if (_tempEmail != null && _tempPassword != null && _tempNome != null && _tempCognome != null) {
+      if (_tempEmail != null &&
+          _tempPassword != null &&
+          _tempNome != null &&
+          _tempCognome != null) {
         //Delega ad AuthRepository
-        await _authRepository.register(_tempEmail!, _tempPassword!, _tempNome!, _tempCognome!);
+        await _authRepository.register(
+          _tempEmail!,
+          _tempPassword!,
+          _tempNome!,
+          _tempCognome!,
+        );
         startTimer();
         _errorMessage = null;
       } else if (_tempPhone != null) {
         // Rinvia OTP Telefono
         await _authRepository.sendPhoneOtp(
-            _tempPhone!,
-            password: _tempPassword,
-            nome: _tempNome,
-            cognome: _tempCognome
+          _tempPhone!,
+          password: _tempPassword,
+          nome: _tempNome,
+          cognome: _tempCognome,
         );
         startTimer();
         _errorMessage = null;
@@ -313,10 +343,12 @@ class AuthProvider extends ChangeNotifier {
       }
 
       // 2. Ottiene l'ID Token necessario per l'autenticazione lato server
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final String? idToken = googleAuth.idToken;
 
-      if (idToken == null) throw Exception("Impossibile recuperare ID Token Google");
+      if (idToken == null)
+        throw Exception("Impossibile recuperare ID Token Google");
 
       // 3. Chiama il Backend inviando l'ID Token (Login/Registrazione Social)
       final response = await _authRepository.loginWithGoogle(idToken);
@@ -395,7 +427,12 @@ class AuthProvider extends ChangeNotifier {
 
   // Helper per aggiornare l'utente manualmente
   // Usato per aggiornare immediatamente la UI dopo un'azione
-  void updateUserLocally({String? nome, String? cognome, String? telefono, String? citta}) {
+  void updateUserLocally({
+    String? nome,
+    String? cognome,
+    String? telefono,
+    String? citta,
+  }) {
     if (_currentUser != null) {
       if (_currentUser is Utente) {
         final oldUser = _currentUser as Utente;

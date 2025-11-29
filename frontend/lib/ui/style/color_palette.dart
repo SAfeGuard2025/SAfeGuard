@@ -34,7 +34,6 @@ class ColorPalette {
 
   static const Color gradientDeepBlue = Color.fromARGB(255, 10, 30, 50);
 
-
   // Arancioni (Tema Soccorritore & Accent)
 
   /// Arancione primario vivace. (Nota: Unificato 0xFFEF923D e 0xFFEF932D).
@@ -52,7 +51,6 @@ class ColorPalette {
   /// Marrone/Arancione scuro per Navigation Bar del Soccorritore.
   static const Color navBarRescuerBackground = Color(0xFF995618);
 
-
   // Rossi (Emergenza & Cancellazione)
 
   /// Rosso acceso (Puro). Bottone SOS.
@@ -69,7 +67,6 @@ class ColorPalette {
 
   /// Rosso scuro per il bottone SOS
   static const Color sosDarkRed = Color(0xFFB71C1C);
-
 
   // Varie (Gialli, Ciani)
 

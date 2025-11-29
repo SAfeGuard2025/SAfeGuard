@@ -46,11 +46,18 @@ class _AllergieScreenState extends State<AllergieScreen> {
           children: [
             // Header con bottone indietro
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 10.0,
+              ),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 28),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -67,7 +74,10 @@ class _AllergieScreenState extends State<AllergieScreen> {
                   borderRadius: BorderRadius.circular(25.0),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 10.0,
+                    horizontal: 5.0,
+                  ),
 
                   // Consumer: Ascolta i cambiamenti nel MedicalProvider
                   child: Consumer<MedicalProvider>(
@@ -78,12 +88,20 @@ class _AllergieScreenState extends State<AllergieScreen> {
                       }
                       // Lista vuota
                       if (provider.allergie.isEmpty) {
-                        return const Center(child: Text("Nessuna allergia", style: TextStyle(color: Colors.white)));
+                        return const Center(
+                          child: Text(
+                            "Nessuna allergia",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        );
                       }
 
                       // Lista delle allergie
                       return ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 15.0,
+                          vertical: 10.0,
+                        ),
                         itemCount: provider.allergie.length,
                         separatorBuilder: (context, index) => Divider(
                           color: Colors.white.withValues(alpha: 0.1),
@@ -113,9 +131,14 @@ class _AllergieScreenState extends State<AllergieScreen> {
 
             // Bottone "Aggiungi un'allergia"
             Padding(
-              padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 30.0),
+              padding: const EdgeInsets.only(
+                left: 20.0,
+                right: 20.0,
+                bottom: 30.0,
+              ),
               child: InkWell(
-                onTap: () => _openDialog(isEdit: false), // Apre il dialog per l'aggiunta
+                onTap: () =>
+                    _openDialog(isEdit: false), // Apre il dialog per l'aggiunta
                 child: Container(
                   height: 60,
                   padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -126,8 +149,19 @@ class _AllergieScreenState extends State<AllergieScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text("Aggiungi un’allergia", style: TextStyle(color: Colors.white70, fontSize: 18, fontWeight: FontWeight.bold)),
-                      Icon(Icons.add_circle_outline, color: Colors.greenAccent[400], size: 32),
+                      const Text(
+                        "Aggiungi un’allergia",
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Icon(
+                        Icons.add_circle_outline,
+                        color: Colors.greenAccent[400],
+                        size: 32,
+                      ),
                     ],
                   ),
                 ),
@@ -185,22 +219,32 @@ class _AllergieScreenState extends State<AllergieScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: ColorPalette.backgroundDarkBlue,
-          title: const Text("Nuova allergia", style: TextStyle(color: Colors.white)),
+          title: const Text(
+            "Nuova allergia",
+            style: TextStyle(color: Colors.white),
+          ),
           content: TextField(
             controller: _textController,
             style: const TextStyle(color: Colors.white),
             decoration: const InputDecoration(
               hintText: "Inserisci nome...",
               hintStyle: TextStyle(color: Colors.white54),
-              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
-              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.orange)),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.orange),
+              ),
             ),
           ),
           actions: [
             // Pulsante Annulla
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Annulla", style: TextStyle(color: Colors.white70)),
+              child: const Text(
+                "Annulla",
+                style: TextStyle(color: Colors.white70),
+              ),
             ),
             // Pulsante Salva
             ElevatedButton(
@@ -208,8 +252,10 @@ class _AllergieScreenState extends State<AllergieScreen> {
               onPressed: () async {
                 if (_textController.text.isNotEmpty) {
                   // Chiama il provider per aggiungere la nuova allergia
-                  final success = await Provider.of<MedicalProvider>(context, listen: false)
-                      .addAllergia(_textController.text);
+                  final success = await Provider.of<MedicalProvider>(
+                    context,
+                    listen: false,
+                  ).addAllergia(_textController.text);
 
                   // Se l'operazione ha successo e il contesto è ancora valido, chiude il dialog
                   if (success && context.mounted) {
