@@ -14,7 +14,7 @@ class ConfirmEmergencyScreen extends StatelessWidget {
     final double screenWidth = size.width;
     final bool isWideScreen = screenWidth > 600;
 
-    // --- DIMENSIONI FONT DINAMICHE ---
+    // Dimensione dei font dinamiche
     final double titleSize = isWideScreen ? 60 : 45;
     final double subTitleSize = isWideScreen ? 26 : 20;
 
@@ -37,7 +37,7 @@ class ConfirmEmergencyScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
 
-              // 1. IMMAGINE SOS
+              // 1. Immagine SOS
               Expanded(
                 flex: 4,
                 child: Center(
@@ -48,7 +48,9 @@ class ConfirmEmergencyScreen extends StatelessWidget {
                 ),
               ),
 
-              // 2. TESTI
+              SizedBox(height: isWideScreen ? 40 : 20),
+
+              // 2. Testi
               Column(
                 children: [
                   Text(
@@ -57,26 +59,26 @@ class ConfirmEmergencyScreen extends StatelessWidget {
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: titleSize, // Dinamico
+                      fontSize: titleSize,
                       height: 1.0,
                     ),
                   ),
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 50),
                   Text(
                     "Swipe per mandare la tua \nposizione e allertare i soccorritori",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: subTitleSize, // Dinamico
+                      fontSize: subTitleSize,
                     ),
                   ),
                 ],
               ),
 
-              const Spacer(flex: 1),
+              const SizedBox(height: 50),
 
-              // 3. SLIDER
+              // 3. Slider
               Center(
                 child: SwipeToConfirm(
                   width: sliderWidth,
@@ -95,7 +97,7 @@ class ConfirmEmergencyScreen extends StatelessWidget {
 
               const Spacer(flex: 1),
 
-              // 4. FOOTER (Reso Responsive)
+              // 4. Footer
               Column(
                 children: [
                   Text(
@@ -104,7 +106,7 @@ class ConfirmEmergencyScreen extends StatelessWidget {
                     style: TextStyle(
                       color: Colors.white70,
                       fontStyle: FontStyle.italic,
-                      fontSize: legalTextSize, // <--- ORA È DINAMICO
+                      fontSize: legalTextSize,
                     ),
                   ),
                   const SizedBox(height: 15),
@@ -115,7 +117,7 @@ class ConfirmEmergencyScreen extends StatelessWidget {
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: cancelTextSize, // <--- ORA È DINAMICO
+                        fontSize: cancelTextSize,
                         decoration: TextDecoration.underline,
                         decorationColor: Colors.white,
                       ),
