@@ -210,6 +210,13 @@ class ProfileController {
         );
       }
 
+      if (numero.length > 15) {
+        return _jsonResponse(
+          400,
+          body: {'error': 'Il numero è troppo lungo (massimo 15 cifre)'},
+        );
+      }
+
       body['numero'] = numero;
 
       final contatto = ContattoEmergenza.fromJson(body);

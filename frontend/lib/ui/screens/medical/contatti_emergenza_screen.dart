@@ -253,6 +253,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
                 keyboardType: TextInputType.phone,
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
+                  LengthLimitingTextInputFormatter(15),
                 ],
                 style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
