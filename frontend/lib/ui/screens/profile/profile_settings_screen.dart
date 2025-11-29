@@ -22,11 +22,13 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   // Funzione di logout
   void _handleLogout(BuildContext context) async {
+    // Ottiene l'istanza di AuthProvider
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     try {
       await authProvider.logout();
       if (context.mounted) {
+        // Naviga alla schermata di Login e rimuove tutte le schermate precedenti
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const LoginScreen()),
               (Route<dynamic> route) => false,
@@ -41,22 +43,23 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     }
   }
 
+  // Funzione helper per la navigazione
   void _navigateTo(BuildContext context, Widget page) {
     Navigator.push(context, MaterialPageRoute(builder: (context) => page));
   }
 
   @override
   Widget build(BuildContext context) {
-    // Ottiene lo stato isRescuer dal Provider
+    // Ottiene lo stato e i dati utente dal Provider
     final provider = context.watch<AuthProvider>();
     final isRescuer = provider.isRescuer;
 
-    // Recupero dati utente
     final user = provider.currentUser;
     final String nomeCompleto = (user?.nome != null && user?.cognome != null)
         ? "${user!.nome} ${user.cognome}"
         : "Utente";
 
+    // Logica responsive e color palette basata sul ruolo dell'utente
     final kCardColor = isRescuer ? ColorPalette.cardDarkOrange : ColorPalette.backgroundMidBlue;
     final kBackgroundColor = isRescuer ? ColorPalette.primaryOrange : ColorPalette.backgroundDarkBlue;
     final Color kAccentOrange = !isRescuer ? ColorPalette.primaryOrange : ColorPalette.backgroundDarkBlue;
@@ -66,6 +69,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
     // Crea la lista delle card dinamicamente
     List<Widget> settingCards = [
+      // 1. Notifiche
       _buildSettingCard(
         "Notifiche",
         "Gestione Notifiche",
@@ -75,6 +79,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             () => _navigateTo(context, const GestioneNotificheCittadino()),
         isWideScreen,
       ),
+      // 2. Cartella Clinica (Visibile solo per il Cittadino)
       if (!isRescuer)
         _buildSettingCard(
           "Cartella clinica",
@@ -85,6 +90,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               () => _navigateTo(context, const GestioneCartellaClinicaCittadino()),
           isWideScreen,
         ),
+      // 3. Permessi
       _buildSettingCard(
         "Permessi",
         "Gestione Permessi",
@@ -94,6 +100,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             () => _navigateTo(context, const GestionePermessiCittadino()),
         isWideScreen,
       ),
+      // 4. Modifica Profilo
       _buildSettingCard(
         "Modifica Profilo",
         "Modifica Profilo",
@@ -107,6 +114,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
     return Scaffold(
       backgroundColor: kBackgroundColor,
+      // AppBar personalizzata
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: kBackgroundColor,
@@ -130,11 +138,12 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             child: Column(
               children: [
 
-                // Header
+                // Header Utente (Avatar e Nome)
                 Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Row(
                     children: [
+                      // Avatar circolare con immagine adattiva al ruolo
                       CircleAvatar(
                         radius: isWideScreen ? 60 : 45,
                         backgroundColor: kAccentOrange,
@@ -156,6 +165,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
+                            // Nome completo utente
                             Text(
                               nomeCompleto,
                               overflow: TextOverflow.ellipsis,
@@ -183,6 +193,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         children: [
                           const SizedBox(height: 10),
 
+                          // Sottotitolo Impostazioni
                           Text(
                             "Impostazioni",
                             style: TextStyle(
@@ -192,6 +203,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                             ),
                           ),
                           const SizedBox(height: 15),
+
+                          // Card Impostazioni (scorrimento orizzontale)
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: Row(
@@ -206,7 +219,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
                           const SizedBox(height: 30),
 
-                          // Lista richieste
+                          // Sezione "Richieste di aiuto"
                           Container(
                             padding: const EdgeInsets.all(20),
                             width: double.infinity,
@@ -261,6 +274,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     );
   }
 
+  // Widget Helper: Card per le Impostazioni
   Widget _buildSettingCard(
       String title,
       String subtitle,
@@ -297,8 +311,10 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Icona
             Icon(icon, size: iconSize, color: iconColor),
             const Spacer(),
+            // Titolo
             Text(
               title,
               style: TextStyle(
@@ -308,6 +324,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               ),
             ),
             const SizedBox(height: 5),
+            // Sottotitolo
             Text(
               subtitle,
               maxLines: 2,

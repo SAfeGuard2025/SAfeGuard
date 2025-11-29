@@ -4,6 +4,8 @@ import 'package:frontend/providers/notification_provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Schermata Gestione Notifiche Cittadino
+// Permette all'utente di impostare le proprie preferenze di ricezione delle notifiche.
 class GestioneNotificheCittadino extends StatefulWidget {
   const GestioneNotificheCittadino({super.key});
 
@@ -16,7 +18,7 @@ class _GestioneNotificheState extends State<GestioneNotificheCittadino> {
   @override
   void initState() {
     super.initState();
-    // Carica i dati reali dal server all'avvio della schermata
+    // Carica le preferenze di notifica dal server all'avvio della schermata
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<NotificationProvider>(context, listen: false).loadNotifiche();
     });
@@ -24,7 +26,7 @@ class _GestioneNotificheState extends State<GestioneNotificheCittadino> {
 
   @override
   Widget build(BuildContext context) {
-    //Logica responsive
+    // Logica responsive e color palette basata sul ruolo dell'utente
     final size = MediaQuery.of(context).size;
     final bool isWideScreen = size.width > 700;
 
@@ -44,7 +46,7 @@ class _GestioneNotificheState extends State<GestioneNotificheCittadino> {
             constraints: const BoxConstraints(maxWidth: 800),
             child: Column(
               children: [
-                // Header
+                // Header con bottone indietro e titolo
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16.0,
@@ -80,7 +82,7 @@ class _GestioneNotificheState extends State<GestioneNotificheCittadino> {
                   ),
                 ),
 
-                // Lista switch
+                // Lista switch per le preferenze di notifica
                 Expanded(
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -97,6 +99,7 @@ class _GestioneNotificheState extends State<GestioneNotificheCittadino> {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(20.0),
+                      // Consumer: Ascolta i cambiamenti nel NotificationProvider
                       child: Consumer<NotificationProvider>(
                         builder: (context, provider, child) {
 
@@ -113,11 +116,12 @@ class _GestioneNotificheState extends State<GestioneNotificheCittadino> {
                             );
                           }
 
-                          final notif = provider.notifiche;
+                          final notif = provider.notifiche; // Oggetto Notifiche corrente
 
                           return ListView(
                             physics: const BouncingScrollPhysics(),
                             children: [
+                              // Switch 1: Notifiche Push
                               _buildSwitchItem(
                                 "Notifiche Push",
                                 notif.push,
@@ -129,6 +133,7 @@ class _GestioneNotificheState extends State<GestioneNotificheCittadino> {
                               ),
                               const SizedBox(height: 20),
 
+                              // Switch 2: Notifiche SMS
                               _buildSwitchItem(
                                 "Notifiche SMS",
                                 notif.sms,
@@ -140,6 +145,7 @@ class _GestioneNotificheState extends State<GestioneNotificheCittadino> {
                               ),
                               const SizedBox(height: 20),
 
+                              // Switch 3: Notifiche E-mail
                               _buildSwitchItem(
                                 "Notifiche E-mail",
                                 notif.mail,
@@ -151,6 +157,7 @@ class _GestioneNotificheState extends State<GestioneNotificheCittadino> {
                               ),
                               const SizedBox(height: 20),
 
+                              // Switch 4: Silenzia tutto
                               _buildSwitchItem(
                                 "Silenzia tutto",
                                 notif.silenzia,
@@ -162,6 +169,7 @@ class _GestioneNotificheState extends State<GestioneNotificheCittadino> {
                               ),
                               const SizedBox(height: 20),
 
+                              // Switch 5: Aggiornamenti App
                               _buildSwitchItem(
                                 "Aggiornamenti App",
                                 notif.aggiornamenti,
@@ -187,6 +195,7 @@ class _GestioneNotificheState extends State<GestioneNotificheCittadino> {
     );
   }
 
+  // Widget Helper: Elemento Switch per la lista
   Widget _buildSwitchItem(
       String title,
       bool value,
@@ -213,7 +222,7 @@ class _GestioneNotificheState extends State<GestioneNotificheCittadino> {
           scale: isWideScreen ? 1.3 : 1.1,
           child: Switch(
             value: value,
-            onChanged: onChanged,
+            onChanged: onChanged, // Callback che aggiorna il provider
             activeThumbColor: activeColor,
             activeTrackColor: Colors.white.withValues(alpha: 0.3),
             inactiveThumbColor: Colors.grey.shade300,

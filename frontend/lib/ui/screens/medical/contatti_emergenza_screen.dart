@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-// Import modello ufficiale e provider
 import 'package:data_models/ContattoEmergenza.dart';
 import 'package:frontend/providers/medical_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Schermata Gestione Contatti di Emergenza
+// Permette all'utente di visualizzare, aggiungere e rimuovere contatti di emergenza.
 class ContattiEmergenzaScreen extends StatefulWidget {
   const ContattiEmergenzaScreen({super.key});
   @override
@@ -13,13 +14,14 @@ class ContattiEmergenzaScreen extends StatefulWidget {
 }
 
 class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
+  // Controller per i campi di testo nel dialog
   final TextEditingController _numberController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // Carica i dati dal server all'avvio
+    // Carica i dati dei contatti dal server all'avvio
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<MedicalProvider>(context, listen: false).loadContacts();
     });
@@ -44,7 +46,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header
+            // Header con bottone indietro-
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
               child: Row(
@@ -57,7 +59,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
               ),
             ),
 
-            // Titolo
+            // Titolo e Icona
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
@@ -87,7 +89,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
             ),
             const SizedBox(height: 30),
 
-            // Lista collegata al provider
+            // Lista dei Contatti
             Expanded(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -97,6 +99,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
+                  // Consumer: ascolta i cambiamenti nella lista contatti
                   child: Consumer<MedicalProvider>(
                     builder: (context, provider, child) {
                       if (provider.isLoading) {
@@ -114,9 +117,12 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
                         itemBuilder: (context, index) {
                           return _buildItem(
                             item: provider.contatti[index],
-                            // Edit disabilitato: richiederebbe logica "rimuovi vecchio -> aggiungi nuovo" o API PUT specifica
-                            onEdit: () => _openDialog(isEdit: false),
+                            onEdit: () {
+                              // Modifica disabilitata
+                              _openDialog(isEdit: false);
+                            },
                             onDelete: () async {
+                              // Chiama il provider per rimuovere l'elemento
                               await provider.removeContatto(index);
                             },
                             deleteColor: deleteColor,
@@ -130,7 +136,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Aggiungi
+            // Pulsante Aggiungi Contatto
             Padding(
               padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 30.0),
               child: InkWell(
@@ -149,6 +155,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            // Testo indicativo per il nome
                             Text(
                               "Aggiungi un nome (ruolo)",
                               style: TextStyle(
@@ -158,6 +165,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
                               ),
                             ),
                             const Divider(color: Colors.white30, height: 10),
+                            // Testo indicativo per il numero
                             Text(
                               "Aggiungi un numero",
                               style: TextStyle(
@@ -168,6 +176,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
                           ],
                         ),
                       ),
+                      // Icona Aggiungi
                       Icon(
                         Icons.add_circle_outline,
                         color: Colors.greenAccent[400],
@@ -184,6 +193,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
     );
   }
 
+  // Widget per il singolo elemento della lista
   Widget _buildItem({
     required ContattoEmergenza item,
     required VoidCallback onEdit,
@@ -199,8 +209,9 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Numero di telefono
                 Text(
-                  item.numero, // Usa i campi di ContattoEmergenza
+                  item.numero,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -208,6 +219,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
                   ),
                 ),
                 const SizedBox(height: 2),
+                // Nome/Ruolo del contatto
                 Text(
                   item.nome,
                   style: const TextStyle(color: Colors.white70, fontSize: 14),
@@ -217,10 +229,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
           ),
           Row(
             children: [
-              IconButton(
-                icon: const Icon(Icons.edit, color: Colors.white, size: 26),
-                onPressed: onEdit,
-              ),
+              // Pulsante Elimina
               IconButton(
                 icon: Icon(Icons.delete_outline, color: deleteColor, size: 28),
                 onPressed: onDelete,
@@ -232,7 +241,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
     );
   }
 
-  // Dialogo
+  // Dialog per l'aggiunta di un nuovo contatto
   void _openDialog({required bool isEdit}) {
     _numberController.clear();
     _nameController.clear();
@@ -249,9 +258,11 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Campo Numero
               TextField(
                 controller: _numberController,
                 keyboardType: TextInputType.phone,
+                // Filtra solo numeri e il segno '+'
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
                   LengthLimitingTextInputFormatter(15),
@@ -266,6 +277,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
                 ),
               ),
               const SizedBox(height: 10),
+              // Campo Nome (Ruolo)
               TextField(
                 controller: _nameController,
                 style: const TextStyle(color: Colors.white),
@@ -280,10 +292,12 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
             ],
           ),
           actions: [
+            // Pulsante Annulla
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text("Annulla", style: TextStyle(color: Colors.white70)),
             ),
+            // Pulsante Salva e Logica di Validazione
             ElevatedButton(   //Inserimento di un numero con controllo sui campi vuoti e validazione numerica
               style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
               onPressed: () async {
@@ -309,7 +323,7 @@ class _ContattiEmergenzaScreenState extends State<ContattiEmergenzaScreen> {
                   return;
                 }
 
-
+                // Aggiunta del contatto tramite provider
                 final success = await Provider.of<MedicalProvider>(context, listen: false)
                     .addContatto(nome, numero);
 

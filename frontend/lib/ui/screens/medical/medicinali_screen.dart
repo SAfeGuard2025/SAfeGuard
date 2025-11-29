@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-// Import provider
 import 'package:frontend/providers/medical_provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Schermata Gestione Medicinali
+// Consente all'utente di visualizzare, aggiungere e rimuovere i farmaci che sta assumendo.
 class MedicinaliScreen extends StatefulWidget {
   const MedicinaliScreen({super.key});
   @override
@@ -11,12 +12,13 @@ class MedicinaliScreen extends StatefulWidget {
 }
 
 class _MedicinaliScreenState extends State<MedicinaliScreen> {
+  // Controller per gestire l'input di testo nel dialog di aggiunta
   final TextEditingController _textController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // Carica i medicinali dal server all'avvio
+    // Carica i medicinali dal MedicalProvider all'avvio della schermata
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<MedicalProvider>(context, listen: false).loadMedicines();
     });
@@ -40,7 +42,7 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header
+            // Header con bottone indietro
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
               child: Row(
@@ -53,7 +55,7 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
               ),
             ),
 
-            // Titolo
+            // Titolo e Icona
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
@@ -82,7 +84,7 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
             ),
             const SizedBox(height: 30),
 
-            // Lista collegata al provider
+            // Lista dei Medicinali
             Expanded(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -92,6 +94,7 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
+                  // Consumer: ascolta i cambiamenti nella lista medicinali
                   child: Consumer<MedicalProvider>(
                     builder: (context, provider, child) {
                       if (provider.isLoading) {
@@ -109,9 +112,12 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
                         itemBuilder: (context, index) {
                           return _buildItem(
                             text: provider.medicinali[index].name,
-                            //Edit disabilitato
-                            onEdit: () => _openDialog(isEdit: false),
+                            onEdit: () {
+                              // Modifica disabilitata
+                              _openDialog(isEdit: false);
+                            },
                             onDelete: () async {
+                              // Chiama il provider per rimuovere l'elemento
                               await provider.removeMedicinale(index);
                             },
                             deleteColor: deleteColor,
@@ -125,7 +131,7 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Aggiungi
+            // Pulsante Aggiungi Farmaco
             Padding(
               padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 30.0),
               child: InkWell(
@@ -164,7 +170,7 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
     );
   }
 
-  //Widget item
+  // Widget per il singolo elemento della lista
   Widget _buildItem({
     required String text,
     required VoidCallback onEdit,
@@ -188,10 +194,7 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
           ),
           Row(
             children: [
-              IconButton(
-                icon: const Icon(Icons.edit, color: Colors.white, size: 26),
-                onPressed: onEdit,
-              ),
+              // Pulsante Elimina
               IconButton(
                 icon: Icon(Icons.delete_outline, color: deleteColor, size: 28),
                 onPressed: onDelete,
@@ -203,8 +206,9 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
     );
   }
 
-  // Dialogo
+  // Dialog per l'aggiunta di un farmaco
   void _openDialog({required bool isEdit}) {
+    // Pulisce il campo di testo prima di aprire il dialog
     _textController.clear();
 
     showDialog(
@@ -231,6 +235,7 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
             ),
           ),
           actions: [
+            // Pulsante Annulla
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text(
@@ -238,10 +243,12 @@ class _MedicinaliScreenState extends State<MedicinaliScreen> {
                 style: TextStyle(color: Colors.white70),
               ),
             ),
+            // Pulsante Salva
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
               onPressed: () async {
                 if (_textController.text.isNotEmpty) {
+                  // Chiama il provider per aggiungere il nuovo farmaco
                   final success = await Provider.of<MedicalProvider>(context, listen: false)
                       .addMedicinale(_textController.text);
 

@@ -4,6 +4,8 @@ import 'package:frontend/providers/permission_provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Schermata Gestione Permessi Cittadino
+// Consente all'utente di attivare o disattivare i permessi di sistema.
 class GestionePermessiCittadino extends StatefulWidget {
   const GestionePermessiCittadino({super.key});
 
@@ -17,7 +19,7 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
   @override
   void initState() {
     super.initState();
-    // Carica i permessi reali dal server all'avvio
+    // Carica le preferenze di permessi dal server all'avvio della schermata
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<PermissionProvider>(context, listen: false).loadPermessi();
     });
@@ -25,7 +27,7 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
 
   @override
   Widget build(BuildContext context) {
-    // Logica responsive
+    // Logica responsive e color palette basata sul ruolo dell'utente
     final size = MediaQuery.of(context).size;
     final bool isWideScreen = size.width > 700;
 
@@ -45,7 +47,7 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
             constraints: const BoxConstraints(maxWidth: 800),
             child: Column(
               children: [
-                // Header
+                // Header con bottone indietro e titolo
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16.0,
@@ -81,6 +83,7 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
                   ),
                 ),
 
+                // Lista switch per la gestione dei permessi
                 Expanded(
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -97,6 +100,7 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(20.0),
+                      // Consumer: Ascolta i cambiamenti nel PermissionProvider
                       child: Consumer<PermissionProvider>(
                         builder: (context, provider, child) {
 
@@ -113,11 +117,12 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
                             );
                           }
 
-                          final permessi = provider.permessi;
+                          final permessi = provider.permessi; // Oggetto Permessi corrente
 
                           return ListView(
                             physics: const BouncingScrollPhysics(),
                             children: [
+                              // Switch 1: Accesso alla Posizione
                               _buildSwitchItem(
                                   "Accesso alla posizione",
                                   permessi.posizione,
@@ -131,6 +136,7 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
                               ),
                               const SizedBox(height: 20),
 
+                              // Switch 2: Accesso ai Contatti
                               _buildSwitchItem(
                                   "Accesso ai contatti",
                                   permessi.contatti,
@@ -144,6 +150,7 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
                               ),
                               const SizedBox(height: 20),
 
+                              // Switch 3: Notifiche di Sistema
                               _buildSwitchItem(
                                   "Notifiche di sistema",
                                   permessi.notificheSistema,
@@ -157,6 +164,7 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
                               ),
                               const SizedBox(height: 20),
 
+                              // Switch 4: Accesso al Bluetooth
                               _buildSwitchItem(
                                   "Accesso al Bluetooth",
                                   permessi.bluetooth,
@@ -184,6 +192,7 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
     );
   }
 
+  // Widget Helper: Elemento Switch per la lista
   Widget _buildSwitchItem(
       String title,
       bool value,
@@ -210,7 +219,7 @@ class _GestionePermessiCittadinoState extends State<GestionePermessiCittadino> {
           scale: isWideScreen ? 1.3 : 1.1,
           child: Switch(
             value: value,
-            onChanged: onChanged,
+            onChanged: onChanged, // Callback che aggiorna il provider
             activeThumbColor: activeColor,
             activeTrackColor: Colors.white.withValues(alpha: 0.3),
             inactiveThumbColor: Colors.grey.shade300,

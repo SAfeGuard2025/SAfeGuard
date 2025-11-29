@@ -13,7 +13,7 @@ class AllergieScreen extends StatefulWidget {
 }
 
 class _AllergieScreenState extends State<AllergieScreen> {
-  // Controller per gestire l'input di testo nel dialog di aggiunta/modifica
+  // Controller per gestire l'input di testo nel dialog di aggiunta
   final TextEditingController _textController = TextEditingController();
 
   @override
@@ -175,7 +175,7 @@ class _AllergieScreenState extends State<AllergieScreen> {
     );
   }
 
-  // Dialog per l'aggiunta di unallergia
+  // Dialog per l'aggiunta di un allergia
   void _openDialog({required bool isEdit}) {
     // Pulisce il campo di testo prima di aprire il dialog
     _textController.clear();

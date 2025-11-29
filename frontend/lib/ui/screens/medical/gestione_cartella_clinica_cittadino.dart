@@ -8,19 +8,22 @@ import 'package:frontend/ui/screens/medical/medicinali_screen.dart';
 import 'package:frontend/ui/screens/medical/contatti_emergenza_screen.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Schermata Gestione Cartella Clinica Cittadino
+// Menu principale per accedere alle sezioni dei dati medici personali.
 class GestioneCartellaClinicaCittadino extends StatelessWidget {
   const GestioneCartellaClinicaCittadino({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Ottiene il ruolo dell'utente dal provider di autenticazione
     final isRescuer = context.watch<AuthProvider>().isRescuer;
 
+    // Colori dinamici in base al ruolo
     final Color cardColor = isRescuer ? ColorPalette.cardDarkOrange : ColorPalette.backgroundMidBlue;
     final Color bgColor = isRescuer ? ColorPalette.primaryOrange : ColorPalette.backgroundDarkBlue;
 
     return Scaffold(
       backgroundColor: bgColor,
-
 
       appBar: AppBar(
         backgroundColor: bgColor,
@@ -70,8 +73,7 @@ class GestioneCartellaClinicaCittadino extends StatelessWidget {
             ],
           ),
         ),
-        // Centro del titolo disabilitato per far funzionare il row
-        centerTitle: false,
+        centerTitle: false, // Necessario per allineare il Row a sinistra
         toolbarHeight: 80.0, // Aumenta l'altezza della barra per il padding verticale di 20.0
       ),
 
@@ -84,7 +86,6 @@ class GestioneCartellaClinicaCittadino extends StatelessWidget {
               child: Expanded(
                 child: Container(
                   width: double.infinity,
-                  // Padding orizzontale di 16.0
                   margin: const EdgeInsets.symmetric(horizontal: 16.0),
                   decoration: BoxDecoration(
                     color: cardColor,
@@ -173,7 +174,7 @@ class GestioneCartellaClinicaCittadino extends StatelessWidget {
     );
   }
 
-  // --- WIDGET PULSANTE MENU (Invariato) ---
+  // Widget Helper: Pulsante di Navigazione
   Widget _buildMenuButton(
       BuildContext context, {
         required String label,

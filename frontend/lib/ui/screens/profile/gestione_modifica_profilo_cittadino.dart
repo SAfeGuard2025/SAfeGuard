@@ -5,6 +5,8 @@ import 'package:frontend/repositories/profile_repository.dart';
 import 'package:data_models/UtenteGenerico.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Schermata Modifica Profilo Cittadino/Generico
+// Permette la modifica dei dati anagrafici dell'utente.
 class GestioneModificaProfiloCittadino extends StatefulWidget {
   const GestioneModificaProfiloCittadino({super.key});
 
@@ -15,9 +17,10 @@ class GestioneModificaProfiloCittadino extends StatefulWidget {
 
 class _GestioneModificaProfiloCittadinoState
     extends State<GestioneModificaProfiloCittadino> {
-
+  // Repository per la gestione del profilo
   final ProfileRepository _profileRepository = ProfileRepository();
 
+  // Controller per i campi di input
   late TextEditingController _nomeController;
   late TextEditingController _cognomeController;
   late TextEditingController _emailController;
@@ -32,6 +35,7 @@ class _GestioneModificaProfiloCittadinoState
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final UtenteGenerico? user = authProvider.currentUser;
 
+    // Inizializza i controller con i dati attuali dell'utente
     _nomeController = TextEditingController(text: user?.nome ?? "");
     _cognomeController = TextEditingController(text: user?.cognome ?? "");
     _emailController = TextEditingController(text: user?.email ?? "");
@@ -49,9 +53,11 @@ class _GestioneModificaProfiloCittadinoState
     super.dispose();
   }
 
+  // Funzione per salvare le modifiche del profilo
   Future<void> _saveProfile() async {
     setState(() => _isLoading = true);
     try {
+      // 1. Aggiornamento sul backend tramite Repository
       await _profileRepository.updateAnagrafica(
         nome: _nomeController.text.trim(),
         cognome: _cognomeController.text.trim(),
@@ -62,14 +68,18 @@ class _GestioneModificaProfiloCittadinoState
 
       if (!mounted) return;
 
+      // 2. Aggiornamento locale
       Provider.of<AuthProvider>(context, listen: false).updateUserLocally(
         nome: _nomeController.text.trim(),
         cognome: _cognomeController.text.trim(),
         telefono: _telefonoController.text.trim(),
       );
+
+      // 3. Ricarica completa dei dati utente
       await Provider.of<AuthProvider>(context, listen: false).reloadUser();
       if (!mounted) return;
 
+      // Notifica e navigazione
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Profilo aggiornato con successo!"), backgroundColor: Colors.green),
       );
@@ -88,7 +98,7 @@ class _GestioneModificaProfiloCittadinoState
 
   @override
   Widget build(BuildContext context) {
-    // Logica responsive
+    // Logica responsive e color palette
     final size = MediaQuery.of(context).size;
     final bool isWideScreen = size.width > 700;
 
@@ -115,7 +125,7 @@ class _GestioneModificaProfiloCittadinoState
             child: Column(
               children: [
 
-                // Header
+                // Header con bottone indietro e titolo
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     vertical: 20.0,
@@ -151,7 +161,7 @@ class _GestioneModificaProfiloCittadinoState
                   ),
                 ),
 
-                // 2. Contenuto centrato
+                // Contenuto centrale con form di modifica
                 Expanded(
                   child: Center(
                     child: SingleChildScrollView(
@@ -175,6 +185,7 @@ class _GestioneModificaProfiloCittadinoState
                             mainAxisSize: MainAxisSize.min,
                             children: [
 
+                              // Campi Nome e Cognome (affiancati su wide screen)
                               if (isWideScreen)
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,8 +200,10 @@ class _GestioneModificaProfiloCittadinoState
                                 _buildField("Cognome", _cognomeController, labelSize: labelFontSize, inputSize: inputFontSize),
                               ],
 
+                              // Campo Email
                               _buildField("Email", _emailController, isEmail: true, labelSize: labelFontSize, inputSize: inputFontSize),
 
+                              // Campi Telefono e Città (affiancati su wide screen)
                               if (isWideScreen)
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,6 +220,7 @@ class _GestioneModificaProfiloCittadinoState
 
                               const SizedBox(height: 40),
 
+                              // Pulsante salva modifiche
                               SizedBox(
                                 width: double.infinity,
                                 height: isWideScreen ? 70 : 50,
@@ -245,6 +259,7 @@ class _GestioneModificaProfiloCittadinoState
     );
   }
 
+  // Widget Helper per i campi di input
   Widget _buildField(
       String label,
       TextEditingController controller, {
@@ -259,6 +274,7 @@ class _GestioneModificaProfiloCittadinoState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Etichetta del campo
           Text(
             label,
             style: TextStyle(
@@ -271,6 +287,7 @@ class _GestioneModificaProfiloCittadinoState
           TextField(
             controller: controller,
             readOnly: isReadOnly,
+            // Tipo di tastiera per facilitare l'input
             keyboardType: isEmail
                 ? TextInputType.emailAddress
                 : (isPhone ? TextInputType.phone : TextInputType.text),
