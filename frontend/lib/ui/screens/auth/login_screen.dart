@@ -176,8 +176,12 @@ class LoginScreen extends StatelessWidget {
                             // Mostra lo SnackBar quando il pulsante viene premuto
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text("Funzionalità non ancora implementata"),
-                                duration: Duration(seconds: 2), // Durata di visualizzazione
+                                content: Text(
+                                  "Funzionalità non ancora implementata",
+                                ),
+                                duration: Duration(
+                                  seconds: 2,
+                                ), // Durata di visualizzazione
                               ),
                             );
                           },
