@@ -4,6 +4,7 @@ import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_router/shelf_router.dart';
 import 'package:dotenv/dotenv.dart';
 import 'package:firedart/firedart.dart';
+import 'package:shelf_cors_headers/shelf_cors_headers.dart';
 
 import 'package:backend/controllers/login_controller.dart';
 import 'package:backend/controllers/register_controller.dart';
@@ -28,7 +29,6 @@ void main() async {
   }
 
   // 2. DataBase
-  // Inizializzazione client Firestore
   Firestore.initialize(projectId);
   print('🔥 Firestore inizializzato: $projectId');
 
@@ -90,9 +90,21 @@ void main() async {
     Pipeline().addMiddleware(authGuard.middleware).addHandler(profileApi.call),
   );
 
-  // 7. Pipeline Server
-  // Aggiunge il logging delle richieste a tutte le chiamate
-  final handler = Pipeline().addMiddleware(logRequests()).addHandler(app.call);
+  // 7. Pipeline Server e Configurazione CORS
+  // Configuro gli header per permettere l'accesso da qualsiasi origine
+  final corsMiddleware = corsHeaders(
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': '*', // Accetta tutti gli header
+    },
+  );
+
+  // Aggiungo il middleware CORS prima del logRequests e dell'handler
+  final handler = Pipeline()
+      .addMiddleware(logRequests())
+      .addMiddleware(corsMiddleware) // Qui applichiamo i CORS
+      .addHandler(app.call);
 
   // 8. Avvio Server
   // Mette in ascolto il server sull'indirizzo IPv4 e porta configurata
