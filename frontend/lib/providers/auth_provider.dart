@@ -315,7 +315,7 @@ class AuthProvider extends ChangeNotifier {
         await _googleSignIn.signOut(); // Disconnette l'account Google
       }
     } catch (e) {
-      print("Errore logout Google: $e");
+      debugPrint('Errore: $e');
     }
 
     // 2. Pulizia sessione locale (SharedPreferences)
@@ -422,7 +422,7 @@ class AuthProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print("Errore ricaricamento profilo: $e");
+      debugPrint("Errore ricaricamento profilo: $e");
     }
   }
 

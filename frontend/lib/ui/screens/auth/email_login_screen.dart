@@ -153,13 +153,14 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                                   return;
                                 }
 
+                                // --- INIZIO ASYNC GAP ---
                                 String result = await authProvider.login(
                                   _emailController.text.trim(),
                                   _passController.text,
                                 );
-                                // 2. Se il login ha successo, naviga alla Home e rimuove tutte le schermate precedenti
+                                // --- FINE ASYNC GAP ---
+
                                 if (result == 'success') {
-                                  // Login OK -> Home
                                   navigator.pushAndRemoveUntil(
                                     MaterialPageRoute(
                                       builder: (context) => const HomeScreen(),
@@ -167,14 +168,14 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                                     (route) => false,
                                   );
                                 } else if (result == 'verification_needed') {
-                                  // Login Bloccato -> Verifica OTP
-                                  ScaffoldMessenger.of(context).showSnackBar(
+                                  messenger.showSnackBar(
                                     const SnackBar(
                                       content: Text(
                                         "Account non verificato. Inserisci il codice inviato via email.",
                                       ),
                                     ),
                                   );
+
                                   navigator.push(
                                     MaterialPageRoute(
                                       builder: (context) =>
