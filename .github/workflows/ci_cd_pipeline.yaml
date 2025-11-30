@@ -138,6 +138,16 @@ jobs:
         run: flutter pub get
         working-directory: frontend
 
+      # --- GENERAZIONE ASSETS GRAFICI ---
+      - name: Generate Native Splash
+        working-directory: frontend
+        run: dart run flutter_native_splash:create
+
+      - name: Generate Launcher Icons
+        working-directory: frontend
+        run: dart run flutter_launcher_icons
+      # ----------------------------------
+
       - name: Build Release APK (Dev Config)
         working-directory: frontend
         run: |
