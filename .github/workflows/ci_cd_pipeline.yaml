@@ -192,8 +192,7 @@ jobs:
         run: |
           flutter build apk --release \
             --dart-define=SERVER_HOST=${{ secrets.DEV_SERVER_HOST }} \
-            --dart-define=SERVER_PORT=${{ secrets.DEV_SERVER_PORT }} \
-            --dart-define=API_PREFIX=${{ secrets.DEV_API_PREFIX }}
+            --dart-define=SERVER_PORT=${{ secrets.DEV_SERVER_PORT }}
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
