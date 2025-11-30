@@ -7,13 +7,34 @@ import 'package:http/http.dart' as http;
 // Repository: AuthRepository
 // Responsabile di tutte le chiamate API relative ad autenticazione, registrazione e verifica.
 class AuthRepository {
+  // Costanti dall'ambiente di compilazione
+  static const String _envHost = String.fromEnvironment(
+    'SERVER_HOST',
+    defaultValue: 'http://localhost',
+  );
+  static const String _envPort = String.fromEnvironment(
+    'SERVER_PORT',
+    defaultValue: '8080',
+  );
+  static const String _envPrefix = String.fromEnvironment(
+    'API_PREFIX',
+    defaultValue: '',
+  );
+
   // Metodo per determinare l'URL base del Backend in base alla piattaforma
   String get _baseUrl {
-    String host = 'http://localhost';
-    if (!kIsWeb && Platform.isAndroid) {
-      host = 'http://10.0.2.2';
+    String host = _envHost;
+
+    // Logica specifica per emulatore Android (Sovrascrive 'localhost')
+    if (!kIsWeb && Platform.isAndroid && host.contains('localhost')) {
+      host = host.replaceFirst('localhost', '10.0.2.2');
     }
-    return '$host:8080';
+
+    // Aggiunge la porta solo se non è stata disabilitata con "-1"
+    final String portPart = _envPort == '-1' ? '' : ':$_envPort';
+
+    // Costruisce l'URL finale (es: http://10.0.2.2:8080 o http://localhost:8080)
+    return '$host$portPart$_envPrefix';
   }
 
   // Login tramite email o telefono

@@ -14,13 +14,34 @@ import 'package:flutter/foundation.dart';
 // ** Repository: ProfileRepository **
 // Classe che gestisce le chiamate API per la lettura e modifica del profilo utente.
 class ProfileRepository {
+  // Costanti dall'ambiente di compilazione
+  static const String _envHost = String.fromEnvironment(
+    'SERVER_HOST',
+    defaultValue: 'http://localhost',
+  );
+  static const String _envPort = String.fromEnvironment(
+    'SERVER_PORT',
+    defaultValue: '8080',
+  );
+  static const String _envPrefix = String.fromEnvironment(
+    'API_PREFIX',
+    defaultValue: '',
+  );
+
   // Metodo per determinare l'URL base del Backend in base alla piattaforma
   String get _baseUrl {
-    String host = 'http://localhost';
-    if (!kIsWeb && Platform.isAndroid) {
-      host = 'http://10.0.2.2';
+    String host = _envHost;
+
+    // Logica specifica per emulatore Android (Sovrascrive 'localhost')
+    if (!kIsWeb && Platform.isAndroid && host.contains('localhost')) {
+      host = host.replaceFirst('localhost', '10.0.2.2');
     }
-    return '$host:8080';
+
+    // Aggiunge la porta solo se non è stata disabilitata con "-1"
+    final String portPart = _envPort == '-1' ? '' : ':$_envPort';
+
+    // Costruisce l'URL finale
+    return '$host$portPart$_envPrefix';
   }
 
   // Metodo helper per recuperare il JWT salvato localmente
