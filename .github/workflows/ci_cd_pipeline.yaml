@@ -124,31 +124,50 @@ jobs:
         with:
           flutter-version: '3.38.2'
 
-      # Decodifica dei file sensibili con metodo robusto (file temporanei)
-      - name: Decode Keystore and Google Services
+      # --- DEBUG SECRET (Sicuro) ---
+      - name: Check Secret Availability
+        env:
+          KEYSTORE_BASE64: ${{ secrets.DEV_ANDROID_DEBUG_KEYSTORE }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "ERRORE CRITICO: Il secret DEV_ANDROID_DEBUG_KEYSTORE e vuoto o non esiste!"
+            exit 1
+          else
+            echo "OK: Il secret e stato trovato (Lunghezza: ${#KEYSTORE_BASE64} caratteri)."
+          fi
+        shell: bash
+
+      # --- DECODIFICA KEYSTORE ---
+      - name: Decode Keystore
         shell: bash
         env:
           KEYSTORE_BASE64: ${{ secrets.DEV_ANDROID_DEBUG_KEYSTORE }}
+        run: |
+          echo "Decodifica debug.keystore dai Secret..."
+          # Usiamo printf per evitare problemi con echo su stringhe lunghe
+          printf "%s" "$KEYSTORE_BASE64" | base64 --decode > frontend/android/app/debug.keystore
+
+      # --- DECODIFICA JSON ---
+      - name: Decode Google Services
+        shell: bash
+        env:
           GOOGLE_JSON_BASE64: ${{ secrets.DEV_GOOGLE_SERVICES_JSON }}
         run: |
-          echo "Creazione directory temporanea per i segreti..."
-          mkdir secrets-base64
+          echo "Decodifica google-services.json..."
+          printf "%s" "$GOOGLE_JSON_BASE64" | base64 --decode > frontend/android/app/google-services.json
 
-          echo "Salvataggio variabili env in file temporanei..."
-          echo "$KEYSTORE_BASE64" > secrets-base64/keystore.base64
-          echo "$GOOGLE_JSON_BASE64" > secrets-base64/google-services.base64
-
-          echo "Decodifica dei file verso le destinazioni finali..."
-          base64 --decode secrets-base64/keystore.base64 > frontend/android/app/debug.keystore
-          base64 --decode secrets-base64/google-services.base64 > frontend/android/app/google-services.json
-          
-          echo "Pulizia file temporanei..."
-          rm -rf secrets-base64
-
-      - name: Check existence of decoded files
+      # --- VERIFICA CONTENUTO ---
+      - name: Verify Keystore Content
         run: |
-          ls -l frontend/android/app/debug.keystore
-          ls -l frontend/android/app/google-services.json
+          echo "Verifica dimensione file:"
+          ls -lh frontend/android/app/debug.keystore
+          
+          echo "Verifica validita Keystore:"
+          keytool -list -v \
+            -keystore frontend/android/app/debug.keystore \
+            -alias androiddebugkey \
+            -storepass android
+        working-directory: .
 
       - name: Pub Get - Data Models
         run: dart pub get
@@ -168,7 +187,7 @@ jobs:
         run: dart run flutter_launcher_icons
       # ----------------------------------
 
-      - name: Build Release APK (Dev Config)
+      - name: Build Release APK
         working-directory: frontend
         run: |
           flutter build apk --release \
