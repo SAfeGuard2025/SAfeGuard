@@ -126,9 +126,13 @@ jobs:
 
       # Decodifica dei file sensibili
       - name: Decode Keystore and Google Services
+        env:
+            KEYSTORE_BASE64: ${{ secrets.DEV_ANDROID_DEBUG_KEYSTORE }} 
+            GOOGLE_JSON_BASE64: ${{ secrets.DEV_GOOGLE_SERVICES_JSON }}
         run: |
-          echo "${{ secrets.DEV_GOOGLE_SERVICES_JSON }}" | base64 --decode > frontend/android/app/google-services.json
-          echo "${{ secrets.DEV_ANDROID_DEBUG_KEYSTORE }}" | base64 --decode > frontend/android/app/debug.keystore
+          # Creiamo i file decodificando le variabili d'ambiente
+          echo "$GOOGLE_JSON_BASE64" | base64 --decode > frontend/android/app/google-services.json
+          echo "$KEYSTORE_BASE64" | base64 --decode > frontend/android/app/debug.keystore
 
       - name: Pub Get - Data Models
         run: dart pub get
