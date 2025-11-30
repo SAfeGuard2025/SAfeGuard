@@ -124,15 +124,31 @@ jobs:
         with:
           flutter-version: '3.38.2'
 
-      # Decodifica dei file sensibili
+      # Decodifica dei file sensibili con metodo robusto (file temporanei)
       - name: Decode Keystore and Google Services
+        shell: bash
         env:
-            KEYSTORE_BASE64: ${{ secrets.DEV_ANDROID_DEBUG_KEYSTORE }} 
-            GOOGLE_JSON_BASE64: ${{ secrets.DEV_GOOGLE_SERVICES_JSON }}
+          KEYSTORE_BASE64: ${{ secrets.DEV_ANDROID_DEBUG_KEYSTORE }}
+          GOOGLE_JSON_BASE64: ${{ secrets.DEV_GOOGLE_SERVICES_JSON }}
         run: |
-          # Creiamo i file decodificando le variabili d'ambiente
-          echo "$GOOGLE_JSON_BASE64" | base64 --decode > frontend/android/app/google-services.json
-          echo "$KEYSTORE_BASE64" | base64 --decode > frontend/android/app/debug.keystore
+          echo "Creazione directory temporanea per i segreti..."
+          mkdir secrets-base64
+
+          echo "Salvataggio variabili env in file temporanei..."
+          echo "$KEYSTORE_BASE64" > secrets-base64/keystore.base64
+          echo "$GOOGLE_JSON_BASE64" > secrets-base64/google-services.base64
+
+          echo "Decodifica dei file verso le destinazioni finali..."
+          base64 --decode secrets-base64/keystore.base64 > frontend/android/app/debug.keystore
+          base64 --decode secrets-base64/google-services.base64 > frontend/android/app/google-services.json
+          
+          echo "Pulizia file temporanei..."
+          rm -rf secrets-base64
+
+      - name: Check existence of decoded files
+        run: |
+          ls -l frontend/android/app/debug.keystore
+          ls -l frontend/android/app/google-services.json
 
       - name: Pub Get - Data Models
         run: dart pub get
