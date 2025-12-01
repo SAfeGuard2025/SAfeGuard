@@ -27,7 +27,10 @@ class ResendController {
       final String? email = (data['email'] as String?)?.trim().toLowerCase();
 
       // Rimuove eventuali spazi nel numero di telefono per uniformità
-      final String? telefono = (data['telefono'] as String?)?.replaceAll(' ', '');
+      final String? telefono = (data['telefono'] as String?)?.replaceAll(
+        ' ',
+        '',
+      );
 
       // 3. Validazione: Almeno un metodo di contatto deve essere presente
       if (email == null && telefono == null) {
@@ -45,17 +48,19 @@ class ResendController {
             .collection('email_verifications')
             .document(email)
             .set({
-          'otp': newOtp,
-          'email': email,
-          'created_at': DateTime.now().toIso8601String(), // Timestamp per scadenza futura
-          'is_verified': false,
-        });
+              'otp': newOtp,
+              'email': email,
+              'created_at': DateTime.now()
+                  .toIso8601String(), // Timestamp per scadenza futura
+              'is_verified': false,
+            });
 
         // Utilizza il servizio Email per inviare il codice all'utente
         await _emailService.send(
           to: email,
           subject: 'Nuovo codice di verifica Safeguard',
-          htmlContent: '<p>Il tuo nuovo codice di verifica è: <h1>$newOtp</h1></p>',
+          htmlContent:
+              '<p>Il tuo nuovo codice di verifica è: <h1>$newOtp</h1></p>',
         );
       }
       // --- LOGICA SMS (Simulazione) ---
@@ -65,10 +70,10 @@ class ResendController {
             .collection('phone_verifications')
             .document(telefono)
             .set({
-          'otp': newOtp,
-          'telefono': telefono,
-          'created_at': DateTime.now().toIso8601String(),
-        });
+              'otp': newOtp,
+              'telefono': telefono,
+              'created_at': DateTime.now().toIso8601String(),
+            });
 
         // Invia la simulazione SMS (l'OTP arriva all'email configurata nel .env)
         await _smsService.sendOtp(telefono, newOtp);
@@ -76,10 +81,12 @@ class ResendController {
 
       // 5. Risposta di successo al client
       return Response.ok(
-        jsonEncode({'success': true, 'message': 'Codice OTP rinviato con successo.'}),
+        jsonEncode({
+          'success': true,
+          'message': 'Codice OTP rinviato con successo.',
+        }),
         headers: _headers,
       );
-
     } catch (e) {
       // Gestione errori server (es. DB non raggiungibile, errore API email)
       print("Errore nel rinvio OTP: $e");

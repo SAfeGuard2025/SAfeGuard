@@ -17,7 +17,9 @@ class EmailService {
     required String htmlContent,
   }) async {
     if (_apiKey.isEmpty) {
-      print(' ERRORE CRITICO: RESEND_API_KEY non trovata. Controlla il file .env');
+      print(
+        ' ERRORE CRITICO: RESEND_API_KEY non trovata. Controlla il file .env',
+      );
       return;
     }
 

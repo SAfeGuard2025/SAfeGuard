@@ -31,8 +31,6 @@ class AuthProvider extends ChangeNotifier {
   String? _tempEmail;
   String? _tempPhone;
   String? _tempPassword;
-  String? _tempNome;
-  String? _tempCognome;
 
   int _secondsRemaining = 30;
   Timer? _timer;
@@ -182,8 +180,6 @@ class AuthProvider extends ChangeNotifier {
       _tempEmail = email;
       _tempPhone = null;
       _tempPassword = password;
-      _tempNome = nome;
-      _tempCognome = cognome;
 
       startTimer();
       _setLoading(false);
@@ -216,8 +212,6 @@ class AuthProvider extends ChangeNotifier {
       _tempPhone = phoneNumber;
       _tempEmail = null;
       _tempPassword = password;
-      _tempNome = nome;
-      _tempCognome = cognome;
 
       startTimer();
       _setLoading(false);
@@ -257,8 +251,6 @@ class AuthProvider extends ChangeNotifier {
       _tempEmail = null;
       _tempPhone = null;
       _tempPassword = null;
-      _tempNome = null;
-      _tempCognome = null;
 
       _setLoading(false);
       return true;

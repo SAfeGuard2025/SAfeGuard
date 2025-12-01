@@ -21,13 +21,16 @@ class SmsService {
       await _emailService.send(
         to: simulationEmail,
         subject: 'SIMULAZIONE SMS per $telefono',
-        htmlContent: '''
+        htmlContent:
+            '''
           <p>È stato richiesto un SMS per il numero: <strong>$telefono</strong></p>
           <p>Il codice OTP è: <h1>$otp</h1></p>
         ''',
       );
     } else {
-      print(' SMS_SIMULATION_EMAIL non impostata. OTP stampato in console: $otp');
+      print(
+        ' SMS_SIMULATION_EMAIL non impostata. OTP stampato in console: $otp',
+      );
     }
   }
 }

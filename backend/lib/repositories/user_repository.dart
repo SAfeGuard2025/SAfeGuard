@@ -36,7 +36,7 @@ class UserRepository {
     return pages.first.map;
   }
 
-// Salva un nuovo utente o aggiorna uno esistente
+  // Salva un nuovo utente o aggiorna uno esistente
   Future<UtenteGenerico> saveUser(UtenteGenerico newUser) async {
     // Se l'utente ha già un ID (es. registrazione non verificata), usalo.
     // Altrimenti ne genera uno nuovo.

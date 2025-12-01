@@ -97,11 +97,11 @@ class RegisterController {
             .collection('email_verifications')
             .document(email)
             .set({
-          'otp': otpCode,
-          'email': email,
-          'created_at': DateTime.now().toIso8601String(),
-          'is_verified': false,
-        });
+              'otp': otpCode,
+              'email': email,
+              'created_at': DateTime.now().toIso8601String(),
+              'is_verified': false,
+            });
 
         // Invio email reale tramite Resend
         final emailService = EmailService();
