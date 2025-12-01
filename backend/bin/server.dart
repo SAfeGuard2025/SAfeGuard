@@ -11,6 +11,7 @@ import 'package:backend/controllers/register_controller.dart';
 import 'package:backend/controllers/verification_controller.dart';
 import 'package:backend/controllers/profile_controller.dart';
 import 'package:backend/controllers/auth_guard.dart';
+import 'package:backend/controllers/report_controller.dart';
 
 void main() async {
   // 1. Configurazione ambiente
@@ -38,6 +39,7 @@ void main() async {
   final registerController = RegisterController();
   final verifyController = VerificationController();
   final profileController = ProfileController();
+  final reportController = ReportController();
   final authGuard = AuthGuard();
 
   // 4. Rounting pubblico
@@ -82,12 +84,26 @@ void main() async {
     profileController.deleteAccount,
   ); // DELETE sull'utente stesso
 
+  //Router per le Segnalazioni---
+  final reportApi = Router();
+
+  // Rotta per creare la segnalazione
+  reportApi.post('/create', reportController.createReport);
+
+  // Rotta per leggere la lista
+  reportApi.get('/', reportController.getAllReports);
+
   // 6. Mounting & Middleware
   // Collega il router profilo a '/api/profile'
   // Passa attraverso il controller AuthGuard per controllare il token di sessione
   app.mount(
     '/api/profile',
     Pipeline().addMiddleware(authGuard.middleware).addHandler(profileApi.call),
+  );
+
+  app.mount(
+      '/api/reports',
+      Pipeline().addMiddleware(authGuard.middleware).addHandler(reportApi.call)
   );
 
   // 7. Pipeline Server e Configurazione CORS
