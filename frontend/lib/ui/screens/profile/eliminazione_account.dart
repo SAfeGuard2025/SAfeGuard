@@ -4,152 +4,203 @@ import 'package:frontend/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 
 class DeleteProfilePage extends StatelessWidget {
-
-  const DeleteProfilePage({
-    super.key,
-  });
-
+  const DeleteProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    //Variabili per responsiveness
+    // Variabili per responsiveness
     final size = MediaQuery.of(context).size;
     final bool isWideScreen = size.width > 700;
-    final double titleSize = isWideScreen ? 50 : 28;
-    final double buttonFontSize = isWideScreen ? 32 : 22;
 
-    //Variabile per tema colori
+    // Dimensioni testo e icone
+    final double titleSize = isWideScreen ? 40 : 28;
+    final double buttonFontSize = isWideScreen ? 32 : 22;
+    // Icona header
+    final double headerIconSize = isWideScreen ? 36 : 28;
+    final Color headerIconColor = ColorPalette.iconAccentYellow;
+
+    // Variabile per tema colori
     final isRescuer = context.watch<AuthProvider>().isRescuer;
 
     return Scaffold(
-      backgroundColor: isRescuer? ColorPalette.primaryOrange: ColorPalette.backgroundMidBlue,
+      backgroundColor: isRescuer
+          ? ColorPalette.primaryOrange
+          : ColorPalette.backgroundMidBlue,
       body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: size.width * 0.08,
-            vertical: size.height * 0.02,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-
-              // Tasto indietro
-              IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Box di testo
-              Center(
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 18,
+        child: Column(
+          children: [
+            // 1. HEADER (Fisso in alto)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.arrow_back_ios_new,
+                      color: Colors.white,
+                      size: headerIconSize,
+                    ),
+                    onPressed: () => Navigator.pop(context),
                   ),
-                  decoration: BoxDecoration(
-                    color: isRescuer? ColorPalette.cardDarkOrange: ColorPalette.primaryDarkButtonBlue,
-                    borderRadius: BorderRadius.circular(20),
+                  const SizedBox(width: 10),
+                  Icon(
+                    Icons.person_outlined,
+                    color: headerIconColor,
+                    size: headerIconSize + 8,
                   ),
-                  child: Center(
-                    child: Text(
-                      "Elimina profilo",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: titleSize,
-                        fontWeight: FontWeight.w900,
-                        height: 1.0,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 40),
-
-              // Secondo box di testo
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 30,
-                  horizontal: 20,
-                ),
-                decoration: BoxDecoration(
-                    color: isRescuer? ColorPalette.cardDarkOrange: ColorPalette.primaryDarkButtonBlue,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  children: [
-                    const Text(
-                      "Sei assolutamente sicuro?",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 24,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    const Text(
-                      "Questa azione è irreversibile.\n"
-                          "Eliminerà permanentemente il tuo account\n"
-                          "e tutti i dati associati,\n"
-                          "incluse le tue informazioni sanitarie.\n\n"
-                          "Eliminare l’account non ti esenterà\n"
-                          "da eventuali pene legate a segnalazioni false.",
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 20,
-                        height: 1.4,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 40),
-
-              // Bottone elimina profilo
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed:()=>{
-
-                    //Logica di eliminazione account
-                    ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        "Account eliminato",
-                      ),
-                    ),
-                    ),
-                    Navigator.pop(context)
-                  },
-
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    backgroundColor: ColorPalette.emergencyButtonRed,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: Text(
+                  const SizedBox(width: 15),
+                  Text(
                     "Elimina Profilo",
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: buttonFontSize,
-                      fontWeight: FontWeight.bold,
+                      fontSize: titleSize,
+                      fontWeight: FontWeight.w900,
+                      height: 1.0,
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+
+            // 2. CORPO CENTRALE (Scrollabile ma centrato visivamente)
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      // Forza il contenuto ad occupare almeno l'altezza disponibile
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: size.width * 0.08,
+                          vertical: 20, // Padding verticale minimo
+                        ),
+                        child: Column(
+                          mainAxisAlignment:
+                              MainAxisAlignment.center, // Centra verticalmente
+                          children: [
+                            // BOX DI AVVERTIMENTO (Più grande e in evidenza)
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                vertical:
+                                    40, // Aumentato per renderlo più grande
+                                horizontal: 24,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isRescuer
+                                    ? ColorPalette.cardDarkOrange
+                                    : ColorPalette.primaryDarkButtonBlue,
+                                borderRadius: BorderRadius.circular(
+                                  24,
+                                ), // Più rotondo
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(
+                                    0.3,
+                                  ), // Bordo leggero
+                                  width: 2,
+                                ),
+                                boxShadow: [
+                                  // Ombra per staccarlo dallo sfondo (Evidenza)
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.3),
+                                    blurRadius: 15,
+                                    spreadRadius: 2,
+                                    offset: const Offset(0, 8),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  // Icona di Alert per evidenza
+                                  const Icon(
+                                    Icons.warning_amber_rounded,
+                                    color: ColorPalette
+                                        .iconAccentYellow, // O Colors.amber
+                                    size: 50,
+                                  ),
+                                  const SizedBox(height: 15),
+
+                                  const Text(
+                                    "Sei assolutamente sicuro?",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight:
+                                          FontWeight.w900, // Più grassetto
+                                      fontSize: 26, // Testo un po' più grande
+                                      letterSpacing: 0.5,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 25),
+                                  const Text(
+                                    "Questa azione è irreversibile.\n"
+                                    "Eliminerà permanentemente il tuo account "
+                                    "e tutti i dati associati, "
+                                    "incluse le tue informazioni sanitarie.\n\n"
+                                    "Eliminare l’account non ti esenterà "
+                                    "da eventuali pene legate a segnalazioni false.",
+                                    style: TextStyle(
+                                      color: Colors
+                                          .white70, // Leggermente più leggibile
+                                      fontSize: 19,
+                                      height: 1.5,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(
+                              height: 50,
+                            ), // Spazio aumentato tra box e bottone
+                            // BOTTONE ELIMINA
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text("Account eliminato"),
+                                    ),
+                                  );
+                                  Navigator.pop(context);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 20,
+                                  ), // Bottone più alto
+                                  backgroundColor:
+                                      ColorPalette.emergencyButtonRed,
+                                  foregroundColor: Colors.white,
+                                  elevation: 8, // Ombra bottone
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(18),
+                                  ),
+                                ),
+                                child: Text(
+                                  "Elimina Profilo",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: buttonFontSize,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );

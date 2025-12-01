@@ -103,12 +103,11 @@ class _GestioneModificaProfiloCittadinoState
 
   @override
   Widget build(BuildContext context) {
-    // Logica responsive e color palette
     final size = MediaQuery.of(context).size;
     final bool isWideScreen = size.width > 700;
-
     final isRescuer = context.watch<AuthProvider>().isRescuer;
 
+    // Colori
     Color bgColor = isRescuer
         ? ColorPalette.primaryOrange
         : ColorPalette.backgroundMidBlue;
@@ -121,27 +120,27 @@ class _GestioneModificaProfiloCittadinoState
     const Color iconColor = ColorPalette.iconAccentYellow;
     Color deleteButtonColor = ColorPalette.emergencyButtonRed;
 
+    // Font Sizes
     final double titleSize = isWideScreen ? 50 : 28;
     final double iconSize = isWideScreen ? 60 : 40;
-
     final double labelFontSize = isWideScreen ? 24 : 14;
     final double inputFontSize = isWideScreen ? 26 : 16;
     final double buttonFontSize = isWideScreen ? 28 : 18;
 
     return Scaffold(
       backgroundColor: bgColor,
+      // ResizeToAvoidBottomInset true permette alla tastiera di spingere il contenuto
+      // ma con la nostra struttura fissa, gestiamo meglio gli spazi
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 900),
             child: Column(
               children: [
-                // Header con bottone indietro e titolo
+                // 1. HEADER (Fisso in alto)
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 20.0,
-                    horizontal: 16.0,
-                  ),
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
                   child: Row(
                     children: [
                       IconButton(
@@ -172,34 +171,33 @@ class _GestioneModificaProfiloCittadinoState
                   ),
                 ),
 
-                // Contenuto centrale con form di modifica
+                // 2. CORPO SCORREVOLE (Contiene la "Zona" campi e la Danger Zone)
                 Expanded(
-                  child: Center(
-                    child: SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 20.0),
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                    child: Column(
+                      children: [
+                        // --- ZONA INPUT (Tipo Slider/Card) ---
+                        Container(
                           padding: EdgeInsets.all(isWideScreen ? 40.0 : 20.0),
                           decoration: BoxDecoration(
                             color: cardColor,
                             borderRadius: BorderRadius.circular(25.0),
-                            boxShadow: isWideScreen
-                                ? [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.2,
-                                      ),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 5),
-                                    ),
-                                  ]
-                                : [],
+                            // Ombra per dare l'effetto sollevato "slider"
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.15),
+                                blurRadius: 15,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
                           ),
                           child: Column(
-                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              // Campi Nome e Cognome (affiancati su wide screen)
+                              // Campi Nome e Cognome
                               if (isWideScreen)
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -247,7 +245,7 @@ class _GestioneModificaProfiloCittadinoState
                                 inputSize: inputFontSize,
                               ),
 
-                              // Campi Telefono e Città (affiancati su wide screen)
+                              // Campi Telefono e Città
                               if (isWideScreen)
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -287,69 +285,146 @@ class _GestioneModificaProfiloCittadinoState
                                   inputSize: inputFontSize,
                                 ),
                               ],
-
-                              const SizedBox(height: 20),
-
-                              // Pulsante salva modifiche
-                              SizedBox(
-                                width: double.infinity,
-                                height: isWideScreen ? 70 : 50,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: accentColor,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
-                                  ),
-                                  onPressed: _isLoading ? null : _saveProfile,
-                                  child: _isLoading
-                                      ? const CircularProgressIndicator(
-                                          color: Colors.white,
-                                        )
-                                      : Text(
-                                          "SALVA MODIFICHE",
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: buttonFontSize,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                ),
-                              ),
-
-                              const SizedBox(height: 40),
-
-                              SizedBox(
-                                width: double.infinity,
-                                height: isWideScreen ? 70 : 50,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: deleteButtonColor,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
-                                  ),
-                                  //Qui reindirizza alla pagina di conferma
-                                  onPressed: (){
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(builder: (_) => const DeleteProfilePage()),
-                                  );
-                                  },
-                                  child:  Text(
-                                    "ELIMINA ACCOUNT",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: buttonFontSize,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-
                             ],
                           ),
                         ),
+
+                        const SizedBox(height: 30),
+
+                        // --- DANGER ZONE (Separata dalla card principale) ---
+                        // --- DANGER ZONE (Stile Card uniformato) ---
+                        Container(
+                          padding: EdgeInsets.all(isWideScreen ? 30.0 : 20.0),
+                          decoration: BoxDecoration(
+                            // Sfondo solido rossastro ma scuro, simile alla card principale per "peso" visivo
+                            color: deleteButtonColor.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(25.0),
+                            border: Border.all(
+                              color: deleteButtonColor,
+                              width: 2,
+                            ),
+                            // Stessa ombra della card dati per coerenza stilistica
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.15),
+                                blurRadius: 15,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.warning_amber_rounded,
+                                    color: Colors.white,
+                                    size: labelFontSize * 1.5,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    "Zona Pericolosa",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize:
+                                          labelFontSize *
+                                          1.2, // Titolo più grande
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 15),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      "L'eliminazione dell'account è definitiva e irreversibile.",
+                                      style: TextStyle(
+                                        color: Colors
+                                            .white, // Colore bianco pieno per massima leggibilità
+                                        fontSize:
+                                            labelFontSize, // Font size normale, non ridotto
+                                        fontWeight: FontWeight.w500,
+                                        height:
+                                            1.4, // Interlinea per migliorare la lettura
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: deleteButtonColor,
+                                      foregroundColor: Colors.white,
+                                      elevation: 4,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                        vertical: 12,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const DeleteProfilePage(),
+                                        ),
+                                      );
+                                    },
+                                    child: Text(
+                                      "ELIMINA",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: labelFontSize,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Spazio extra per evitare che l'ultimo elemento sia coperto dal bottone fisso
+                        const SizedBox(height: 100),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // 3. BOTTOM BAR (Pulsante SALVA FUORI dalla zona)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: bgColor, // Si fonde con lo sfondo
+                  ),
+                  child: SizedBox(
+                    height: isWideScreen ? 70 : 50,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: accentColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        elevation: 5,
                       ),
+                      onPressed: _isLoading ? null : _saveProfile,
+                      child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                              "SALVA MODIFICHE",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: buttonFontSize,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
                   ),
                 ),
