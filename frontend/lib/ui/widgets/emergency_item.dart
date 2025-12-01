@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
-// Modello Dati per gli elementi di Emergenza
+// Modello Dati per gli elementi di Emergenza (Presumibilmente definito altrove)
 class EmergencyItem {
   final String label;
   final IconData icon;
@@ -14,11 +14,17 @@ class EmergencyDropdownMenu extends StatefulWidget {
   final List<EmergencyItem> items;
   // Callback per notificare la selezione dell'elemento
   final ValueChanged<EmergencyItem> onSelected;
+  // Aggiunto per mostrare il valore selezionato nel pulsante trigger
+  final EmergencyItem? value;
+  // Aggiunto per il testo segnaposto
+  final String hintText;
 
   const EmergencyDropdownMenu({
     super.key,
     required this.items,
     required this.onSelected,
+    this.value,
+    this.hintText = "Seleziona",
   });
 
   @override
@@ -34,12 +40,11 @@ class _EmergencyDropdownMenuState extends State<EmergencyDropdownMenu> {
 
   // Altezza stimata dell'elemento singolo (lista + padding)
   static const double _itemHeight = 45.0;
-  // Altezza del solo pulsante rosso "Emergenza specifica" + relativo padding
+  // Altezza del solo pulsante fisso interno
   static const double _fixedButtonHeight = 70.0;
 
   @override
   void dispose() {
-    // Rimuove l'OverlayEntry se è attivo, prevenendo memory leak
     _overlayEntry?.remove();
     super.dispose();
   }
@@ -47,28 +52,21 @@ class _EmergencyDropdownMenuState extends State<EmergencyDropdownMenu> {
   // Logica di apertura e chiusura del Menu
   void _toggleMenu() {
     if (_isOpen) {
-      // Chiusura del menu
       _overlayEntry?.remove();
       _overlayEntry = null;
     } else {
-      // Apertura del menu
       final RenderBox renderBox =
           _buttonKey.currentContext!.findRenderObject() as RenderBox;
-      // Posizione globale e dimensione del pulsante attuale
       final Offset offset = renderBox.localToGlobal(Offset.zero);
       final size = renderBox.size;
 
-      // Calcola l'altezza necessaria per tutti gli elementi e l'intestazione fissa
+      // Calcola l'altezza massima necessaria per l'Overlay
       final double itemsTotalHeight = _itemHeight * widget.items.length;
-      const double safetyMargin = 30.0;
-      final double menuHeight =
-          itemsTotalHeight + _fixedButtonHeight + safetyMargin;
+      final double menuHeight = itemsTotalHeight + _fixedButtonHeight;
 
-      // Crea e inserisce l'OverlayEntry
       _overlayEntry = _createOverlayEntry(offset, size, menuHeight);
       Overlay.of(context).insert(_overlayEntry!);
     }
-    // Aggiorna lo stato di apertura
     setState(() {
       _isOpen = !_isOpen;
     });
@@ -83,8 +81,8 @@ class _EmergencyDropdownMenuState extends State<EmergencyDropdownMenu> {
     return OverlayEntry(
       builder: (context) {
         return Positioned(
-          // Posiziona il menu sopra il pulsante, sottraendo l'altezza del menu all'offset Y
-          top: offset.dy - menuHeight,
+          // Posiziona il menu sotto il pulsante trigger
+          top: offset.dy + size.height,
           left: offset.dx,
           width: size.width,
           child: Material(
@@ -100,65 +98,37 @@ class _EmergencyDropdownMenuState extends State<EmergencyDropdownMenu> {
   // Contenuto del Menu a discesa
   Widget _buildDropdownContent(double height) {
     return Container(
-      height: height,
+      // Non è necessario usare l'altezza fissa qui,
+      // Column.mainAxisSize.min gestisce meglio lo spazio
       decoration: BoxDecoration(
         color: Colors.white,
+        // Bordi arrotondati solo in basso
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(16.0),
-          topRight: Radius.circular(16.0),
+          bottomLeft: Radius.circular(16.0),
+          bottomRight: Radius.circular(16.0),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
+            color: Colors.black.withOpacity(
+              0.3,
+            ), // Usato withOpacity per coerenza
             spreadRadius: 2,
             blurRadius: 10,
           ),
         ],
       ),
       padding: const EdgeInsets.only(
-        top: 10.0,
+        top: 16.0, // Aumentato un po' il padding superiore
         left: 16.0,
         right: 16.0,
         bottom: 16.0,
       ),
 
       child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          // Bottone Fisso "Emergenza specifica" (in alto)
-          Container(
-            height: 55,
-            margin: const EdgeInsets.only(bottom: 10.0),
-            child: ElevatedButton(
-              onPressed: () {
-                // Azione per l'emergenza specifica
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ColorPalette.emergencyButtonRed,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                elevation: 0,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
-                  Text(
-                    "Emergenza specifica",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-                  Icon(Icons.arrow_forward_ios, color: Colors.white, size: 18),
-                ],
-              ),
-            ),
-          ),
-
+        mainAxisSize: MainAxisSize.min, // Adatta la colonna al contenuto
+        children: <Widget>[
           const Divider(height: 1, color: Colors.grey),
-
+          const SizedBox(height: 5.0), // Piccolo spazio
           // Lista dinamica degli elementi
           ...widget.items
               .map(
@@ -186,9 +156,8 @@ class _EmergencyDropdownMenuState extends State<EmergencyDropdownMenu> {
                   ),
                 ),
               )
-              .toList()
-              .reversed, // Inversione per l'ordine visuale dal basso verso l'alto
-          const Spacer(),
+              .toList(),
+          // Rimosso Spacer()
         ],
       ),
     );
@@ -197,35 +166,42 @@ class _EmergencyDropdownMenuState extends State<EmergencyDropdownMenu> {
   // Costruzione del Pulsante/Trigger
   @override
   Widget build(BuildContext context) {
+    final String labelText = widget.value?.label ?? widget.hintText;
+
     return GestureDetector(
-      key: _buttonKey, // Assegna la chiave per il calcolo della posizione
+      key: _buttonKey,
       onTap: _toggleMenu,
       child: Container(
         height: 60,
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         decoration: BoxDecoration(
           color: Colors.white,
+          // BorderRadius del pulsante Trigger
           borderRadius: BorderRadius.only(
-            bottomLeft: const Radius.circular(16.0),
-            bottomRight: const Radius.circular(16.0),
-            topLeft: _isOpen ? Radius.zero : const Radius.circular(16.0),
-            topRight: _isOpen ? Radius.zero : const Radius.circular(16.0),
+            // Top Left e Top Right sono sempre arrotondati
+            topLeft: const Radius.circular(16.0),
+            topRight: const Radius.circular(16.0),
+            // Bottom Left e Bottom Right piatti SOLO quando il menu è aperto
+            bottomLeft: _isOpen ? Radius.zero : const Radius.circular(16.0),
+            bottomRight: _isOpen ? Radius.zero : const Radius.circular(16.0),
           ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "Segnala il tipo di emergenza",
+              labelText,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Colors.black,
+                color: widget.value != null
+                    ? Colors.black
+                    : Colors.grey.shade600, // Colore hint
               ),
             ),
-            // Icona di freccia che cambia in base allo stato
+            // Freccia per l'apertura verso il basso
             Icon(
-              _isOpen ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
+              _isOpen ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
               size: 24,
               color: Colors.black,
             ),
