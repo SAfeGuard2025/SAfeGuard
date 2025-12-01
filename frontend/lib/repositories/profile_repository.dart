@@ -429,4 +429,24 @@ class ProfileRepository {
       throw Exception('Impossibile ricaricare il profilo');
     }
   }
+
+  // Elimina account
+  Future<void> deleteAccount() async {
+    final token = await _getToken();
+    final url = Uri.parse(
+      '$_baseUrl/api/profile/',
+    ); //endpoint presente nel controller backend
+    final response = await http.delete(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Errore durante l\'eliminazione dell\'account: ${response.body}',
+      );
+    }
+  }
 }
