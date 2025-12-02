@@ -57,9 +57,9 @@ class UserRepository {
 
   // Crea utente usato specificamente per flussi esterni (Google/Apple Login)
   Future<Map<String, dynamic>> createUser(
-    Map<String, dynamic> userData, {
-    String collection = 'users',
-  }) async {
+      Map<String, dynamic> userData, {
+        String collection = 'users',
+      }) async {
     // Assicura che l'ID interno sia presente
     if (userData['id'] == null || userData['id'] == 0) {
       userData['id'] = DateTime.now().millisecondsSinceEpoch;
@@ -130,10 +130,10 @@ class UserRepository {
 
   // Rimuove un elemento specifico da un campo array
   Future<void> removeFromArrayField(
-    int id,
-    String fieldName,
-    dynamic item,
-  ) async {
+      int id,
+      String fieldName,
+      dynamic item,
+      ) async {
     final docId = await _findDocIdByIntId(id);
     if (docId == null) return;
 
@@ -190,5 +190,37 @@ class UserRepository {
         'attivo': true,
       });
     }
+  }
+  // Trova tutti i Token FCM degli utenti con ruolo 'Soccorritore'
+  Future<List<String>> findRescuerTokens() async {
+    try {
+      final rescuers = await _usersCollection
+          .where('isSoccorritore', isEqualTo: true)
+          .get();
+
+      // Estrae il campo 'tokenFCM' e filtra i valori nulli o vuoti
+      return rescuers.map((doc) => doc.map['tokenFCM'] as String?)
+          .whereType<String>()
+          .where((token) => token.isNotEmpty)
+          .toList();
+    } catch (e) {
+      print('Errore query token soccorritori: $e');
+      return [];
+    }
+  }
+
+// Metodo per trovare i Token FCM degli Utenti vicini (SIMULAZIONE)
+  Future<List<String>> findNearbyTokensSimulated(double sosLat, double sosLng, double radiusKm) async {
+    print('ATTENZIONE: Esecuzione di query geospaziale SIMULATA (Raggio: $radiusKm km).');
+
+    // Questa simulazione esclude gli utenti con isSoccorritore: true
+    // per inviare notifiche solo ai cittadini nelle vicinanze.
+
+    // Ritorna una lista di token fittizi per gli utenti standard nelle vicinanze.
+    return [
+      'sim_token_user_1_vicino',
+      'sim_token_user_2_vicino',
+      'sim_token_user_3_vicino',
+    ];
   }
 }

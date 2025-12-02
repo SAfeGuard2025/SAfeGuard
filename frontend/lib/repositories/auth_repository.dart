@@ -237,4 +237,35 @@ class AuthRepository {
       throw Exception("Errore connessione: $e");
     }
   }
+
+  Future<void> updateFCMToken(String tokenFCM, String authToken) async {
+    // L'endpoint che aggiorna il profilo (es. /api/profile/token o /api/profile/device)
+    // Usiamo '/api/profile/device/token' come endpoint logico, montato sotto AuthGuard
+    final url = Uri.parse('$_baseUrl/api/profile/device/token');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken', // AUTENTICAZIONE NECESSARIA
+        },
+        body: jsonEncode({
+          'tokenFCM': tokenFCM, // Invia il nuovo token
+        }),
+      );
+
+      // Verifichiamo lo stato 200 (OK) o 204 (No Content)
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        final errorData = jsonDecode(response.body);
+        // Logga ma non blocca: l'utente è loggato anche se il token FCM non si aggiorna.
+        debugPrint('FCM TOKEN UPDATE FALLITO: ${errorData['message']}');
+      } else {
+        debugPrint('FCM TOKEN salvato con successo per l\'utente.');
+      }
+    } catch (e) {
+      // Logga ma non blocca l'accesso: il salvataggio del token non deve impedire il login.
+      debugPrint("Errore di connessione durante l'aggiornamento FCM: $e");
+    }
+  }
 }

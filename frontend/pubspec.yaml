@@ -50,6 +50,8 @@ dependencies:
   firebase_core: ^3.0.0
   firebase_auth: ^5.0.0
 
+  firebase_messaging: ^15.0.0
+
   # dipendenza comune
   data_models:
     path: ../data_models

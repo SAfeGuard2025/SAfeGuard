@@ -11,6 +11,7 @@ import 'package:backend/controllers/register_controller.dart';
 import 'package:backend/controllers/verification_controller.dart';
 import 'package:backend/controllers/profile_controller.dart';
 import 'package:backend/controllers/auth_guard.dart';
+import 'package:backend/controllers/emergenze_controller.dart';
 
 void main() async {
   // 1. Configurazione ambiente
@@ -39,6 +40,7 @@ void main() async {
   final verifyController = VerificationController();
   final profileController = ProfileController();
   final authGuard = AuthGuard();
+  final emergenzeController = EmergenzeController();
 
   // 4. Rounting pubblico
   // Router principale per endpoint accessibili a tutti
@@ -50,6 +52,7 @@ void main() async {
   app.post('/api/auth/register', registerController.handleRegisterRequest);
   app.post('/api/verify', verifyController.handleVerificationRequest);
   app.get('/health', (Request request) => Response.ok('OK'));
+
 
   // 5. Routing Protetto
   // Sotto-router dedicato alle operazioni sull'utente loggato
@@ -67,6 +70,7 @@ void main() async {
   profileApi.put('/condizioni', profileController.updateCondizioni);
   profileApi.put('/notifiche', profileController.updateNotifiche);
   profileApi.put('/password', profileController.updatePassword);
+  profileApi.post('/device/token', profileController.updateFCMToken);
 
   // Aggiunta elementi a liste
   profileApi.post('/allergie', profileController.addAllergia);
@@ -82,12 +86,30 @@ void main() async {
     profileController.deleteAccount,
   ); // DELETE sull'utente stesso
 
+  //Router per le Segnalazioni---
+  final reportApi = Router();
+
   // 6. Mounting & Middleware
   // Collega il router profilo a '/api/profile'
   // Passa attraverso il controller AuthGuard per controllare il token di sessione
   app.mount(
     '/api/profile',
     Pipeline().addMiddleware(authGuard.middleware).addHandler(profileApi.call),
+  );
+
+  app.mount(
+      '/api/reports',
+      Pipeline().addMiddleware(authGuard.middleware).addHandler(reportApi.call)
+  );
+
+  // 1. Definisci il Router Emergenze (con la sua rotta)
+  final emergenzeRouter = Router()
+    ..post('/sos', emergenzeController.handleSOSRequest);
+
+  // 2. Monta il Router (Ora l'espressione è pulita e facile da risolvere per la Pipeline)
+  app.mount(
+      '/api/emergenze',
+      Pipeline().addMiddleware(authGuard.middleware).addHandler(emergenzeRouter.call)
   );
 
   // 7. Pipeline Server e Configurazione CORS

@@ -15,6 +15,7 @@ class SwipeToConfirm extends StatefulWidget {
   final Color? sliderColor; // Colore della freccia
   final Color? backgroundColor; // Colore dello sfondo della barra
   final Color? iconColor; // Colore dell'icona
+  final bool isDisabled;
 
   const SwipeToConfirm({
     super.key,
@@ -27,6 +28,7 @@ class SwipeToConfirm extends StatefulWidget {
     this.sliderColor,
     this.backgroundColor,
     this.iconColor,
+    this.isDisabled = false,
   });
 
   @override
@@ -38,10 +40,15 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
   double position = 0;
   bool confirmed = false;
 
+  // Variabili per la colorazione di stato disabilitato
+  final Color disabledThumbColor = Colors.black54;
+  final Color disabledTrackColor = Colors.black45;
+
   @override
   Widget build(BuildContext context) {
     // Larghezza massima scorribile
     final double maxDragDistance = widget.width - widget.height;
+    final bool isEnabled = !widget.isDisabled;
 
     return SizedBox(
       height: widget.height,
@@ -82,7 +89,7 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
             bottom: 0,
             child: GestureDetector(
               // Aggiornamento della posizione durante il trascinamento
-              onHorizontalDragUpdate: (details) {
+              onHorizontalDragUpdate: isEnabled ? (details) {
                 if (confirmed) return;
 
                 setState(() {
@@ -93,8 +100,8 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
                     position = maxDragDistance;
                   }
                 });
-              },
-              onHorizontalDragEnd: (_) {
+              }:null,
+              onHorizontalDragEnd: isEnabled ? (_) {
                 if (confirmed) return;
 
                 // Se la posizione è vicina al massimo, conferma l'azione
@@ -109,7 +116,7 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
                     position = 0;
                   });
                 }
-              },
+              }:null,
 
               // Contenuto visivo del Thumb
               child: SizedBox(
@@ -120,7 +127,7 @@ class _SwipeToConfirmState extends State<SwipeToConfirm> {
                     Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: widget.sliderColor ?? Colors.red,
+                        color: isEnabled ? (widget.sliderColor ?? ColorPalette.primaryBrightRed) : disabledThumbColor,
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.2),

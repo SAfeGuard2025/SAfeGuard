@@ -36,7 +36,40 @@ class UserApiService {
     final String portPart = _envPort == '-1' ? '' : ':$_envPort';
 
     // 3. Costruisce l'URL finale
-    return '$host$portPart$_envPrefix/user';
+    return '$host$portPart$_envPrefix/api';
+  }
+
+  Future<Map<String, dynamic>> callSOSApi({
+    required double latitude,
+    required double longitude,
+    required String authToken,
+    String? type,
+    String? description,
+  }) async {
+    // Usa l'URL base corretto (che ora include /api)
+    final url = Uri.parse('$_baseUrl/emergenze/sos');
+
+    final Map<String, dynamic> body = {
+      'latitude': latitude,
+      'longitude': longitude,
+      'type': type ?? 'Emergenza Generica',
+      'description': description ?? 'SOS urgente',
+    };
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $authToken',
+      },
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('SOS API fallita: Status ${response.statusCode}');
+    }
   }
 
   // Recupera i dati di un utente tramite ID

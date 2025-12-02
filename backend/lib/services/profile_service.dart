@@ -294,4 +294,19 @@ class ProfileService {
       print("Errore inizializzazione: $e");
     }
   }
+
+  // 11. AGGIORNAMENTO TOKEN FCM (Nuova Funzionalità)
+  /// Aggiorna il token FCM per l'utente loggato.
+  Future<void> updateFCMToken(int userId, String tokenFCM) async {
+    try {
+      // Il Token FCM è un campo del profilo UtenteGenerico che richiede un aggiornamento diretto.
+      // Deleghiamo l'aggiornamento al metodo updateUserField nel repository.
+      await _userRepository.updateUserField(userId, 'tokenFCM', tokenFCM);
+    } catch (e) {
+      // Non solleviamo l'eccezione critica, ma logghiamo l'errore,
+      // poiché il fallimento dell'aggiornamento del token non deve impedire all'utente di accedere.
+      print("Errore aggiornamento token FCM per ID $userId: $e");
+      // Possiamo scegliere di ritornare false, ma VoidFunction non lo permette.
+    }
+  }
 }
