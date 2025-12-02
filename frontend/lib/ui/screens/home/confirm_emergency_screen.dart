@@ -43,10 +43,7 @@ class ConfirmEmergencyScreen extends StatelessWidget {
               Expanded(
                 flex: 4,
                 child: Center(
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: _buildSosImage(),
-                  ),
+                  child: AspectRatio(aspectRatio: 1, child: _buildSosImage()),
                 ),
               ),
 
@@ -86,70 +83,87 @@ class ConfirmEmergencyScreen extends StatelessWidget {
                   width: sliderWidth,
                   height: isWideScreen ? 80 : 70,
                   onConfirm: () async {
+                    try {
+                      // 1. Recupero l'utente dall'AuthProvider
+                      final authProvider = context.read<AuthProvider>();
+                      final user = authProvider.currentUser;
 
-                    // 1. Recupero l'utente dall'AuthProvider
-                    final authProvider = context.read<AuthProvider>();
-                    final user = authProvider.currentUser;
-
-                    // Controllo di sicurezza: se l'utente non è in memoria, blocco l'azione
-                    if (user == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Errore: Utente non trovato. Effettua il login."),
-                          backgroundColor: Colors.black,
-                        ),
-                      );
-                      return;
-                    }
-
-                    // 2. Estraggo i dati per il Database
-                    final String userId = user.id.toString();
-                    final String? userEmail = user.email;
-                    final String? userPhone = user.telefono;
-
-                    // Feedback visivo immediato
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Tentativo invio in corso..."),
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
-
-                    // 3. Chiamata al Provider passando TUTTI i dati
-                    final success = await context
-                        .read<EmergencyProvider>()
-                        .sendInstantSos(
-                        userId: userId,
-                        email: userEmail,
-                        phone: userPhone,
-                        type: "SOS Generico"
-                    );
-
-                    // Controllo se il widget è ancora montato
-                    if (!context.mounted) return;
-
-                    // Invio di un messaggio che conferma la ricesione dell'SOS
-                    if (success) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("SOS INVIATO! I soccorsi stanno arrivando."),
-                          backgroundColor: Colors.green,
-                          duration: Duration(seconds: 3),
-                        ),
-                      );
-
-                      await Future.delayed(const Duration(milliseconds: 500));
-                      if (context.mounted) {
-                        Navigator.of(context).pop(); // Torna alla Home
+                      // Controllo di sicurezza: se l'utente non è in memoria, blocco l'azione
+                      if (user == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              "Errore: Utente non trovato. Effettua il login.",
+                            ),
+                            backgroundColor: Colors.black,
+                          ),
+                        );
+                        return;
                       }
 
-                      // Invio di un messaggio che avvisa il mancato invio dell'SOS
-                    } else {
+                      // 2. Estraggo i dati per il Database
+                      final String userId = user.id.toString();
+                      final String? userEmail = user.email;
+                      final String? userPhone = user.telefono;
+
+                      // Feedback visivo immediato
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text("Errore Invio! Controlla connessione."),
-                          backgroundColor: Colors.black,
-                          duration: Duration(seconds: 4),
+                          content: Text("Tentativo invio in corso..."),
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+
+                      // 3. Chiamata al Provider passando TUTTI i dati
+                      final success = await context
+                          .read<EmergencyProvider>()
+                          .sendInstantSos(
+                            userId: userId,
+                            email: userEmail,
+                            phone: userPhone,
+                            type: "SOS Generico",
+                          );
+
+                      // Controllo se il widget è ancora montato
+                      if (!context.mounted) return;
+
+                      // Invio di un messaggio che conferma la ricesione dell'SOS
+                      if (success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              "SOS INVIATO! I soccorsi stanno arrivando.",
+                            ),
+                            backgroundColor: Colors.green,
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+
+                        if (context.mounted) {
+                          Navigator.of(context).pop(); // Torna alla Home
+                        }
+
+                        // Invio di un messaggio che avvisa il mancato invio dell'SOS
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              "Errore Invio! Controlla connessione.",
+                            ),
+                            backgroundColor: Colors.black,
+                            duration: Duration(seconds: 4),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      // Gestione errori specifici (es. GPS disattivato)
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            e.toString().replaceAll("Exception: ", ""),
+                          ),
+                          backgroundColor: Colors.red,
+                          duration: const Duration(seconds: 4),
                         ),
                       );
                     }

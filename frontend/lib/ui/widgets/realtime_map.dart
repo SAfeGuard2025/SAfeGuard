@@ -18,13 +18,12 @@ class _RealtimeMapState extends State<RealtimeMap> {
   final MapController _mapController = MapController();
 
   // Riferimento alla collezione del database
-  final CollectionReference _firestore = FirebaseFirestore.instance.collection('active_emergencies');
+  final CollectionReference _firestore = FirebaseFirestore.instance.collection(
+    'active_emergencies',
+  );
 
-  // Coordinate di default (Roma) usate finché il GPS non risponde
-  LatLng _center = const LatLng(41.9028, 12.4964);
-
-  // Flag per sapere se abbiamo i permessi e il GPS attivo
-  bool _isLocationServiceEnabled = false;
+  // Coordinate di default (Salerno) usate finché il GPS non risponde
+  LatLng _center = const LatLng(40.6824, 14.7681);
 
   // Limiti di zoom per evitare che l'utente vada troppo lontano o troppo vicino
   final double _minZoom = 5.0;
@@ -49,23 +48,35 @@ class _RealtimeMapState extends State<RealtimeMap> {
   Future<void> _initLocationService() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
+      // Se il servizio è disabilitato, proviamo ad aprirlo
       await Geolocator.openLocationSettings();
       serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) return;
     }
 
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) return;
-    }
-    if (permission == LocationPermission.deniedForever) return;
+    if (serviceEnabled) {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
 
-    setState(() {
-      _isLocationServiceEnabled = true;
-    });
-    // Sposta subito la camera sulla posizione reale
-    _goToUserLocation();
+      if (permission != LocationPermission.denied &&
+          permission != LocationPermission.deniedForever) {
+        // 1. FAST PATH: Prova a ottenere l'ultima posizione nota (molto veloce)
+        try {
+          Position? lastKnown = await Geolocator.getLastKnownPosition();
+          if (lastKnown != null && mounted) {
+            final newCenter = LatLng(lastKnown.latitude, lastKnown.longitude);
+            setState(() => _center = newCenter);
+            _mapController.move(newCenter, 15.0);
+          }
+        } catch (e) {
+          debugPrint("Errore lastKnownPosition: $e");
+        }
+
+        // 2. SLOW PATH: Ottieni la posizione precisa aggiornata
+        await _goToUserLocation();
+      }
+    }
   }
 
   // Ottiene la posizione corrente precisa e centra la mappa
@@ -73,8 +84,10 @@ class _RealtimeMapState extends State<RealtimeMap> {
     try {
       Position position = await Geolocator.getCurrentPosition();
       final newCenter = LatLng(position.latitude, position.longitude);
-      setState(() => _center = newCenter);
-      _mapController.move(newCenter, 15.0);
+      if (mounted) {
+        setState(() => _center = newCenter);
+        _mapController.move(newCenter, 15.0);
+      }
     } catch (e) {
       debugPrint("Errore posizione: $e");
     }
@@ -86,16 +99,9 @@ class _RealtimeMapState extends State<RealtimeMap> {
     _mapController.move(center, destZoom);
   }
 
-  // Se non ha ancora il GPS, mostra un caricamento
+  // Mostra subito la mappa (niente più caricamento bloccante)
   @override
   Widget build(BuildContext context) {
-    if (!_isLocationServiceEnabled) {
-      return Container(
-        color: Colors.grey[900],
-        child: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
     // Stack permette di sovrapporre i pulsanti alla mappa
     return Stack(
       children: [
@@ -165,10 +171,12 @@ class _RealtimeMapState extends State<RealtimeMap> {
                   height: 20,
                   child: Container(
                     decoration: BoxDecoration(
-                        color: Colors.blue,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 3),
-                        boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black26)]
+                      color: Colors.blue,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 3),
+                      boxShadow: const [
+                        BoxShadow(blurRadius: 10, color: Colors.black26),
+                      ],
                     ),
                   ),
                 ),
