@@ -3,10 +3,7 @@ import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/ui/widgets/emergency_item.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:frontend/services/user_api_service.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:frontend/providers/report_provider.dart';
 
 // Schermata Report Specifico
 class ReportsScreen extends StatefulWidget {
@@ -17,125 +14,63 @@ class ReportsScreen extends StatefulWidget {
 }
 
 class _ReportsScreenState extends State<ReportsScreen> {
-  // Stato caricamento
-  bool _isLoading = false;
   bool _needsHelp = false;
-
   final TextEditingController _descriptionController = TextEditingController();
-
   EmergencyItem? _selectedEmergency;
 
-  //LOGICA DI INVIO IBRIDA (INTERNET + SMS)
-  Future<void> _sendEmergency() async {
-    // 1. Validazione Campi
+  // Funzione per mandare l'emergenza collegata al Provider
+  Future<void> _sendEmergency(ReportProvider reportProvider) async {
     final String description = _descriptionController.text;
 
     if (_selectedEmergency == null) {
       _showSnackBar(
-        content: 'Seleziona un tipo di emergenza',
+        content: 'Inserisci un\'emergenza da segnalare',
         color: ColorPalette.emergencyButtonRed,
       );
       return;
     }
 
-    // 2. Avvio Caricamento
-    setState(() => _isLoading = true);
-
-    try {
-      // 3. Ottenimento Posizione GPS
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+    if (description.isEmpty) {
+      _showSnackBar(
+        content: 'Inserisci una descrizione',
+        color: ColorPalette.emergencyButtonRed,
       );
+      return;
+    }
 
-      final String type = _selectedEmergency!.label;
+    // Chiamata al Provider
+    // Passiamo la stringa del tipo (es. "Incendio") e la descrizione
+    // NOTA: La logica SMS/GPS deve essere gestita dentro reportProvider.sendReport
+    bool success = await reportProvider.sendReport(
+        _selectedEmergency!.label,
+        description
+    );
 
-      // 4. Controllo Connessione Internet
-      final connectivityResult = await Connectivity().checkConnectivity();
-      bool hasInternet = !connectivityResult.contains(ConnectivityResult.none);
+    // Gestione esito
+    if (success && mounted) {
+      _showSnackBar(content: 'Emergenza segnalata con successo', color: Colors.green);
 
-      if (hasInternet) {
-        // --- CASO A: C'È INTERNET (Usa Backend) ---
-        print("🌐 Internet OK. Invio al server...");
+      // Reset campi dopo invio
+      setState(() {
+        _selectedEmergency = null;
+        _descriptionController.clear();
+        _needsHelp = false;
+      });
 
-        final authProvider = Provider.of<AuthProvider>(context, listen: false);
-        final token = authProvider.authToken;
-
-        if (token == null) {
-          _showSnackBar(
-            content: 'Errore: Utente non loggato',
-            color: Colors.red,
-          );
-          return;
-        }
-
-        final api = UserApiService();
-        await api.callSOSApi(
-          latitude: position.latitude,
-          longitude: position.longitude,
-          authToken: token,
-          type: type,
-          description: description,
-        );
-
-        if (mounted) {
-          _showSnackBar(
-            content: '✅ Segnalazione inviata al server!',
-            color: Colors.green,
-          );
-          Navigator.pop(context); // Torna alla Home
-        }
-      } else {
-        // --- CASO B: NO INTERNET (Usa SMS) ---
-        print("📵 No Internet. Preparazione SMS...");
-
-        await _sendSmsFallback(
-          lat: position.latitude,
-          lng: position.longitude,
-          type: type,
-          description: description,
-        );
-
-        //l'utente deve inviare l'SMS manualmente
-        if (mounted) setState(() => _isLoading = false);
-      }
-    } catch (e) {
-      print("Errore invio: $e");
-      if (mounted) {
-        _showSnackBar(
-          content: 'Errore durante l\'invio: $e',
-          color: ColorPalette.emergencyButtonRed,
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+      // Se vuoi tornare alla home decommenta la riga sotto:
+      // Navigator.of(context).pop();
+    } else if (mounted) {
+      _showSnackBar(
+          content: 'Errore invio segnalazione. Riprova.',
+          color: ColorPalette.emergencyButtonRed
+      );
     }
   }
 
-  // Helper per inviare SMS
-  Future<void> _sendSmsFallback({
-    required double lat,
-    required double lng,
-    required String type,
-    required String description,
-  }) async {
-    // NUMERO CENTRALE OPERATIVA
-    const String emergencyNumber =
-        "123"; //Lo invia alla centrale di emergenza(ES. 112, 115)
-
-    final String message =
-        "SOS $type\nPosizione: $lat, $lng\nNote: $description\n(Inviato da App SAfeGuard)";
-
-    final Uri smsUri = Uri(
-      scheme: 'sms',
-      path: emergencyNumber,
-      queryParameters: <String, String>{'body': message},
-    );
-
-    if (await canLaunchUrl(smsUri)) {
-      await launchUrl(smsUri);
-    } else {
-      throw Exception("Impossibile aprire l'app messaggi");
-    }
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+    super.dispose();
   }
 
   @override
@@ -143,7 +78,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final size = MediaQuery.of(context).size;
     final bool isWideScreen = size.width > 700;
 
+    // Accesso ai Provider
     final isRescuer = context.watch<AuthProvider>().isRescuer;
+    final reportProvider = context.watch<ReportProvider>(); // Per lo stato isLoading
 
     Color bgColor = isRescuer
         ? ColorPalette.primaryOrange
@@ -191,18 +128,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   child: _buildSpecificEmergency(context, isWideScreen),
                 ),
 
-                isRescuer
-                    ? const SizedBox(height: 40.0)
-                    : const SizedBox(height: 20.0),
+                isRescuer ? const SizedBox(height: 40.0) : const SizedBox(height: 20.0),
 
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
                     "Aggiungi dettagli alla tua segnalazione",
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize:
-                          18, // Corretto buttonFontSize non disponibile qui
+                      fontSize: buttonFontSize,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -233,7 +167,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                 const SizedBox(height: 20.0),
 
-                // checkbox per la richiesta di aiuto
+                // checkbox per la richiesta di aiuto (visibile solo all'utente, non al soccorritore)
                 if (!isRescuer)
                   Container(
                     height: 70,
@@ -282,7 +216,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                 const SizedBox(height: 20.0),
 
-                // PULSANTE INVIA
+                // pulsante che manda e crea l'emergenza
                 SizedBox(
                   width: double.infinity,
                   height: isWideScreen ? 70 : 50,
@@ -293,9 +227,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         borderRadius: BorderRadius.circular(15),
                       ),
                     ),
-                    // Disabilita il click se sta caricando
-                    onPressed: _isLoading ? null : _sendEmergency,
-                    child: _isLoading
+                    // Disabilita se sta caricando (usando lo stato del provider)
+                    onPressed: reportProvider.isLoading
+                        ? null
+                        : () => _sendEmergency(reportProvider),
+
+                    child: reportProvider.isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : Text(
                             "INVIA EMERGENZA",
@@ -334,6 +271,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
           setState(() {
             _selectedEmergency = item;
           });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Selezionato: ${item.label}"),
+              backgroundColor: Colors.black,
+              duration: const Duration(seconds: 1),
+            ),
+          );
         },
       ),
     );

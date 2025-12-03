@@ -58,18 +58,24 @@ class UserRepository {
     return pages.first.map;
   }
 
-  // Salva un nuovo utente nel DB
   Future<UtenteGenerico> saveUser(UtenteGenerico newUser) async {
-    final int newId = DateTime.now().millisecondsSinceEpoch;
+    // Se l'utente ha già un ID (es. registrazione non verificata), usalo.
+    // Altrimenti ne genera uno nuovo.
+    int idToUse = newUser.id != null && newUser.id! > 0
+        ? newUser.id!
+        : DateTime.now().millisecondsSinceEpoch;
+
     final userData = newUser.toJson();
-    userData['id'] = newId;
+    userData['id'] = idToUse; // Assicura che il JSON abbia l'ID corretto
 
-    // Usa l'ID numerico come chiave stringa per il documento (DocId)
-    final String docId = newId.toString();
+    // Usa l'ID come chiave stringa per il documento
+    final String docId = idToUse.toString();
 
+    // .set(userData) sovrascriverà il documento esistente se l'ID è lo stesso,
+    // invece di crearne uno nuovo.
     await _usersCollection.document(docId).set(userData);
 
-    // Ritorna l'oggetto UtenteGenerico con i dati aggiornati e l'ID
+    // Ritorna l'oggetto aggiornato
     if (newUser is Soccorritore || (userData['isSoccorritore'] == true)) {
       return Soccorritore.fromJson(userData);
     } else {
