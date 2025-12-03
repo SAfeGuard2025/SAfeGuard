@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-// Repository: AuthRepository
 // Responsabile di tutte le chiamate API relative ad autenticazione, registrazione e verifica.
 class AuthRepository {
   // Costanti dall'ambiente di compilazione
@@ -47,11 +46,8 @@ class AuthRepository {
 
     // Costruisce il body dinamicamente in base ai dati forniti
     final Map<String, dynamic> body = {'password': password};
-    if (email != null) {
-      body['email'] = email;
-    } else if (phone != null) {
-      body['telefono'] = phone;
-    }
+    if (email != null) body['email'] = email;
+    if (phone != null) body['telefono'] = phone;
 
     try {
       final response = await http.post(
@@ -59,9 +55,7 @@ class AuthRepository {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
       );
-
-      final Map<String, dynamic> responseBody = jsonDecode(response.body);
-
+      final responseBody = jsonDecode(response.body);
       if (response.statusCode == 200) {
         return responseBody;
       } else if (response.statusCode == 403 &&
@@ -78,11 +72,11 @@ class AuthRepository {
 
   // Registrazione con email o telefono
   Future<void> register(
-    String identifier,
-    String password,
-    String nome,
-    String cognome,
-  ) async {
+      String identifier,
+      String password,
+      String nome,
+      String cognome,
+      ) async {
     final url = Uri.parse('$_baseUrl/api/auth/register');
 
     // Tenta di determinare se l'identificatore è un numero di telefono (inizia con + o cifre)
@@ -119,11 +113,11 @@ class AuthRepository {
 
   // Invio OTP Telefono
   Future<void> sendPhoneOtp(
-    String phoneNumber, {
-    String? password,
-    String? nome,
-    String? cognome,
-  }) async {
+      String phoneNumber, {
+        String? password,
+        String? nome,
+        String? cognome,
+      }) async {
     final url = Uri.parse('$_baseUrl/api/auth/register');
     try {
       final Map<String, dynamic> body = {
@@ -170,8 +164,7 @@ class AuthRepository {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(requestBody),
       );
-      final Map<String, dynamic> body = jsonDecode(response.body);
-
+      final body = jsonDecode(response.body);
       if (response.statusCode == 200) {
         return body;
       } else {
@@ -190,12 +183,10 @@ class AuthRepository {
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'id_token': idToken,
-        }), // Invia l'ID Token Google al backend
+        body: jsonEncode({'id_token': idToken}),
       );
 
-      final Map<String, dynamic> body = jsonDecode(response.body);
+      final body = jsonDecode(response.body);
       if (response.statusCode == 200) {
         return body;
       } else {
@@ -220,18 +211,64 @@ class AuthRepository {
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'identityToken': identityToken, // Token di identità Apple
+          'identityToken': identityToken,
           'email': email,
           'givenName': firstName,
           'familyName': lastName,
         }),
       );
 
-      final Map<String, dynamic> body = jsonDecode(response.body);
+      final body = jsonDecode(response.body);
       if (response.statusCode == 200) {
         return body;
       } else {
         throw Exception(body['message'] ?? "Errore login Apple");
+      }
+    } catch (e) {
+      throw Exception("Errore connessione: $e");
+    }
+  }
+
+  //Aggiorna token FCM
+  Future<void> updateFCMToken(String tokenFCM, String authToken) async {
+    final url = Uri.parse('$_baseUrl/api/profile/device/token');
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
+        },
+        body: jsonEncode({'tokenFCM': tokenFCM}),
+      );
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        debugPrint('FCM TOKEN UPDATE FALLITO: ${response.body}');
+      } else {
+        debugPrint('FCM TOKEN salvato con successo.');
+      }
+    } catch (e) {
+      debugPrint("Errore connessione FCM: $e");
+    }
+  }
+}
+  // Metodo per rinviare
+  Future<void> resendOtp({String? email, String? phone}) async {
+    final url = Uri.parse('$_baseUrl/api/auth/resend');
+
+    final Map<String, dynamic> body = {};
+    if (email != null) body['email'] = email;
+    if (phone != null) body['telefono'] = phone;
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode != 200) {
+        final errorData = jsonDecode(response.body);
+        throw Exception(errorData['message'] ?? "Errore rinvio codice");
       }
     } catch (e) {
       throw Exception("Errore connessione: $e");

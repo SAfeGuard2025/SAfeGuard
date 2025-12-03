@@ -1,25 +1,81 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:frontend/providers/emergency_provider.dart';
+import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/widgets/swipe_to_confirm.dart';
 import 'package:frontend/ui/style/color_palette.dart';
+import 'package:provider/provider.dart';
+import 'package:frontend/providers/emergency_provider.dart';
+import 'package:frontend/providers/auth_provider.dart';
 
 import '../../widgets/sos_button.dart';
 
 // Schermata di Conferma Emergenza (SOS)
-// Presenta un'interfaccia ad alto contrasto (rosso) e richiede uno swipe per confermare l'allarme.
 class ConfirmEmergencyScreen extends StatelessWidget {
   const ConfirmEmergencyScreen({super.key});
 
   static const Color brightRed = ColorPalette.primaryBrightRed;
 
+  // --- LOGICA DI INVIA SOS E GESTIONE DEL FEEDBACK ---
+  Future<void> _handleConfirmSos(BuildContext context) async {
+    // Otteniamo i Provider necessari
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final emergencyProvider = Provider.of<EmergencyProvider>(context, listen: false);
+
+    // Dati essenziali per l'API (Simulazione GPS e Token)
+    // NOTA: In produzione, questo sarebbe sostituito da un servizio di geolocalizzazione reale.
+    const double simulatedLat = 40.76;
+    const double simulatedLng = 14.79;
+    final String? authToken = authProvider.authToken;
+
+    if (authToken == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('⚠️ Sessione scaduta. Riloggare.')),
+      );
+      return;
+    }
+
+    try {
+      // 1. Chiama il processo SOS nel provider
+      await emergencyProvider.sendSos(
+        latitude: simulatedLat,
+        longitude: simulatedLng,
+        authToken: authToken,
+      );
+
+      // 2. Successo
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("✅ SOS INVIATO! Notifiche attivate."),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Torna alla schermata principale/home dopo aver inviato l'SOS
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      // 3. Gestione errori
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Invio SOS fallito: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+
+    final isSending = context.watch<EmergencyProvider>().isSendingSos;
+
     // Variabili per la responsività
     final size = MediaQuery.of(context).size;
     final double screenWidth = size.width;
     final bool isWideScreen = screenWidth > 600;
 
-    // Dimensione dei font dinamiche basate sulla larghezza dello schermo
+    // Dimensione dei font
     final double titleSize = isWideScreen ? 60 : 45;
     final double subTitleSize = isWideScreen ? 26 : 20;
     final double legalTextSize = isWideScreen ? 20 : 14;
@@ -41,10 +97,7 @@ class ConfirmEmergencyScreen extends StatelessWidget {
               Expanded(
                 flex: 4,
                 child: Center(
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: _buildSosImage(), // Helper per l'immagine
-                  ),
+                  child: AspectRatio(aspectRatio: 1, child: _buildSosImage()),
                 ),
               ),
 
@@ -83,25 +136,100 @@ class ConfirmEmergencyScreen extends StatelessWidget {
                 child: SwipeToConfirm(
                   width: sliderWidth,
                   height: isWideScreen ? 80 : 70,
-                  onConfirm: () {
-                    // Logica eseguita dopo lo swipe completato
-                    Navigator.of(
-                      context,
-                    ).pop(); // Chiude la schermata di conferma
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("SOS INVIATO!"),
-                        backgroundColor: Colors.black,
-                      ),
-                    );
-                    // Qui andrebbe la vera logica di invio dell'SOS al provider/server
+                  onConfirm: () async {
+                    try {
+                      // 1. Recupero l'utente dall'AuthProvider
+                      final authProvider = context.read<AuthProvider>();
+                      final user = authProvider.currentUser;
+
+                      // Controllo di sicurezza: se l'utente non è in memoria, blocco l'azione
+                      if (user == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              "Errore: Utente non trovato. Effettua il login.",
+                            ),
+                            backgroundColor: Colors.black,
+                          ),
+                        );
+                        return;
+                      }
+
+                      // 2. Estraggo i dati per il Database
+                      final String userId = user.id.toString();
+                      final String? userEmail = user.email;
+                      final String? userPhone = user.telefono;
+
+                      // Feedback visivo immediato
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Tentativo invio in corso..."),
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+
+                      // 3. Chiamata al Provider passando TUTTI i dati
+                      final success = await context
+                          .read<EmergencyProvider>()
+                          .sendInstantSos(
+                            userId: userId,
+                            email: userEmail,
+                            phone: userPhone,
+                            type: "SOS Generico",
+                          );
+
+                      // Controllo se il widget è ancora montato
+                      if (!context.mounted) return;
+
+                      // Invio di un messaggio che conferma la ricesione dell'SOS
+                      if (success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              "SOS INVIATO! I soccorsi stanno arrivando.",
+                            ),
+                            backgroundColor: Colors.green,
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+
+                        if (context.mounted) {
+                          Navigator.of(context).pop(); // Torna alla Home
+                        }
+
+                        // Invio di un messaggio che avvisa il mancato invio dell'SOS
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              "Errore Invio! Controlla connessione.",
+                            ),
+                            backgroundColor: Colors.black,
+                            duration: Duration(seconds: 4),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      // Gestione errori specifici (es. GPS disattivato)
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            e.toString().replaceAll("Exception: ", ""),
+                          ),
+                          backgroundColor: Colors.red,
+                          duration: const Duration(seconds: 4),
+                        ),
+                      );
+                    }
                   },
+                  isDisabled: isSending,
+                  onConfirm: () => _handleConfirmSos(context),
                 ),
               ),
 
               const Spacer(flex: 1),
 
-              // 4. Footer (Testo Legale e Pulsante Annulla)
+              // 4. Footer (Info Legali e Annulla)
               Column(
                 children: [
                   // Avviso legale (procurato allarme)
@@ -117,7 +245,7 @@ class ConfirmEmergencyScreen extends StatelessWidget {
                   const SizedBox(height: 15),
                   // Pulsante Annulla
                   TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: isSending ? null : () => Navigator.of(context).pop(), // Disabilita se sta inviando
                     child: Text(
                       "Annulla",
                       style: TextStyle(

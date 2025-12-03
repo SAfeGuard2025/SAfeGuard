@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:frontend/providers/notification_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
-
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/medical_provider.dart';
 import 'package:frontend/providers/emergency_provider.dart';
 import 'package:frontend/providers/permission_provider.dart';
 import 'package:frontend/ui/screens/auth/loading_screen.dart';
+import 'package:frontend/providers/report_provider.dart';
 
 // Funzione Main: Punto di partenza dell'Applicazione
 void main() async {
@@ -26,6 +26,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => EmergencyProvider()),
         ChangeNotifierProvider(create: (_) => PermissionProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => ReportProvider()),
       ],
       // Il widget radice dell'applicazione
       child: const SAfeGuard(),

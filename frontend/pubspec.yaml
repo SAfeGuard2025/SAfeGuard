@@ -30,6 +30,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  geolocator: ^11.0.0
+  connectivity_plus: ^6.0.0  # Per sapere se c'è internet
+  url_launcher: ^6.2.0
 
   flutter_svg: ^2.2.3 # Aggiunto per supporto SVG
   flutter_native_splash: ^2.4.7
@@ -49,6 +52,12 @@ dependencies:
   sign_in_with_apple: ^6.1.0
   firebase_core: ^3.0.0
   firebase_auth: ^5.0.0
+
+  cloud_firestore: ^5.0.0
+  flutter_map: ^7.0.0
+  latlong2: ^0.9.1
+  geolocator: ^13.0.0
+  firebase_messaging: ^15.0.0
 
   # dipendenza comune
   data_models:

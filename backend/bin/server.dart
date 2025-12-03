@@ -11,6 +11,11 @@ import 'package:backend/controllers/register_controller.dart';
 import 'package:backend/controllers/verification_controller.dart';
 import 'package:backend/controllers/profile_controller.dart';
 import 'package:backend/controllers/auth_guard.dart';
+import 'package:backend/controllers/emergenze_controller.dart';
+import 'package:backend/controllers/report_controller.dart';
+import 'package:backend/controllers/resend_controller.dart';
+import 'package:backend/controllers/risk_controller.dart';
+
 
 void main() async {
   // 1. Configurazione ambiente
@@ -37,10 +42,14 @@ void main() async {
   final loginController = LoginController();
   final registerController = RegisterController();
   final verifyController = VerificationController();
+  final resendController = ResendController();
   final profileController = ProfileController();
+  final reportController = ReportController();
   final authGuard = AuthGuard();
+  final emergenzeController = EmergenzeController();
+  final riskController = RiskController();
 
-  // 4. Rounting pubblico
+  // 4. Routing pubblico
   // Router principale per endpoint accessibili a tutti
   final app = Router();
 
@@ -49,17 +58,20 @@ void main() async {
   app.post('/api/auth/apple', loginController.handleAppleLoginRequest);
   app.post('/api/auth/register', registerController.handleRegisterRequest);
   app.post('/api/verify', verifyController.handleVerificationRequest);
+  app.post('/api/auth/resend', resendController.handleResendRequest);
   app.get('/health', (Request request) => Response.ok('OK'));
+
+  // 5. Routing Protetto (Profilo Utente)
+  // Endpoint per l'analisi del rischio tramite AI
+  app.post('/api/risk/analyze', riskController.handleRiskAnalysis);
+  app.get('/api/risk/hotspots', riskController.handleHotspotsRequest);
 
   // 5. Routing Protetto
   // Sotto-router dedicato alle operazioni sull'utente loggato
   final profileApi = Router();
 
   // Lettura dati
-  profileApi.get(
-    '/',
-    profileController.getProfile,
-  ); // Nota: il path base è già /api/profile
+  profileApi.get('/', profileController.getProfile);
 
   // Modifica dati
   profileApi.put('/anagrafica', profileController.updateAnagrafica);
@@ -67,6 +79,10 @@ void main() async {
   profileApi.put('/condizioni', profileController.updateCondizioni);
   profileApi.put('/notifiche', profileController.updateNotifiche);
   profileApi.put('/password', profileController.updatePassword);
+
+  // Gestione Dispositivo e Posizione
+  profileApi.post('/device/token', profileController.updateFCMToken);
+  profileApi.post('/position', profileController.updatePosition);
 
   // Aggiunta elementi a liste
   profileApi.post('/allergie', profileController.addAllergia);
@@ -77,17 +93,47 @@ void main() async {
   profileApi.delete('/allergie', profileController.removeAllergia);
   profileApi.delete('/medicinali', profileController.removeMedicinale);
   profileApi.delete('/contatti', profileController.removeContatto);
-  profileApi.delete(
-    '/',
-    profileController.deleteAccount,
-  ); // DELETE sull'utente stesso
+  profileApi.delete('/', profileController.deleteAccount);// DELETE sull'utente stesso
+
+  // Router per le Segnalazioni
+  final reportApi = Router();
+
+  //Router per le Segnalazioni---
+  final reportApi = Router();
+
+  // Rotta per creare la segnalazione
+  reportApi.post('/create', reportController.createReport);
+
+  // Rotta per leggere la lista
+  reportApi.get('/', reportController.getAllReports);
 
   // 6. Mounting & Middleware
-  // Collega il router profilo a '/api/profile'
-  // Passa attraverso il controller AuthGuard per controllare il token di sessione
+
+  // Mount Profilo
   app.mount(
     '/api/profile',
     Pipeline().addMiddleware(authGuard.middleware).addHandler(profileApi.call),
+  );
+
+  // Mount Reports
+  app.mount(
+    '/api/reports',
+    Pipeline().addMiddleware(authGuard.middleware).addHandler(reportApi.call),
+  );
+
+  // Router Emergenze (SOS)
+  final emergenzeRouter = Router()
+    ..post('/sos', emergenzeController.handleSOSRequest);
+
+  // Mount Emergenze
+  app.mount(
+    '/api/emergenze',
+    Pipeline()
+        .addMiddleware(authGuard.middleware)
+        .addHandler(emergenzeRouter.call),
+  app.mount(
+      '/api/reports',
+      Pipeline().addMiddleware(authGuard.middleware).addHandler(reportApi.call)
   );
 
   // 7. Pipeline Server e Configurazione CORS
@@ -96,19 +142,19 @@ void main() async {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': '*', // Accetta tutti gli header
+      'Access-Control-Allow-Headers': '*',
     },
   );
 
   // Aggiungo il middleware CORS prima del logRequests e dell'handler
   final handler = Pipeline()
       .addMiddleware(logRequests())
-      .addMiddleware(corsMiddleware) // Qui applichiamo i CORS
+      .addMiddleware(corsMiddleware)
       .addHandler(app.call);
 
   // 8. Avvio Server
   // Mette in ascolto il server sull'indirizzo IPv4 e porta configurata
   final server = await io.serve(handler, InternetAddress.anyIPv4, port);
 
-  print(' Server in ascolto su http://${server.address.host}:${server.port}');
+  print('🚀 Server in ascolto su http://${server.address.host}:${server.port}');
 }
