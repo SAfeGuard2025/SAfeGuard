@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:backend/controllers/risk_controller.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_router/shelf_router.dart';
@@ -13,6 +12,7 @@ import 'package:backend/controllers/verification_controller.dart';
 import 'package:backend/controllers/profile_controller.dart';
 import 'package:backend/controllers/auth_guard.dart';
 import 'package:backend/controllers/resend_controller.dart';
+import 'package:backend/controllers/risk_controller.dart';
 
 void main() async {
   // 1. Configurazione ambiente
@@ -58,6 +58,7 @@ void main() async {
 
   // Endpoint per l'analisi del rischio tramite AI
   app.post('/api/risk/analyze', riskController.handleRiskAnalysis);
+  app.get('/api/risk/hotspots', riskController.handleHotspotsRequest);
 
   // 5. Routing Protetto
   // Sotto-router dedicato alle operazioni sull'utente loggato
