@@ -27,20 +27,16 @@ class ProfileService {
   // Recupera i dati grezzi e li trasforma nell'oggetto Utente/Soccorritore corretto
   Future<UtenteGenerico?> getProfile(int userId) async {
     try {
-      // 1. Recupero dati dal Repository
       Map<String, dynamic>? data = await _userRepository.findUserById(userId);
 
       if (data != null) {
         final String email = data['email'] ?? '';
-
-        // 2. Sicurezza: Rimuove l'hash della password prima di restituire i dati
         data.remove('passwordHash');
 
-        // 3. Logica di classificazione
         final bool isSoccorritore = RescuerConfig.isSoccorritore(email);
 
         if (isSoccorritore) {
-          data['isSoccorritore'] = true; // Assicura il flag corretto
+          data['isSoccorritore'] = true;
           return Soccorritore.fromJson(data);
         } else {
           return Utente.fromJson(data);
@@ -113,15 +109,13 @@ class ProfileService {
   }) async {
     try {
       final Map<String, dynamic> updates = {};
-
-      // Necessario per confrontare l'email attuale con quella nuova
       final currentUserData = await _userRepository.findUserById(userId);
       if (currentUserData == null) return false;
 
       final String currentEmail = (currentUserData['email'] as String? ?? '')
           .toLowerCase();
 
-      // 1. Aggiornamenti campi semplici
+      // Aggiornamenti campi semplici
       if (nome != null) updates['nome'] = nome;
       if (cognome != null) updates['cognome'] = cognome;
       if (citta != null) updates['cittaDiNascita'] = citta;
@@ -129,23 +123,16 @@ class ProfileService {
         updates['dataDiNascita'] = dataNascita.toIso8601String();
       }
 
-      // 2. Logica Email
+      //Logica Email
       if (email != null && email.isNotEmpty) {
         final normalizedNewEmail = email.toLowerCase();
-
-        // CONTROLLO CRITICO: Procedi solo se l'email è CAMBIATA
         if (normalizedNewEmail != currentEmail) {
-          // A. Sicurezza Domini Riservati
-          // Blocca solo se stai cambiando email VERSO un dominio soccorritore
           if (RescuerConfig.isSoccorritore(normalizedNewEmail)) {
             print(
               "Errore: Impossibile passare a un'email istituzionale riservata.",
             );
             return false;
           }
-
-          // B. Controllo Duplicati
-          // Verifica se la NUOVA email è usata da qualcun altro
           final existingUser = await _userRepository.findUserByEmail(
             normalizedNewEmail,
           );
@@ -153,18 +140,14 @@ class ProfileService {
             print("Errore: Email $normalizedNewEmail già in uso.");
             return false;
           }
-
-          // Se passa i controlli, aggiungiamo il campo da aggiornare
           updates['email'] = normalizedNewEmail;
         }
       }
 
-      // 3. Logica Telefono (Simile all'email: controlla duplicati solo se cambia)
       if (telefono != null && telefono.isNotEmpty) {
         final cleanPhone = telefono.replaceAll(' ', '');
         final currentPhone = (currentUserData['telefono'] as String?) ?? '';
 
-        // Controlla solo se il numero è diverso da quello attuale
         if (cleanPhone != currentPhone) {
           final existingUser = await _userRepository.findUserByPhone(
             cleanPhone,
@@ -177,7 +160,6 @@ class ProfileService {
         }
       }
 
-      // Esegue l'update solo se ci sono modifiche reali
       if (updates.isNotEmpty) {
         await _userRepository.updateUserGeneric(userId, updates);
       }
@@ -254,18 +236,16 @@ class ProfileService {
     }
   }
 
-  // Inizializza i campi del profilo con valori di default se sono assenti
+  // Inizializza Profilo
   Future<void> initializeUserProfile(int userId) async {
     try {
       final existingUser = await _userRepository.findUserById(userId);
-      // Controlla se il profilo ha già i campi di default
       if (existingUser != null && existingUser['permessi'] == null) {
         print("🆕 Inizializzazione profilo default...");
 
         final String email = existingUser['email'] ?? '';
         final bool isSoccorritore = RescuerConfig.isSoccorritore(email);
 
-        // Crea gli oggetti modello con i valori di default
         final defaultPermessi = Permesso(
           posizione: false,
           contatti: false,
@@ -275,7 +255,6 @@ class ProfileService {
         final defaultCondizioni = Condizione();
         final defaultNotifiche = Notifica();
 
-        // Mappa dei dati da inserire
         Map<String, dynamic> initData = {
           'permessi': defaultPermessi.toJson(),
           'condizioni': defaultCondizioni.toJson(),
@@ -292,6 +271,25 @@ class ProfileService {
       }
     } catch (e) {
       print("Errore inizializzazione: $e");
+    }
+  }
+
+  // 11. AGGIORNAMENTO TOKEN FCM
+  Future<void> updateFCMToken(int userId, String tokenFCM) async {
+    try {
+      await _userRepository.updateUserField(userId, 'tokenFCM', tokenFCM);
+    } catch (e) {
+      print("Errore aggiornamento token FCM per ID $userId: $e");
+    }
+  }
+
+  // 12. AGGIORNAMENTO POSIZIONE GPS (Nuova Funzionalità)
+  // Questo metodo salva latitudine e longitudine nel DB per le notifiche di prossimità
+  Future<void> updatePosition(int userId, double lat, double lng) async {
+    try {
+      await _userRepository.updateUserLocation(userId, lat, lng);
+    } catch (e) {
+      print("Errore aggiornamento posizione per ID $userId: $e");
     }
   }
 }

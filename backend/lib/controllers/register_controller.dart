@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:shelf/shelf.dart';
 import 'package:firedart/firedart.dart';
 
+import '../services/email_service.dart';
 import '../services/register_service.dart';
 import '../services/verification_service.dart';
 import '../services/sms_service.dart';
@@ -60,8 +61,10 @@ class RegisterController {
         );
       }
 
+      // La parte [^a-zA-Z0-9] significa "qualsiasi cosa che non sia alfanumerico"
+      // Questo accetta automaticamente trattini, spazi, simboli matematici, ecc.
       if (!RegExp(
-        r'^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%^&*(),.?":{}|<>_])',
+        r'^(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9])',
       ).hasMatch(password)) {
         return _badRequest(
           'La password deve contenere almeno: 1 Maiuscola, 1 Numero e 1 Carattere Speciale.',
@@ -90,6 +93,7 @@ class RegisterController {
       // 3. Avvio del processo di verifica (OTP email)
       if (email != null && (telefono == null || telefono.isEmpty)) {
         final String otpCode = _generateOTP();
+
         // Salva l'OTP nel database in attesa di verifica
         await Firestore.instance
             .collection('email_verifications')
@@ -100,6 +104,14 @@ class RegisterController {
               'created_at': DateTime.now().toIso8601String(),
               'is_verified': false,
             });
+
+        // Invio email reale tramite Resend
+        final emailService = EmailService();
+        await emailService.send(
+          to: email,
+          subject: 'Il tuo codice di verifica Safeguard',
+          htmlContent: '<p>Il tuo codice di verifica è: <h1>$otpCode</h1></p>',
+        );
       }
 
       // Rimuove l'hash della password prima di inviare i dati utente al frontend

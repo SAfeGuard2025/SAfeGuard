@@ -293,4 +293,63 @@ class ProfileController {
       );
     }
   }
+
+  // [ProfileController.dart] (Aggiungere questo metodo alla classe ProfileController)
+
+  // 14. POST /profile/device/token
+  // Aggiorna il Token FCM del dispositivo sul database
+  Future<Response> updateFCMToken(Request request) async {
+    final userId = _getUserId(request);
+    if (userId == null) {
+      return _jsonResponse(401, body: {'error': 'Non autorizzato'});
+    }
+
+    try {
+      final body = jsonDecode(await request.readAsString());
+      final String? tokenFCM = body['tokenFCM'];
+
+      if (tokenFCM == null || tokenFCM.isEmpty) {
+        return _jsonResponse(400, body: {'error': 'Token FCM mancante'});
+      }
+
+      // Delega al Service per aggiornare il singolo campo nel DB
+      await _profileService.updateFCMToken(userId, tokenFCM);
+
+      return _jsonResponse(200, body: {'message': 'Token FCM aggiornato'});
+    } catch (e) {
+      return _jsonResponse(
+        500,
+        body: {'error': 'Errore aggiornamento token: $e'},
+      );
+    }
+  }
+
+  // 15. POST /profile/position
+  // Aggiorna la posizione GPS dell'utente per le notifiche di prossimità
+  Future<Response> updatePosition(Request request) async {
+    final userId = _getUserId(request);
+    if (userId == null) {
+      return _jsonResponse(401, body: {'error': 'Non autorizzato'});
+    }
+
+    try {
+      final body = jsonDecode(await request.readAsString());
+
+      if (body['lat'] == null || body['lng'] == null) {
+        return _jsonResponse(400, body: {'error': 'Coordinate mancanti'});
+      }
+
+      final double lat = (body['lat'] as num).toDouble();
+      final double lng = (body['lng'] as num).toDouble();
+
+      await _profileService.updatePosition(userId, lat, lng);
+
+      return _jsonResponse(200, body: {'message': 'Posizione aggiornata'});
+    } catch (e) {
+      return _jsonResponse(
+        500,
+        body: {'error': 'Errore aggiornamento posizione: $e'},
+      );
+    }
+  }
 }

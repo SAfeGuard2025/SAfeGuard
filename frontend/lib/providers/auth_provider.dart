@@ -9,9 +9,10 @@ import 'package:data_models/utente_generico.dart';
 import 'package:data_models/utente.dart';
 import 'package:data_models/soccorritore.dart';
 import '../repositories/profile_repository.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 // Provider di Stato: AuthProvider
-// Gestisce l'autenticazione, usa ChangeNotifier per notificare la UI
 class AuthProvider extends ChangeNotifier {
   // Dipendenze: Repository per la comunicazione col Backend (API)
   final AuthRepository _authRepository = AuthRepository();
@@ -31,8 +32,6 @@ class AuthProvider extends ChangeNotifier {
   String? _tempEmail;
   String? _tempPhone;
   String? _tempPassword;
-  String? _tempNome;
-  String? _tempCognome;
 
   int _secondsRemaining = 30;
   Timer? _timer;
@@ -44,6 +43,7 @@ class AuthProvider extends ChangeNotifier {
   int get secondsRemaining => _secondsRemaining;
   UtenteGenerico? get currentUser => _currentUser;
   bool get isLogged => _authToken != null;
+  String? get authToken => _authToken; // Getter corretto
 
   // Tenta il login automatico se trova i dati di sessione salvati
   Future<void> tryAutoLogin() async {
@@ -57,6 +57,7 @@ class AuthProvider extends ChangeNotifier {
       try {
         final userMap = jsonDecode(userDataString);
         _currentUser = _parseUser(userMap);
+        await _updateFCMTokenIfNecessary(token);
         notifyListeners();
       } catch (e) {
         await logout();
@@ -64,20 +65,47 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // Metodo helper per salvare i dati di sessione (token + utente).
+  // Metodo helper per salvare i dati di sessione (token + utente) e gestire FCM.
   Future<void> _saveSession(Map<String, dynamic> response) async {
     final token = response['token'];
     final userMap = response['user'];
 
-    // Salva su SharedPreferences per la persistenza
+    // 1. Salva su SharedPreferences per la persistenza
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
     await prefs.setString('user_data', jsonEncode(userMap));
 
-    // Aggiorna lo stato in memoria
+    // 2. Aggiorna lo stato in memoria
     _authToken = token;
     _currentUser = _parseUser(userMap);
+
+    // 3. Logica FONDAMENTALE per il salvataggio del Token FCM
+    if (token != null) {
+      await _updateFCMTokenIfNecessary(token);
+    }
   }
+
+  // === NUOVO METODO PRIVATO: Gestisce il Recupero e Salvataggio del Token FCM ===
+  Future<void> _updateFCMTokenIfNecessary(String authToken) async {
+    try {
+      // A. Ottieni il token FCM dal dispositivo
+      if (Firebase.apps.isNotEmpty) {
+        final String? fcmToken = await FirebaseMessaging.instance.getToken();
+
+        if (fcmToken != null) {
+          // B. Chiama il Backend (AuthRepository) per salvare il token nel DB
+          // Nota: Assicurati che il metodo updateFCMToken esista nel tuo AuthRepository
+          await _authRepository.updateFCMToken(fcmToken, authToken);
+          debugPrint('✅ Token FCM aggiornato con successo: $fcmToken');
+        }
+      }
+    } catch (e) {
+      // Logga l'errore, ma non blocca l'accesso
+      debugPrint('FCM ERROR: Impossibile ottenere o salvare il token FCM: $e');
+    }
+  }
+  // --------------------------------------------------------------------
+
 
   // Metodo per convertire la Map JSON nell'oggetto Utente o Soccorritore
   UtenteGenerico _parseUser(Map<String, dynamic> json) {
@@ -168,11 +196,11 @@ class AuthProvider extends ChangeNotifier {
 
   // Registrazione Email (Avvia l'invio OTP)
   Future<bool> register(
-    String email,
-    String password,
-    String nome,
-    String cognome,
-  ) async {
+      String email,
+      String password,
+      String nome,
+      String cognome,
+      ) async {
     _setLoading(true);
     try {
       //Delega ad AuthRepository
@@ -182,8 +210,6 @@ class AuthProvider extends ChangeNotifier {
       _tempEmail = email;
       _tempPhone = null;
       _tempPassword = password;
-      _tempNome = nome;
-      _tempCognome = cognome;
 
       startTimer();
       _setLoading(false);
@@ -197,11 +223,11 @@ class AuthProvider extends ChangeNotifier {
 
   // Registrazione Telefono (Avvia l'invio OTP)
   Future<bool> startPhoneAuth(
-    String phoneNumber, {
-    String? password,
-    String? nome,
-    String? cognome,
-  }) async {
+      String phoneNumber, {
+        String? password,
+        String? nome,
+        String? cognome,
+      }) async {
     _setLoading(true);
     try {
       //Delega ad AuthRepository
@@ -216,8 +242,6 @@ class AuthProvider extends ChangeNotifier {
       _tempPhone = phoneNumber;
       _tempEmail = null;
       _tempPassword = password;
-      _tempNome = nome;
-      _tempCognome = cognome;
 
       startTimer();
       _setLoading(false);
@@ -257,8 +281,6 @@ class AuthProvider extends ChangeNotifier {
       _tempEmail = null;
       _tempPhone = null;
       _tempPassword = null;
-      _tempNome = null;
-      _tempCognome = null;
 
       _setLoading(false);
       return true;
@@ -275,32 +297,12 @@ class AuthProvider extends ChangeNotifier {
     try {
       // Logica per rinviare il codice basata sull'ultima modalità usata
       if (_tempEmail != null && _tempPassword != null) {
-        // Usiamo dei placeholder per soddisfare la richiesta, tanto il backend
         // riconoscerà l'email esistente e aggiornerà solo l'OTP.
-        final String nomeToSend = _tempNome ?? "Utente";
-        final String cognomeToSend = _tempCognome ?? "Generico";
-
-        // Delega ad AuthRepository
-        await _authRepository.register(
-          _tempEmail!,
-          _tempPassword!,
-          nomeToSend,
-          cognomeToSend,
-        );
+        await _authRepository.resendOtp(email: _tempEmail);
         startTimer();
         _errorMessage = null;
       } else if (_tempPhone != null) {
-        // Gestione fallback per Nome e Cognome (come per l'email)
-        final String nomeToSend = _tempNome ?? "Utente";
-        final String cognomeToSend = _tempCognome ?? "Generico";
-
-        // Rinvia OTP Telefono con i dati completi
-        await _authRepository.sendPhoneOtp(
-          _tempPhone!,
-          password: _tempPassword,
-          nome: nomeToSend,
-          cognome: cognomeToSend,
-        );
+        await _authRepository.resendOtp(phone: _tempPhone);
         startTimer();
         _errorMessage = null;
       } else {
@@ -308,6 +310,7 @@ class AuthProvider extends ChangeNotifier {
       }
     } catch (e) {
       _errorMessage = "Impossibile rinviare codice: ${_cleanError(e)}";
+      notifyListeners();
     } finally {
       _setLoading(false);
     }
@@ -350,7 +353,7 @@ class AuthProvider extends ChangeNotifier {
 
       // 2. Ottiene l'ID Token necessario per l'autenticazione lato server
       final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      await googleUser.authentication;
       final String? idToken = googleAuth.idToken;
 
       if (idToken == null) {

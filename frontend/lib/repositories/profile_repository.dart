@@ -11,111 +11,78 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 
-// ** Repository: ProfileRepository **
-// Classe che gestisce le chiamate API per la lettura e modifica del profilo utente.
 class ProfileRepository {
-  // Costanti dall'ambiente di compilazione
-  static const String _envHost = String.fromEnvironment(
-    'SERVER_HOST',
-    defaultValue: 'http://localhost',
-  );
-  static const String _envPort = String.fromEnvironment(
-    'SERVER_PORT',
-    defaultValue: '8080',
-  );
-  static const String _envPrefix = String.fromEnvironment(
-    'API_PREFIX',
-    defaultValue: '',
-  );
+  static const String _envHost = String.fromEnvironment('SERVER_HOST', defaultValue: 'http://localhost');
+  static const String _envPort = String.fromEnvironment('SERVER_PORT', defaultValue: '8080');
+  static const String _envPrefix = String.fromEnvironment('API_PREFIX', defaultValue: '');
 
-  // Metodo per determinare l'URL base del Backend in base alla piattaforma
   String get _baseUrl {
     String host = _envHost;
-
-    // Logica specifica per emulatore Android (Sovrascrive 'localhost')
     if (!kIsWeb && Platform.isAndroid && host.contains('localhost')) {
       host = host.replaceFirst('localhost', '10.0.2.2');
     }
-
-    // Aggiunge la porta solo se non è stata disabilitata con "-1"
     final String portPart = _envPort == '-1' ? '' : ':$_envPort';
-
-    // Costruisce l'URL finale
     return '$host$portPart$_envPrefix';
   }
 
-  // Metodo helper per recuperare il JWT salvato localmente
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('auth_token');
   }
 
-  // Recupera la lista delle allergie dal profilo completo
   Future<List<String>> fetchAllergies() async {
     final token = await _getToken();
-    // Prende tutto il profilo
     final url = Uri.parse('$_baseUrl/api/profile/');
-
     final response = await http.get(
       url,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token', // JWT per autenticazione
+        'Authorization': 'Bearer $token',
       },
     );
-
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      // Estrae e converte la lista 'allergie'
       return List<String>.from(data['allergie'] ?? []);
     } else {
       throw Exception('Impossibile caricare le allergie');
     }
   }
 
-  // Aggiunge un'allergia al profilo
   Future<void> addAllergia(String allergia) async {
     final token = await _getToken();
     final url = Uri.parse('$_baseUrl/api/profile/allergie');
-
     final response = await http.post(
       url,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: jsonEncode({'allergia': allergia}), // Invia l'allergia nel body
+      body: jsonEncode({'allergia': allergia}),
     );
-
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw Exception('Errore aggiunta allergia: ${response.body}');
     }
   }
 
-  // Rimuove un'allergia dal profilo
   Future<void> removeAllergia(String allergia) async {
     final token = await _getToken();
     final url = Uri.parse('$_baseUrl/api/profile/allergie');
-
     final response = await http.delete(
       url,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: jsonEncode({'allergia': allergia}), // Invia l'allergia da rimuovere
+      body: jsonEncode({'allergia': allergia}),
     );
-
     if (response.statusCode != 200) {
       throw Exception('Errore rimozione allergia');
     }
   }
 
-  // Recupera la lista dei medicinali dal profilo completo
   Future<List<String>> fetchMedicines() async {
     final token = await _getToken();
     final url = Uri.parse('$_baseUrl/api/profile/');
-
     final response = await http.get(
       url,
       headers: {
@@ -123,7 +90,6 @@ class ProfileRepository {
         'Authorization': 'Bearer $token',
       },
     );
-
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       return List<String>.from(data['medicinali'] ?? []);
@@ -132,51 +98,41 @@ class ProfileRepository {
     }
   }
 
-  // Aggiunge un medicinale al profilo
   Future<void> addMedicinale(String farmaco) async {
     final token = await _getToken();
     final url = Uri.parse('$_baseUrl/api/profile/medicinali');
-
     final response = await http.post(
       url,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: jsonEncode({'medicinale': farmaco}), // Invia il mediinale nel body
+      body: jsonEncode({'medicinale': farmaco}),
     );
-
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw Exception('Errore aggiunta medicinale: ${response.body}');
     }
   }
 
-  // Rimuove un medicinale dal profilo
   Future<void> removeMedicinale(String farmaco) async {
     final token = await _getToken();
     final url = Uri.parse('$_baseUrl/api/profile/medicinali');
-
     final response = await http.delete(
       url,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: jsonEncode({
-        'medicinale': farmaco,
-      }), // Invia il medicinale da rimuovere
+      body: jsonEncode({'medicinale': farmaco}),
     );
-
     if (response.statusCode != 200) {
       throw Exception('Errore rimozione medicinale');
     }
   }
 
-  // Recupera la lista dei contatti di emergenza
   Future<List<ContattoEmergenza>> fetchContacts() async {
     final token = await _getToken();
     final url = Uri.parse('$_baseUrl/api/profile/');
-
     final response = await http.get(
       url,
       headers: {
@@ -184,62 +140,50 @@ class ProfileRepository {
         'Authorization': 'Bearer $token',
       },
     );
-
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final list = data['contattiEmergenza'] as List<dynamic>? ?? [];
-      // Mappa gli oggetti JSON in istanze di ContattoEmergenza
       return list.map((e) => ContattoEmergenza.fromJson(e)).toList();
     } else {
       throw Exception('Impossibile caricare i contatti');
     }
   }
 
-  // Aggiunge un ContattoEmergenza alla lista
   Future<void> addContatto(ContattoEmergenza contatto) async {
     final token = await _getToken();
     final url = Uri.parse('$_baseUrl/api/profile/contatti');
-
     final response = await http.post(
       url,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: jsonEncode(
-        contatto.toJson(),
-      ), // Serializza l'oggetto ContattoEmergenza
+      body: jsonEncode(contatto.toJson()),
     );
-
     if (response.statusCode != 201) {
       throw Exception('Errore aggiunta contatto: ${response.body}');
     }
   }
 
-  // Rimuove un ContattoEmergenza dalla lista
   Future<void> removeContatto(ContattoEmergenza contatto) async {
     final token = await _getToken();
     final url = Uri.parse('$_baseUrl/api/profile/contatti');
-
     final response = await http.delete(
       url,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: jsonEncode(contatto.toJson()), // Invia l'oggetto da rimuovere
+      body: jsonEncode(contatto.toJson()),
     );
-
     if (response.statusCode != 200) {
       throw Exception('Errore rimozione contatto');
     }
   }
 
-  // Recupera l'oggetto Condizione dal profilo
   Future<Condizione> fetchCondizioni() async {
     final token = await _getToken();
     final url = Uri.parse('$_baseUrl/api/profile/');
-
     final response = await http.get(
       url,
       headers: {
@@ -247,44 +191,36 @@ class ProfileRepository {
         'Authorization': 'Bearer $token',
       },
     );
-
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['condizioni'] != null) {
-        return Condizione.fromJson(
-          data['condizioni'],
-        ); // Deserializza l'oggetto nidificato
+        return Condizione.fromJson(data['condizioni']);
       }
-      return Condizione(); // Ritorna l'oggetto di default se non trovato
+      return Condizione();
     } else {
       throw Exception('Impossibile caricare le condizioni');
     }
   }
 
-  // Aggiorna l'oggetto Condizione nel profilo
   Future<void> updateCondizioni(Condizione condizioni) async {
     final token = await _getToken();
     final url = Uri.parse('$_baseUrl/api/profile/condizioni');
-
     final response = await http.put(
       url,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: jsonEncode(condizioni.toJson()), // Serializza l'oggetto Condizione
+      body: jsonEncode(condizioni.toJson()),
     );
-
     if (response.statusCode != 200) {
       throw Exception('Errore aggiornamento condizioni: ${response.body}');
     }
   }
 
-  // Recupera l'oggetto Permesso dal profilo
   Future<Permesso> fetchPermessi() async {
     final token = await _getToken();
     final url = Uri.parse('$_baseUrl/api/profile/');
-
     final response = await http.get(
       url,
       headers: {
@@ -292,44 +228,36 @@ class ProfileRepository {
         'Authorization': 'Bearer $token',
       },
     );
-
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['permessi'] != null) {
-        return Permesso.fromJson(
-          data['permessi'],
-        ); // Deserializza l'oggetto nidificato
+        return Permesso.fromJson(data['permessi']);
       }
-      return Permesso(); // Ritorna l'oggetto di default se non trovato
+      return Permesso();
     } else {
       throw Exception('Impossibile caricare i permessi');
     }
   }
 
-  // Aggiorna l'oggetto Permesso nel profilo
   Future<void> updatePermessi(Permesso permessi) async {
     final token = await _getToken();
     final url = Uri.parse('$_baseUrl/api/profile/permessi');
-
     final response = await http.put(
       url,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: jsonEncode(permessi.toJson()), // Serializza l'oggetto Permesso
+      body: jsonEncode(permessi.toJson()),
     );
-
     if (response.statusCode != 200) {
       throw Exception('Errore aggiornamento permessi: ${response.body}');
     }
   }
 
-  // Recupera l'oggetto Notifica dal profilo
   Future<Notifica> fetchNotifiche() async {
     final token = await _getToken();
     final url = Uri.parse('$_baseUrl/api/profile/');
-
     final response = await http.get(
       url,
       headers: {
@@ -337,40 +265,33 @@ class ProfileRepository {
         'Authorization': 'Bearer $token',
       },
     );
-
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['notifiche'] != null) {
-        return Notifica.fromJson(
-          data['notifiche'],
-        ); // Deserializza l'oggetto nidificato
+        return Notifica.fromJson(data['notifiche']);
       }
-      return Notifica(); // Ritorna l'oggetto di default se non trovato
+      return Notifica();
     } else {
       throw Exception('Impossibile caricare le notifiche');
     }
   }
 
-  // Aggiorna l'oggetto Notifica nel profilo
   Future<void> updateNotifiche(Notifica notifiche) async {
     final token = await _getToken();
     final url = Uri.parse('$_baseUrl/api/profile/notifiche');
-
     final response = await http.put(
       url,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: jsonEncode(notifiche.toJson()), // Serializza l'oggetto Notifica
+      body: jsonEncode(notifiche.toJson()),
     );
-
     if (response.statusCode != 200) {
       throw Exception('Errore aggiornamento notifiche: ${response.body}');
     }
   }
 
-  // Aggiorna i campi anagrafici (nome, telefono, email, ecc.) del profilo
   Future<bool> updateAnagrafica({
     String? nome,
     String? cognome,
@@ -380,7 +301,6 @@ class ProfileRepository {
   }) async {
     final token = await _getToken();
     final url = Uri.parse('$_baseUrl/api/profile/anagrafica');
-
     final response = await http.put(
       url,
       headers: {
@@ -395,7 +315,6 @@ class ProfileRepository {
         'cittaDiNascita': citta,
       }),
     );
-
     if (response.statusCode == 200) {
       return true;
     } else {
@@ -403,11 +322,9 @@ class ProfileRepository {
     }
   }
 
-  // Ricarica l'intero profilo utente e restituisce l'oggetto Utente o Soccorritore
   Future<UtenteGenerico?> getUserProfile() async {
     final token = await _getToken();
     final url = Uri.parse('$_baseUrl/api/profile/');
-
     final response = await http.get(
       url,
       headers: {
@@ -415,11 +332,8 @@ class ProfileRepository {
         'Authorization': 'Bearer $token',
       },
     );
-
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-
-      // Logica per distinguere i tipi di utente
       if (data['isSoccorritore'] == true) {
         return Soccorritore.fromJson(data);
       } else {
