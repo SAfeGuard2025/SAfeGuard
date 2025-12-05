@@ -11,6 +11,7 @@ import 'package:backend/controllers/register_controller.dart';
 import 'package:backend/controllers/verification_controller.dart';
 import 'package:backend/controllers/profile_controller.dart';
 import 'package:backend/controllers/auth_guard.dart';
+import 'package:backend/controllers/report_controller.dart';
 import 'package:backend/controllers/emergency_controller.dart';
 
 void main() async {
@@ -39,6 +40,7 @@ void main() async {
   final registerController = RegisterController();
   final verifyController = VerificationController();
   final profileController = ProfileController();
+  final reportController = ReportController();
   final emergencyController = EmergencyController();
   final authGuard = AuthGuard();
 
@@ -84,6 +86,14 @@ void main() async {
     profileController.deleteAccount,
   ); // DELETE sull'utente stesso
 
+  //Router per le Segnalazioni---
+  final reportApi = Router();
+
+  // Rotta per creare la segnalazione
+  reportApi.post('/create', reportController.createReport);
+
+  // Rotta per leggere la lista
+  reportApi.get('/', reportController.getAllReports);
   //ERRORE QUI
   final emergencyApi = Router();
   emergencyApi.post('/emergenza', emergencyController.sendSos);
@@ -96,6 +106,10 @@ void main() async {
     Pipeline().addMiddleware(authGuard.middleware).addHandler(profileApi.call),
   );
 
+  app.mount(
+      '/api/reports',
+      Pipeline().addMiddleware(authGuard.middleware).addHandler(reportApi.call),
+  );
   //ERRORE QUI
   app.mount(
     '/api/emergenza',
