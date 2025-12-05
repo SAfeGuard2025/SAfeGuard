@@ -4,16 +4,44 @@ import 'package:geolocator/geolocator.dart';
 // Importiamo il repository del frontend che comunica col backend
 import '../repositories/emergency_repository.dart';
 
+// 🆕 CLASSE PER MODELLARE I DATI DI EMERGENZA RICEVUTI DA FCM
+class EmergencyAlert {
+  final String sosId;
+  final String type;
+  final String category;
+  final double lat;
+  final double lng;
+
+  EmergencyAlert.fromJson(Map<String, dynamic> data)
+      : sosId = data['sosId'] as String,
+        type = data['type'] as String, // RESCUER_ALERT o DANGER_ALERT
+        category = data['category'] as String,
+  // Parsing sicuro da stringa (come inviato dal backend) a double
+        lat = double.tryParse(data['lat'] ?? '') ?? 0.0,
+        lng = double.tryParse(data['lng'] ?? '') ?? 0.0;
+
+  // 🆕 METODO AGGIUNTO: Converte l'oggetto in Map per passarlo ai gestori
+  Map<String, dynamic> toJson() => {
+    'sosId': sosId,
+    'type': type,
+    'category': category,
+    'lat': lat.toString(), // Riconverte in stringa come nel payload FCM
+    'lng': lng.toString(),
+  };
+}
+
 class EmergencyProvider extends ChangeNotifier {
   // Dipendenza: Repository per la comunicazione col Backend (API)
   final EmergencyRepository _repository = EmergencyRepository();
 
   bool _isSendingSos = false;
   String? _errorMessage;
+  EmergencyAlert? _currentAlert;
 
   // Getters per la UI
   bool get isSendingSos => _isSendingSos;
   String? get errorMessage => _errorMessage;
+  EmergencyAlert? get currentAlert => _currentAlert;
 
   /// Invia un segnale SOS immediato.
   ///
@@ -87,6 +115,33 @@ class EmergencyProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+    /// Gestisce una nuova allerta ricevuta in tempo reale (in foreground).
+    void handleNewAlert(Map<String, dynamic> data) {
+      final type = data['type'];
+      print('EmergencyProvider: Allerta in Foreground ricevuta: $type');
+
+      final newAlert = EmergencyAlert.fromJson(data);
+      _currentAlert = newAlert;
+
+      notifyListeners(); // Aggiorna la UI per mostrare l'allerta (es. un banner)
+    }
+
+    /// Gestisce il tocco sulla notifica o il messaggio iniziale (per la navigazione).
+    void handleNotificationTap(Map<String, dynamic> data) {
+      final type = data['type'];
+      print('EmergencyProvider: Notifica toccata/Iniziale. Tipo: $type');
+
+      final newAlert = EmergencyAlert.fromJson(data);
+      _currentAlert = newAlert;
+
+      // Qui devi implementare la LOGICA DI NAVIGAZIONE
+      // (Es. usando GoRouter o un NavigatorKey globale per spostare l'utente)
+      // Esempio: NavigatorService.navigateToEmergencyMap(newAlert);
+
+      notifyListeners();
+    }
+
 
   // Helper per pulire l'output di un errore (stile AuthProvider)
   String _cleanError(Object e) {

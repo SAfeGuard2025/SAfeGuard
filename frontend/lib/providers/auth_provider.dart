@@ -9,6 +9,28 @@ import 'package:data_models/utente_generico.dart';
 import 'package:data_models/utente.dart';
 import 'package:data_models/soccorritore.dart';
 import '../repositories/profile_repository.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart'; // Per kIsWeb
+import 'dart:io'; // Per Platform
+
+
+// L'URL base viene costruito come in UserApiService, usando le costanti di default
+// e sovrascrivendo per Android.
+String get _baseUrl {
+  String host = 'http://127.0.0.1';
+  String portPart = ':8080';
+
+  if (!kIsWeb && Platform.isAndroid && host.contains('127.0.0.1')) {
+    // Sostituisce 'localhost' con l'IP speciale per l'emulatore
+    host = 'http://10.0.2.2';
+  } else if (!kIsWeb && (Platform.isIOS || Platform.isMacOS) && host.contains('127.0.0.1')) {
+    // iOS / macOS usano localhost
+    host = 'http://localhost';
+  }
+
+  return '$host$portPart/api'; // Aggiungiamo /api perché FCM lo userà per /api/profile/device/token
+}
 
 // Provider di Stato: AuthProvider
 // Gestisce l'autenticazione, usa ChangeNotifier per notificare la UI
@@ -77,6 +99,14 @@ class AuthProvider extends ChangeNotifier {
     // Aggiorna lo stato in memoria
     _authToken = token;
     _currentUser = _parseUser(userMap);
+
+    // 🔔 CHIAMATA CRUCIALE: Avvia la gestione delle notifiche
+    final userId = _currentUser?.id; // 💡 Rende l'ID un int?
+
+    if (userId != null) {
+      // 💡 Ora Dart sa che userId è int e non int? (risolvendo l'errore)
+      _setupFCM(userId, token);
+    }
   }
 
   // Metodo per convertire la Map JSON nell'oggetto Utente o Soccorritore
@@ -459,6 +489,78 @@ class AuthProvider extends ChangeNotifier {
         notifyListeners();
       }
     }
+  }
+
+  Future<void> _setupFCM(int userId, String authToken) async {
+  final FirebaseMessaging fcm = FirebaseMessaging.instance;
+
+  // 1. Richiesta Permessi
+  NotificationSettings settings = await fcm.requestPermission();
+
+  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+
+  // 2. Ottieni Token
+  String? fcmToken = await fcm.getToken();
+  if (fcmToken != null) {
+  await _sendTokenToBackend(authToken, userId, fcmToken);
+  }
+
+  // 3. Configura i listener in foreground (Deve essere chiamato una volta per sessione)
+  _configureFCMListeners();
+
+  // 4. Gestisce il caso in cui il token cambi (raro, ma va gestito)
+  fcm.onTokenRefresh.listen((newToken) {
+  _sendTokenToBackend(authToken, userId, newToken);
+  });
+
+  } else {
+  print('Permesso di notifica negato.');
+  }
+  }
+
+  // 2. Invio Token all'Endpoint Protetta /api/profile/device/token
+  Future<void> _sendTokenToBackend(
+  String authToken, int userId, String fcmToken) async {
+  try {
+  // URL: http://...:8080/api/profile/device/token
+  final url = Uri.parse('${_baseUrl}/profile/device/token');
+  final response = await http.post(
+  url,
+  headers: {
+  'Content-Type': 'application/json',
+  'Authorization': 'Bearer $authToken',
+  },
+  body: jsonEncode({'fcm_token': fcmToken}),
+  );
+
+  if (response.statusCode != 200) {
+  debugPrint('Errore invio token al backend: ${response.statusCode} - ${response.body}');
+  } else {
+  debugPrint('Token FCM inviato con successo.');
+  }
+  } catch (e) {
+  debugPrint('Errore HTTP/Rete durante invio token: $e');
+  }
+  }
+
+  // 3. Configurazione dei Listener di Messaggio in Foreground
+  // NOTA: Questa funzione non interagisce direttamente con EmergencyProvider QUI.
+  // La gestione dello stato in foreground verrà fatta nel widget radice dell'app.
+  void _configureFCMListeners() {
+  // 🔔 App in Foreground (Aperta)
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+  final data = message.data;
+  final type = data['type'];
+  debugPrint("🔔 Messaggio in Foreground ricevuto: $type");
+
+  // L'azione verrà gestita da un ProviderListener nel widget radice
+  // per aggiornare correttamente l'UI/Stato dell'Emergenza.
+  });
+
+  // 👆 Tocco sulla Notifica (Gestito da codice esterno per la navigazione)
+  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+  debugPrint("👆 Notifica toccata: ${message.data['type']}. Navigazione gestita dall'esterno...");
+  });
   }
 
   // Avvia il timer per l'OTP

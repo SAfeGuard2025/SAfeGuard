@@ -13,6 +13,7 @@ import 'package:backend/controllers/profile_controller.dart';
 import 'package:backend/controllers/auth_guard.dart';
 import 'package:backend/controllers/emergency_controller.dart';
 
+
 void main() async {
   // 1. Configurazione ambiente
   // Carica le variabili dal file .env e determina la porta del server
@@ -69,6 +70,7 @@ void main() async {
   profileApi.put('/condizioni', profileController.updateCondizioni);
   profileApi.put('/notifiche', profileController.updateNotifiche);
   profileApi.put('/password', profileController.updatePassword);
+
 
   // Aggiunta elementi a liste
   profileApi.post('/allergie', profileController.addAllergia);

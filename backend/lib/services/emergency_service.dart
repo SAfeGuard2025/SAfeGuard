@@ -1,7 +1,17 @@
 import '../repositories/emergency_repository.dart';
+import '../repositories/user_repository.dart'; // 1. Importa UserRepository
+import 'notifiche_service.dart';            // 2. Importa NotificationService
+import 'dart:async';
 
 class EmergencyService {
   final EmergencyRepository _repository = EmergencyRepository();
+
+  // Inietta le dipendenze per le notifiche
+  final NotificationService _notificationService = NotificationService();
+  final UserRepository _userRepository = UserRepository();
+
+  // Definisci il raggio di pericolo
+  static const double dangerRadiusKm = 5.0;
 
   /// Gestisce la richiesta di invio SOS.
   /// Esegue validazioni di business logic prima di salvare nel DB.
@@ -40,14 +50,78 @@ class EmergencyService {
         lng: lng,
       );
 
-      // (Opzionale) Qui potresti aggiungere:
-      // - Invio Notifica Push ai soccorritori vicini (usando Firebase Cloud Messaging)
-      // - Log dell'evento su un sistema di monitoring
+      // 2. 🚨 ATTIVAZIONE NOTIFICHE PUSH 🚨
+      await _triggerSOSNotification(
+        userId: userId,
+        lat: lat,
+        lng: lng,
+        type: normalizedType,
+        // Altri dati necessari per la notifica (es. l'ID specifico dell'SOS se generato qui)
+      );
 
     } catch (e) {
       print("Errore critico salvataggio SOS nel Service: $e");
       rethrow; // Rilancia l'errore al Controller per inviare risposta HTTP 500
     }
+  }
+
+  Future<void> _triggerSOSNotification({
+    required String userId,
+    required double lat,
+    required double lng,
+    required String type,
+    // Aggiungi qui gli altri dati necessari per l'invio (es. sosId, description)
+  }) async {
+    final String sosId = userId;
+
+    // Eseguiamo gli invii in parallelo per velocità
+    await Future.wait([
+
+      // A. 🧑‍🚒 Notifica per i Soccorritori
+      (() async {
+        final rescuerTokens = await _userRepository.findRescuerTokens();
+        if (rescuerTokens.isNotEmpty) {
+          print('Trovati ${rescuerTokens.length} soccorritori. Invio alert...');
+          await _notificationService.sendNotificationToTokens(
+            rescuerTokens,
+            "🚨 RICHIESTA INTERVENTO: $type",
+            "Nuova emergenza rilevata. Posizione: $lat, $lng.",
+            {
+              'sosId': sosId,
+              'type': 'RESCUER_ALERT',
+              'category': type,
+              'lat': lat.toString(),
+              'lng': lng.toString(),
+            },
+          );
+        }
+      })(),
+
+      // B. ⚠️ Notifica per i Cittadini Vicini
+      (() async {
+        final citizenTokens = await _userRepository.findNearbyTokensReal(
+          lat,
+          lng,
+          dangerRadiusKm,
+        );
+        if (citizenTokens.isNotEmpty) {
+          print('Trovati ${citizenTokens.length} cittadini nel raggio di $dangerRadiusKm km. Invio alert...');
+          await _notificationService.sendNotificationToTokens(
+            citizenTokens,
+            "⚠️ PERICOLO VICINO A TE",
+            "È stato segnalato un $type a meno di ${dangerRadiusKm.toInt()}km dalla tua posizione.",
+            {
+              'sosId': sosId,
+              'type': 'DANGER_ALERT',
+              'category': type,
+              'lat': lat.toString(),
+              'lng': lng.toString(),
+            },
+          );
+        }
+      })(),
+    ]);
+    print('Catena notifiche SOS completata per $sosId.');
   }
 
   /// Annulla l'SOS attivo per un utente.

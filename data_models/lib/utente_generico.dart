@@ -7,6 +7,7 @@ class UtenteGenerico {
   final String? email;
   final String? telefono;
   final String? passwordHash;
+  final String? tokenFCM;
 
   final String? nome;
   final String? cognome;
@@ -23,6 +24,7 @@ class UtenteGenerico {
     this.email,
     this.telefono,
     required this.passwordHash,
+    this.tokenFCM,
     this.nome,
     this.cognome,
     this.dataDiNascita,
@@ -39,6 +41,7 @@ class UtenteGenerico {
     int? id,
     String email,
     String passwordHash, {
+    String? tokenFCM,
     String? telefono,
     String? nome,
     String? cognome,
@@ -50,6 +53,7 @@ class UtenteGenerico {
          // Delega al costruttore principale
          id: id,
          passwordHash: passwordHash,
+         tokenFCM: tokenFCM,
          email: email,
          telefono: telefono,
          nome: nome,
@@ -64,7 +68,8 @@ class UtenteGenerico {
   UtenteGenerico.conTelefono(
     int? id,
     String telefono,
-    String passwordHash, {
+    String passwordHash,{
+    String? tokenFCM,
     String? email,
     String? nome,
     String? cognome,
@@ -76,6 +81,7 @@ class UtenteGenerico {
          // Delega al costruttore principale
          id: id,
          passwordHash: passwordHash,
+         tokenFCM: tokenFCM,
          email: email,
          telefono: telefono,
          nome: nome,
@@ -94,6 +100,7 @@ class UtenteGenerico {
       telefono: json['telefono'] as String?,
       // Se 'passwordHash' manca, usa un fallback
       passwordHash: json['passwordHash'] as String? ?? 'HASH_NON_RICEVUTO',
+      tokenFCM: json['tokenFCM'] as String?,
       nome: json['nome'] as String?,
       cognome: json['cognome'] as String?,
       dataDiNascita: json['dataDiNascita'] != null
@@ -113,6 +120,7 @@ class UtenteGenerico {
       'email': email,
       'telefono': telefono,
       'passwordHash': passwordHash,
+      'tokenFCM': tokenFCM,
       'nome': nome,
       'cognome': cognome,
       'dataDiNascita': dataDiNascita?.toIso8601String(),
