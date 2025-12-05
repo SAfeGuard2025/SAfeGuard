@@ -309,6 +309,23 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Eliminazione account
+  Future<void> deleteAccount() async {
+    _setLoading(true);
+    try {
+      // Chiamata al repository per comunicare al backend l'eliminazione
+      await _profileRepo.deleteAccount();
+      // Se l'operazione ha successo viene eseguito il logout locale per pulire la sessione
+      await logout();
+      _setLoading(false);
+    } catch (e) {
+      _errorMessage = _cleanError(e);
+      _setLoading(false);
+      // Rilancia l'errore affinché la UI (DeleteProfilePage) possa mostrare la SnackBar
+      rethrow;
+    }
+  }
+
   // Gestione Google
   Future<bool> signInWithGoogle() async {
     _setLoading(true);
