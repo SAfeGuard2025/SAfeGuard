@@ -136,12 +136,12 @@ class _DeleteProfilePageState extends State<DeleteProfilePage> {
                                     : ColorPalette.primaryDarkButtonBlue,
                                 borderRadius: BorderRadius.circular(24),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.3),
+                                  color: Colors.white.withValues(alpha: 0.3),
                                   width: 2,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.3),
+                                    color: Colors.black.withValues(alpha: 0.3),
                                     blurRadius: 15,
                                     spreadRadius: 2,
                                     offset: const Offset(0, 8),
@@ -192,19 +192,17 @@ class _DeleteProfilePageState extends State<DeleteProfilePage> {
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
-                                // Durante il caricamento, disabilita il click
                                 onPressed: _isLoading ? null : _handleDelete,
                                 style: ElevatedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 20,
                                   ),
                                   backgroundColor:
-                                      ColorPalette.emergencyButtonRed,
+                                  ColorPalette.emergencyButtonRed,
                                   foregroundColor: Colors.white,
-                                  // Colore disabilitato leggermente trasparente
                                   disabledBackgroundColor: ColorPalette
                                       .emergencyButtonRed
-                                      .withOpacity(0.6),
+                                      .withValues(alpha: 0.6),
                                   elevation: 8,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(18),
@@ -212,23 +210,62 @@ class _DeleteProfilePageState extends State<DeleteProfilePage> {
                                 ),
                                 child: _isLoading
                                     ? const SizedBox(
-                                        height: 24,
-                                        width: 24,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 3,
-                                        ),
-                                      )
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 3,
+                                  ),
+                                )
                                     : Text(
-                                        "Elimina Profilo",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: buttonFontSize,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
+                                  "Elimina Profilo",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: buttonFontSize,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
                             ),
+
+                            const SizedBox(height: 20), // Spazio tra i bottoni
+
+                            // BOTTONE ANNULLA (Nuovo)
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton(
+                                // Disabilita anche questo se sta caricando
+                                onPressed: _isLoading
+                                    ? null
+                                    : () => Navigator.pop(context),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 20,
+                                  ),
+                                  side: const BorderSide(
+                                      color: Colors.white,
+                                      width: 2.5
+                                  ), // Bordo bianco
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(18),
+                                  ),
+                                  // Colore di sfondo al tocco
+                                  foregroundColor: Colors.white,
+                                ),
+                                child: Text(
+                                  "Annulla",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: buttonFontSize,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            // Spazio extra in fondo per scorrimento sicuro
+                            const SizedBox(height: 40),
+
                           ],
                         ),
                       ),
