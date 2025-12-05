@@ -11,6 +11,7 @@ import 'package:backend/controllers/register_controller.dart';
 import 'package:backend/controllers/verification_controller.dart';
 import 'package:backend/controllers/profile_controller.dart';
 import 'package:backend/controllers/auth_guard.dart';
+import 'package:backend/controllers/emergency_controller.dart';
 
 void main() async {
   // 1. Configurazione ambiente
@@ -38,6 +39,7 @@ void main() async {
   final registerController = RegisterController();
   final verifyController = VerificationController();
   final profileController = ProfileController();
+  final emergencyController = EmergencyController();
   final authGuard = AuthGuard();
 
   // 4. Rounting pubblico
@@ -81,6 +83,8 @@ void main() async {
     '/',
     profileController.deleteAccount,
   ); // DELETE sull'utente stesso
+
+  profileApi.post('/emergenza', emergencyController.addEmergenza);
 
   // 6. Mounting & Middleware
   // Collega il router profilo a '/api/profile'

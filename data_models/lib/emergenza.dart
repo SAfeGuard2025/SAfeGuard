@@ -1,0 +1,1 @@
+//l'oggetto che passa tra frontend e backend
