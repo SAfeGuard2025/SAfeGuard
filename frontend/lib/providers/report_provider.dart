@@ -8,12 +8,12 @@ class ReportProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   // Invia la segnalazione e gestisce lo stato di caricamento
-  Future<bool> sendReport(String type, String description) async {
+  Future<bool> sendReport(String type, String description, double? lat, double? lng) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      await _repository.createReport(type, description);
+      await _repository.createReport(type, description, lat, lng);
       _isLoading = false;
       notifyListeners();
       return true; // Successo

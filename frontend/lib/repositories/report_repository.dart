@@ -35,7 +35,7 @@ class ReportRepository {
   }
 
   // CREA SEGNALAZIONE (POST)
-  Future<void> createReport(String type, String description) async {
+  Future<void> createReport(String type, String description, double? lat, double? lng) async {
     final token = await _getToken();
     if (token == null) throw Exception("Utente non autenticato");
 
@@ -51,6 +51,8 @@ class ReportRepository {
         body: jsonEncode({
           'type': type,
           'description': description,
+          'lat': lat,
+          'lng': lng,
         }),
       );
 

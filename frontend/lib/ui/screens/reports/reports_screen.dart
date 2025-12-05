@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/providers/auth_provider.dart';
-import 'package:frontend/providers/report_provider.dart'; // <--- Import Provider
+import 'package:frontend/providers/report_provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
+import 'package:frontend/ui/widgets/realtime_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/ui/widgets/emergency_item.dart';
 
-// Schermata Report Specifico
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
 
@@ -14,18 +15,138 @@ class ReportsScreen extends StatefulWidget {
 }
 
 class _ReportsScreenState extends State<ReportsScreen> {
-
   bool _needsHelp = false;
   final TextEditingController _descriptionController = TextEditingController();
   EmergencyItem? _selectedEmergency;
 
-  // Funzione per mandare l'emergenza collegata al Provider
+  //Variabile per memorizzare la posizione scelta
+  LatLng? _selectedLocation;
+
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  //METODO PER APRIRE IL POPUP MAPPA
+  void _openMapDialog(BuildContext context) {
+    // Variabile temporanea per il dialog
+    LatLng? tempPoint;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Impedisce chiusura cliccando fuori
+      builder: (BuildContext context) {
+        // StatefulBuilder serve per aggiornare la UI dentro il Dialog
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return Dialog(
+              insetPadding: const EdgeInsets.all(20),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.0),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 550,
+                  child: Stack(
+                    children: [
+                      // Mappa in modalità selezione
+                      RealtimeMap(
+                        isSelectionMode: true,
+                        onLocationPicked: (point) {
+                          // Aggiorniamo la variabile locale del dialog
+                          setStateDialog(() {
+                            tempPoint = point;
+                          });
+                        },
+                      ),
+
+                      // Tasto X per chiudere
+                      Positioned(
+                        top: 10,
+                        right: 10,
+                        child: CircleAvatar(
+                          backgroundColor: Colors.white,
+                          child: IconButton(
+                            icon: const Icon(Icons.close, color: Colors.black),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ),
+                      ),
+
+                      // Tasto CONFERMA
+                      if (tempPoint != null)
+                        Positioned(
+                          bottom: 20,
+                          left: 20,
+                          right: 20,
+                          child: SizedBox(
+                            height: 50,
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                              ),
+                              icon: const Icon(Icons.check, color: Colors.white),
+                              label: const Text(
+                                  "CONFERMA POSIZIONE",
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16
+                                  )
+                              ),
+                              onPressed: () {
+                                //Salviamo la posizione nello stato principale
+                                setState(() {
+                                  _selectedLocation = tempPoint;
+                                });
+                                //Chiudiamo il dialog
+                                Navigator.of(context).pop();
+
+                                //Feedback
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text("Posizione acquisita!"),
+                                      backgroundColor: Colors.green
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  //INVIO SEGNALAZIONE
   Future<void> _sendEmergency(ReportProvider reportProvider) async {
     final String description = _descriptionController.text;
 
     if (_selectedEmergency == null) {
       _showSnackBar(
         content: 'Inserisci un\'emergenza da segnalare',
+        color: ColorPalette.emergencyButtonRed,
+      );
+      return;
+    }
+
+    if (_selectedLocation == null) {
+      _showSnackBar(
+        content: 'Seleziona un punto sulla mappa',
         color: ColorPalette.emergencyButtonRed,
       );
       return;
@@ -39,26 +160,21 @@ class _ReportsScreenState extends State<ReportsScreen> {
       return;
     }
 
-    // 2. Chiamata al Provider
-    // Passiamo la stringa del tipo (es. "Incendio") e la descrizione
     bool success = await reportProvider.sendReport(
-        _selectedEmergency!.label,
-        description
+      _selectedEmergency!.label,
+      description,
+      _selectedLocation!.latitude,
+      _selectedLocation!.longitude,
     );
 
-    // 3. Gestione esito
     if (success && mounted) {
       _showSnackBar(content: 'Emergenza segnalata con successo', color: Colors.green);
-
-      // Reset campi dopo invio
       setState(() {
         _selectedEmergency = null;
         _descriptionController.clear();
+        _selectedLocation = null;
         _needsHelp = false;
       });
-
-      // Se vuoi tornare alla home decommenta la riga sotto:
-      // Navigator.of(context).pop();
     } else if (mounted) {
       _showSnackBar(
           content: 'Errore invio segnalazione. Riprova.',
@@ -68,17 +184,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   @override
-  void dispose() {
-    _descriptionController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final bool isWideScreen = size.width > 700;
 
-    // Accesso ai Provider
     final isRescuer = context.watch<AuthProvider>().isRescuer;
     final reportProvider = context.watch<ReportProvider>(); // Per lo stato isLoading
 
@@ -120,9 +229,36 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   ),
                 ),
 
+                const SizedBox(height: 10.0),
+
+                //BOTTONE APRI MAPPA
+                Center(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _openMapDialog(context),
+                    icon: Icon(
+                        _selectedLocation != null ? Icons.check_circle : Icons.map,
+                        color: _selectedLocation != null ? Colors.green : Colors.blueAccent
+                    ),
+                    label: Text(
+                      _selectedLocation != null ? "Posizione Selezionata" : "Seleziona posizione sulla mappa",
+                      style: TextStyle(
+                          color: _selectedLocation != null ? Colors.green : Colors.black87,
+                          fontWeight: FontWeight.bold
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                  ),
+                ),
+                // -----------------------------
+
                 const SizedBox(height: 20.0),
 
-                // Tipi di segnalazione
                 SizedBox(
                   height: 60,
                   child: _buildSpecificEmergency(context, isWideScreen),
@@ -144,7 +280,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                 const SizedBox(height: 20.0),
 
-                // TextArea per la descrizione
                 TextFormField(
                   controller: _descriptionController,
                   maxLines: 6,
@@ -167,7 +302,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                 const SizedBox(height: 20.0),
 
-                // checkbox per la richiesta di aiuto (visibile solo all'utente)
                 if (!isRescuer)
                   Container(
                     height: 70,
@@ -216,7 +350,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                 const SizedBox(height: 20.0),
 
-                // pulsante che manda e crea l'emergenza
                 SizedBox(
                   width: double.infinity,
                   height: isWideScreen ? 70 : 50,
@@ -227,11 +360,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         borderRadius: BorderRadius.circular(15),
                       ),
                     ),
-                    // Disabilita se sta caricando
                     onPressed: reportProvider.isLoading
                         ? null
                         : () => _sendEmergency(reportProvider),
-
                     child: reportProvider.isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : Text(
@@ -244,6 +375,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 30.0),
               ],
             ),
           ),
@@ -252,7 +384,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  // dropdown menu per la selezione dell'emergenza
   Widget _buildSpecificEmergency(BuildContext context, bool isWideScreen) {
     return SizedBox(
       width: isWideScreen ? 500 : double.infinity,
@@ -272,7 +403,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
             _selectedEmergency =
                 item; // mi salvo l'emergency item (item.label se vuoi una stringa)
           });
-
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text("Selezionato: ${item.label}"),
@@ -285,7 +415,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  // metodo per vedere se l'emergenza è stata mandata o no
   void _showSnackBar({required String content, required Color color}) {
     ScaffoldMessenger.of(
       context,

@@ -23,6 +23,8 @@ class ReportController {
       final Map<String, dynamic> data = jsonDecode(body);
       final String? type = data['type'];
       final String? description = data['description'];
+      final double? lat = (data['lat'] as num?)?.toDouble();
+      final double? lng = (data['lng'] as num?)?.toDouble();
 
       if (type == null || type.isEmpty) {
         return Response.badRequest(
@@ -35,6 +37,8 @@ class ReportController {
         rescuerId: rescuerId,
         type: type,
         description: description,
+        lat: lat,
+        lng: lng,
       );
 
       return Response.ok(

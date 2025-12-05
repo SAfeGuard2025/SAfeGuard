@@ -7,6 +7,8 @@ class ReportService {
     required int rescuerId,
     required String type,
     String? description,
+    double? lat,
+    double? lng,
   }) async {
     // Qui prepariamo l'oggetto finale da salvare
     final reportData = {
@@ -14,6 +16,8 @@ class ReportService {
       'type': type,
       'description': description ?? '',
       'status': 'active',
+      'lat': lat,
+      'lng': lng,
       'timestamp': DateTime.now().toIso8601String(),
     };
 

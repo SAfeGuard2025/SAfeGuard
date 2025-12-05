@@ -108,7 +108,8 @@ void main() async {
 
   app.mount(
       '/api/reports',
-      Pipeline().addMiddleware(authGuard.middleware).addHandler(reportApi.call)
+      Pipeline().addMiddleware(authGuard.middleware).addHandler(reportApi.call),
+  );
   //ERRORE QUI
   app.mount(
     '/api/emergenza',
