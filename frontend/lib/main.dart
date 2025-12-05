@@ -9,6 +9,14 @@ import 'package:frontend/providers/emergency_provider.dart';
 import 'package:frontend/providers/permission_provider.dart';
 import 'package:frontend/ui/screens/auth/loading_screen.dart';
 import 'package:frontend/providers/report_provider.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:frontend/ui/widgets/fcm_status_listener.dart';
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Rinizializza Firebase, necessario se l'app è stata terminata e viene riattivata in background
+
+}
 
 // Funzione Main: Punto di partenza dell'Applicazione
 void main() async {
