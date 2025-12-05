@@ -1,103 +1,95 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
+// Importiamo il repository del frontend che comunica col backend
+import '../repositories/emergency_repository.dart';
 
-// Provider di Stato: EmergencyProvider
-// Gestisce lo stato e la logica relativi all'attivazione delle emergenze
 class EmergencyProvider extends ChangeNotifier {
+  // Dipendenza: Repository per la comunicazione col Backend (API)
+  final EmergencyRepository _repository = EmergencyRepository();
+
   bool _isSendingSos = false;
+  String? _errorMessage;
 
+  // Getters per la UI
   bool get isSendingSos => _isSendingSos;
+  String? get errorMessage => _errorMessage;
 
-  // Riferimento alla collezione "active_emergencies" su database
-  final CollectionReference _firestore = FirebaseFirestore.instance.collection(
-    'active_emergencies',
-  );
-
-  // Invia un segnale SOS immediato (Progressive SOS)
+  /// Invia un segnale SOS immediato.
+  ///
+  /// Raccoglie la posizione GPS e delega al Repository l'invio dei dati al Backend.
+  /// Ritorna [true] se l'invio ha successo, [false] altrimenti.
   Future<bool> sendInstantSos({
-    required String userId,
     required String? email,
     required String? phone,
-    String type = "Generico",
+    String type = "Generico", required String userId
   }) async {
-    // 0. Controllo preliminare Permessi e GPS (Richiesto per Sicurezza)
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      throw Exception("Il GPS è disattivato. Attivalo per inviare l'SOS.");
-    }
+    print("🔥 [Provider] Inizio procedura SOS...");
 
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) {
-      throw Exception("Permessi GPS mancanti. Abilitali per inviare l'SOS.");
-    }
+    // Reset stato
+    _isSendingSos = true;
+    _errorMessage = null;
+    notifyListeners();
 
     try {
-      // 1. Imposta lo stato su "invio in corso"
-      _isSendingSos = true;
-      notifyListeners();
-
-      // 2. FAST PATH: Ottieni l'ultima posizione nota (istantaneo)
-      // Non aspettiamo il fix preciso qui, usiamo quello che abbiamo in cache
-      Position? position = await Geolocator.getLastKnownPosition();
-
-      double lat = position?.latitude ?? 0.0;
-      double lng = position?.longitude ?? 0.0;
-
-      // 3. Scrivi SUBITO sul database (Stage 1)
-      final Map<String, dynamic> emergencyData = {
-        "id": userId,
-        "email": email ?? "N/A",
-        "phone": phone ?? "N/A",
-        "type": type,
-        "lat": lat,
-        "lng": lng,
-        "accuracy": "approximate", // Flag per indicare che è una stima iniziale
-        "timestamp": FieldValue.serverTimestamp(),
-        "status": "active",
-      };
-
-      await _firestore.doc(userId).set(emergencyData);
-
-      // 4. Avvia l'aggiornamento preciso in background (Stage 2)
-      // NON usiamo 'await' qui per non bloccare la UI. Lasciamo che giri in background.
-      _updateWithPreciseLocation(userId);
-
-      return true; // Ritorna SUBITO true alla UI! 🚀
-    } catch (e) {
-      _isSendingSos = false;
-      notifyListeners();
-      return false;
-    }
-  }
-
-  // Metodo background per raffinare la posizione
-  Future<void> _updateWithPreciseLocation(String userId) async {
-    try {
-      // Richiede tempo (1-5 secondi)
+      // 1. Logica Frontend: Ottieni la posizione GPS attuale.
+      // Questa parte DEVE stare nel frontend perché accede al sensore del telefono.
       Position position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
         ),
       );
 
-      // Aggiorna il documento esistente con la posizione precisa
-      await _firestore.doc(userId).update({
-        "lat": position.latitude,
-        "lng": position.longitude,
-        "accuracy": "precise",
-      });
+      print("📍 [Provider] Posizione ottenuta: ${position.latitude}, ${position.longitude}");
+
+      // 2. Logica Backend: Chiama il Repository per inviare i dati via API.
+      // Non passiamo 'userId' perché il Backend lo ricaverà in modo sicuro dal Token JWT.
+      await _repository.sendSos(
+        email: email,
+        phone: phone,
+        type: type,
+        lat: position.latitude,
+        lng: position.longitude,
+      );
+
+      print("✅ [Provider] SOS inviato al server con successo!");
+
+      // Ritardo estetico per UX (opzionale)
+      await Future.delayed(const Duration(seconds: 1));
+
+      // Non resettiamo _isSendingSos a false subito se vogliamo che la UI
+      // mostri uno stato di "Allarme Attivo". Se invece la UI torna alla Home,
+      // possiamo resettarlo. Per ora lo lasciamo true finché non viene stoppato.
+      return true;
+
     } catch (e) {
-      debugPrint("Errore aggiornamento posizione precisa SOS: $e");
-      // Anche se fallisce, l'SOS è stato comunque inviato con la posizione approssimativa
+      print("❌ [Provider] Errore invio SOS: $e");
+      _errorMessage = _cleanError(e);
+      _isSendingSos = false;
+      notifyListeners();
+      return false;
     }
   }
 
-  // Interrompe l'SOS attivo per un determinato utente
-  Future<void> stopSos(String userId) async {
-    await _firestore.doc(userId).delete();
-    _isSendingSos = false;
-    notifyListeners();
+  /// Interrompe l'SOS attivo.
+  Future<void> stopSos() async {
+    try {
+      // Chiama l'API di stop
+      await _repository.stopSos();
+
+      _isSendingSos = false;
+      notifyListeners();
+    } catch (e) {
+      print("❌ [Provider] Errore stop SOS: $e");
+      // Anche se fallisce la chiamata server, resettiamo lo stato locale
+      // per non bloccare l'utente.
+      _isSendingSos = false;
+      notifyListeners();
+    }
+  }
+
+  // Helper per pulire l'output di un errore (stile AuthProvider)
+  String _cleanError(Object e) {
+    return e.toString().replaceAll("Exception: ", "");
   }
 }

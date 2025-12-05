@@ -84,7 +84,9 @@ void main() async {
     profileController.deleteAccount,
   ); // DELETE sull'utente stesso
 
-  profileApi.post('/emergenza', emergencyController.addEmergenza);
+  //ERRORE QUI
+  final emergencyApi = Router();
+  emergencyApi.post('/emergenza', emergencyController.sendSos);
 
   // 6. Mounting & Middleware
   // Collega il router profilo a '/api/profile'
@@ -92,6 +94,12 @@ void main() async {
   app.mount(
     '/api/profile',
     Pipeline().addMiddleware(authGuard.middleware).addHandler(profileApi.call),
+  );
+
+  //ERRORE QUI
+  app.mount(
+    '/api/emergency',
+    Pipeline().addMiddleware(authGuard.middleware).addHandler(emergencyApi.call),
   );
 
   // 7. Pipeline Server e Configurazione CORS
