@@ -12,6 +12,7 @@ import 'package:backend/controllers/verification_controller.dart';
 import 'package:backend/controllers/profile_controller.dart';
 import 'package:backend/controllers/auth_guard.dart';
 import 'package:backend/controllers/report_controller.dart';
+import 'package:backend/controllers/emergency_controller.dart';
 
 void main() async {
   // 1. Configurazione ambiente
@@ -40,6 +41,7 @@ void main() async {
   final verifyController = VerificationController();
   final profileController = ProfileController();
   final reportController = ReportController();
+  final emergencyController = EmergencyController();
   final authGuard = AuthGuard();
 
   // 4. Rounting pubblico
@@ -92,6 +94,9 @@ void main() async {
 
   // Rotta per leggere la lista
   reportApi.get('/', reportController.getAllReports);
+  //ERRORE QUI
+  final emergencyApi = Router();
+  emergencyApi.post('/emergenza', emergencyController.sendSos);
 
   // 6. Mounting & Middleware
   // Collega il router profilo a '/api/profile'
@@ -104,6 +109,10 @@ void main() async {
   app.mount(
       '/api/reports',
       Pipeline().addMiddleware(authGuard.middleware).addHandler(reportApi.call)
+  //ERRORE QUI
+  app.mount(
+    '/api/emergenza',
+    Pipeline().addMiddleware(authGuard.middleware).addHandler(emergencyController.router),
   );
 
   // 7. Pipeline Server e Configurazione CORS

@@ -63,12 +63,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
         return Scaffold(
           backgroundColor: backgroundColor,
+          // Mostra la BottomNavBar solo se NON siamo su desktop
           bottomNavigationBar: isDesktop
               ? null
               : CustomBottomNavBar(onIconTapped: _onTabChange),
 
+          // Usa una Row per affiancare la Sidebar (se c'è) al contenuto principale
           body: Row(
             children: [
+              // Barra di navigazione laterale (Visibile solo su Desktop)
               if (isDesktop)
                 NavigationRail(
                   backgroundColor: Colors.white,
@@ -120,11 +123,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Center(
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        // Limita la larghezza massima del contenuto per schermi grandi,
-                        // tranne per la mappa che può occupare tutto lo spazio.
                         maxWidth: _currentIndex == 2 ? double.infinity : 1200,
                       ),
-                      // Mostra solo la pagina corrispondente all'indice selezionato
                       child: IndexedStack(
                         index: _currentIndex,
                         children: _pages,

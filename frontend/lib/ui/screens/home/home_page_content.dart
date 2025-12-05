@@ -8,13 +8,17 @@ import 'package:frontend/ui/widgets/emergency_item.dart';
 import 'package:frontend/providers/emergency_provider.dart';
 import 'package:frontend/ui/widgets/emergency_notification.dart';
 import 'package:frontend/ui/style/color_palette.dart';
+import 'package:frontend/ui/widgets/realtime_map.dart';
 
 import '../../widgets/sos_button.dart';
 
 // Contenuto della Pagina Home
 // Layout principale della schermata Home che adatta i contenuti al ruolo utente.
 class HomePageContent extends StatelessWidget {
-  const HomePageContent({super.key});
+  // Parametro per la navbar in landscape
+  final Widget? landscapeNavbar;
+
+  const HomePageContent({super.key, this.landscapeNavbar});
 
   final Color darkBlue = ColorPalette.backgroundDeepBlue;
   final Color primaryRed = ColorPalette.primaryBrightRed;
@@ -30,70 +34,156 @@ class HomePageContent extends StatelessWidget {
     final double screenWidth = size.width;
     final bool isWideScreen = screenWidth > 600;
 
+    // Rileva orientamento
+    final bool isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+
     final double horizontalPadding = isWideScreen ? screenWidth * 0.08 : 15.0;
 
     return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: horizontalPadding,
-        vertical: 10.0,
+      padding: EdgeInsets.fromLTRB(
+        horizontalPadding,
+        10.0,
+        horizontalPadding,
+        isLandscape ? 0 : 10.0,
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Notifica di Emergenza Attiva
-          if (hasActiveAlert) ...[
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0, bottom: 10.0),
-              child: _buildEmergencyNotification(),
-            ),
-          ],
-
-          // 1. Mappa
-          Expanded(
-            flex: isRescuer ? 4 : 5,
-            child: _buildMapPlaceholder(isWideScreen),
-          ),
-
-          const SizedBox(height: 10),
-
-          // 2. Pulsante contatti (Mostrato solo per i Cittadini)
-          if (!isRescuer) ...[
-            _buildEmergencyContactsButton(context, isWideScreen),
-            const SizedBox(height: 10),
-          ],
-
-          // 3. Pulsante SOS
-          Expanded(
-            flex: 3,
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: _buildSosSection(context),
-              ),
-            ),
-          ),
-
-          // 4. Menù emergenze specifiche (Solo Soccorritore)
-          if (isRescuer) ...[
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 60,
-              child: _buildSpecificEmergency(context, isWideScreen),
-            ),
-          ],
-
-          const SizedBox(height: 10),
-        ],
-      ),
+      child: isLandscape
+          ? _buildLandscapeLayout(context, isRescuer, hasActiveAlert, isWideScreen)
+          : _buildPortraitLayout(context, isRescuer, hasActiveAlert, isWideScreen),
     );
   }
 
-  // Placeholder visivo per la Mappa
+  // Gestione layout verticale
+  Widget _buildPortraitLayout(
+      BuildContext context,
+      bool isRescuer,
+      bool hasActiveAlert,
+      bool isWideScreen,
+      ) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Notifica di Emergenza Attiva
+        if (hasActiveAlert) ...[
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0, bottom: 10.0),
+            child: _buildEmergencyNotification(),
+          ),
+        ],
+
+        // 1. Mappa
+        Expanded(
+          flex: isRescuer ? 4 : 5,
+          child: _buildMapPlaceholder(isWideScreen),
+        ),
+
+        const SizedBox(height: 10),
+
+        // 2. Pulsante contatti
+        if (!isRescuer) ...[
+          _buildEmergencyContactsButton(context, isWideScreen),
+          const SizedBox(height: 10),
+        ],
+
+        // 3. Pulsante SOS
+        Expanded(
+          flex: 3,
+          child: Center(
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: _buildSosSection(context),
+            ),
+          ),
+        ),
+
+        // 4. Menu emergenze (solo soccorritore)
+        if (isRescuer) ...[
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 60,
+            child: _buildSpecificEmergency(context, isWideScreen),
+          ),
+        ],
+
+        const SizedBox(height: 10),
+      ],
+    );
+  }
+
+  // Gestione layout orizzontale
+  Widget _buildLandscapeLayout(
+      BuildContext context,
+      bool isRescuer,
+      bool hasActiveAlert,
+      bool isWideScreen,
+      ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Colonna sinistra: Mappa
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 10.0),
+            child: _buildMapPlaceholder(isWideScreen),
+          ),
+        ),
+
+        const SizedBox(width: 20),
+
+        // Colonna destra: pulsanti
+        SizedBox(
+          width: isWideScreen ? 400 : 320,
+          child: Column(
+            children: [
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (hasActiveAlert) ...[
+                      _buildEmergencyNotification(),
+                      const SizedBox(height: 10),
+                    ],
+                    if (!isRescuer) ...[
+                      _buildEmergencyContactsButton(context, isWideScreen),
+                      const SizedBox(height: 15),
+                    ],
+                    // Sos Button
+                    Flexible(
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: _buildSosSection(context),
+                      ),
+                    ),
+
+                    // Widget del soccorritore per le emergenze specifiche
+                    if (isRescuer) ...[
+                      const SizedBox(height: 15),
+                      SizedBox(
+                        height: 60,
+                        child: _buildSpecificEmergency(context, isWideScreen),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              // Navbar passata dalla HomeScreen
+              if (landscapeNavbar != null) ...[
+                const SizedBox(height: 10),
+                landscapeNavbar!,
+              ]
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Widget mappa
   Widget _buildMapPlaceholder(bool isWideScreen) {
     return Container(
       width: double.infinity,
-      alignment: Alignment.center,
+      height: double.infinity,
       decoration: BoxDecoration(
         color: ColorPalette.backgroundDarkBlue,
         borderRadius: BorderRadius.circular(20),
@@ -107,42 +197,16 @@ class HomePageContent extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          FittedBox(
-            child: Icon(
-              Icons.map_outlined,
-              color: Colors.white70,
-              size: isWideScreen ? 80 : 50,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            "Mappa",
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: isWideScreen ? 28 : 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Text(
-            "(Futura)",
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: isWideScreen ? 18 : 14,
-            ),
-          ),
-        ],
+      // ClipRRect taglia gli angoli della mappa per seguire il bordo arrotondato
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: const RealtimeMap(), // <--- QUI C'È LA MAPPA VERA
       ),
     );
   }
 
   // Pulsante "Contatti di Emergenza" o "Registrati"
-  Widget _buildEmergencyContactsButton(
-    BuildContext context,
-    bool isWideScreen,
-  ) {
+  Widget _buildEmergencyContactsButton(BuildContext context, bool isWideScreen) {
     final isLogged = context.watch<AuthProvider>().isLogged;
 
     // Stile del pulsante
@@ -168,9 +232,7 @@ class HomePageContent extends StatelessWidget {
         onPressed: () {
           // Naviga a Contatti Emergenza se loggato, altrimenti a Registrazione
           final route = isLogged
-              ? MaterialPageRoute(
-                  builder: (_) => const ContattiEmergenzaScreen(),
-                )
+              ? MaterialPageRoute(builder: (_) => const ContattiEmergenzaScreen())
               : MaterialPageRoute(builder: (_) => const RegistrationScreen());
           Navigator.push(context, route);
         },
@@ -180,11 +242,7 @@ class HomePageContent extends StatelessWidget {
           children: [
             // Icona mostrata solo se loggato
             if (isLogged)
-              Icon(
-                Icons.person_pin_circle,
-                color: darkBlue,
-                size: isWideScreen ? 34 : 24,
-              ),
+              Icon(Icons.person_pin_circle, color: darkBlue, size: isWideScreen ? 34 : 24),
             if (isLogged) const SizedBox(width: 10),
             // Testo che cambia in base allo stato di login
             Text(
