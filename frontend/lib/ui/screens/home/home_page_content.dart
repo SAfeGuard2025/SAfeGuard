@@ -70,14 +70,6 @@ class HomePageContent extends StatelessWidget {
           ),
 
 
-        // 1. Menu emergenze (solo soccorritore)
-        if (isRescuer) ...[
-          SizedBox(
-            height: 60,
-            child: _buildSpecificEmergency(context, isWideScreen),
-          ),
-          const SizedBox(height: 10),
-        ],
 
         // 2. Mappa
         Expanded(
@@ -94,6 +86,7 @@ class HomePageContent extends StatelessWidget {
         ],
 
         // 4. Pulsante SOS
+    if (!isRescuer) ...[
         Expanded(
           flex: 3,
           child: Center(
@@ -103,6 +96,7 @@ class HomePageContent extends StatelessWidget {
             ),
           ),
         ),
+        ],
 
 
 
