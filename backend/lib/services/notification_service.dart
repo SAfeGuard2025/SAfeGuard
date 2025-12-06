@@ -8,7 +8,7 @@ class NotificationService {
   final _scopes = ['https://www.googleapis.com/auth/firebase.messaging'];
 
   // Nome del file JSON scaricato da Firebase
-  final String _serviceAccountPath = 'service-account.json';
+  final String _serviceAccountPath = 'safeguard-c08-e1861c983cab.json';
 
   // Cache per il token e il client per evitare di rileggere il file a ogni invio
   AutoRefreshingAuthClient? _client;

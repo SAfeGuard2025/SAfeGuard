@@ -79,6 +79,10 @@ class AuthProvider extends ChangeNotifier {
       try {
         final userMap = jsonDecode(userDataString);
         _currentUser = _parseUser(userMap);
+
+        // AGGIUNTA: Assicurati che il token sia aggiornato anche all'avvio
+        await _initializeNotifications();
+        
         notifyListeners();
       } catch (e) {
         await logout();
@@ -91,14 +95,15 @@ class AuthProvider extends ChangeNotifier {
     final token = response['token'];
     final userMap = response['user'];
 
-    // Salva su SharedPreferences per la persistenza
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
     await prefs.setString('user_data', jsonEncode(userMap));
 
-    // Aggiorna lo stato in memoria
     _authToken = token;
     _currentUser = _parseUser(userMap);
+
+    // AGGIUNTA: Inizializza le notifiche dopo aver salvato la sessione
+    await _initializeNotifications();
   }
 
   // Metodo per convertire la Map JSON nell'oggetto Utente o Soccorritore
