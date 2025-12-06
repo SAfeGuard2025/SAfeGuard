@@ -254,17 +254,6 @@ class ProfileService {
     }
   }
 
-  // 🆕 11. GESTIONE TOKEN FCM
-  Future<void> saveFCMToken(int userId, String fcmToken) async {
-    try {
-      await _userRepository.updateUserFCMToken(userId, fcmToken);
-      print("Token FCM aggiornato per utente $userId");
-    } catch (e) {
-      print("Errore salvataggio token FCM: $e");
-      // Considera se sollevare l'eccezione o gestirla
-    }
-  }
-
   // Inizializza i campi del profilo con valori di default se sono assenti
   Future<void> initializeUserProfile(int userId) async {
     try {

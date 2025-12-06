@@ -4,30 +4,6 @@ import 'package:geolocator/geolocator.dart';
 // Importiamo il repository del frontend che comunica col backend
 import '../repositories/emergency_repository.dart';
 
-// Classe per modellare i dati di emergenza ricevuti da FCM
-class EmergencyAlert {
-  final String sosId;
-  final String type;
-  final String category;
-  final double lat;
-  final double lng;
-
-  EmergencyAlert.fromJson(Map<String, dynamic> data)
-      : sosId = data['sosId'] as String? ?? '',
-        type = data['type'] as String? ?? '',
-        category = data['category'] as String? ?? '',
-        lat = double.tryParse(data['lat']?.toString() ?? '') ?? 0.0,
-        lng = double.tryParse(data['lng']?.toString() ?? '') ?? 0.0;
-
-  // Converte l'oggetto in Map per passarlo ai gestori
-  Map<String, dynamic> toJson() => {
-    'sosId': sosId,
-    'type': type,
-    'category': category,
-    'lat': lat.toString(),
-    'lng': lng.toString(),
-  };
-}
 
 class EmergencyProvider extends ChangeNotifier {
   // Dipendenza: Repository per la comunicazione col Backend (API)
@@ -35,14 +11,12 @@ class EmergencyProvider extends ChangeNotifier {
 
   bool _isSendingSos = false;
   String? _errorMessage;
-  EmergencyAlert? _currentAlert;
 
   // Stream per mantenere aperta la connessione col GPS
   StreamSubscription<Position>? _positionStreamSubscription;
 
   bool get isSendingSos => _isSendingSos;
   String? get errorMessage => _errorMessage;
-  EmergencyAlert? get currentAlert => _currentAlert;
 
   // Invia un segnale SOS immediato (LOGICA IBRIDA VELOCE)
   Future<bool> sendInstantSos({
@@ -146,17 +120,6 @@ class EmergencyProvider extends ChangeNotifier {
     });
   }
 
-  void handleNewAlert(Map<String, dynamic> data) {
-    debugPrint('EmergencyProvider: Allerta in Foreground ricevuta: ${data['type']}');
-    _currentAlert = EmergencyAlert.fromJson(data);
-    notifyListeners();
-  }
-  // Gestisce il tocco sulla notifica o il messaggio iniziale (per la navigazione).
-  void handleNotificationTap(Map<String, dynamic> data) {
-    debugPrint('EmergencyProvider: Notifica toccata/Iniziale. Tipo: ${data['type']}');
-    _currentAlert = EmergencyAlert.fromJson(data);
-    notifyListeners();
-  }
 
 
   // Helper per pulire l'output di un errore (stile AuthProvider)

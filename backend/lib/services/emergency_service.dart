@@ -1,18 +1,8 @@
 import '../repositories/emergency_repository.dart';
-import '../repositories/user_repository.dart';
-import 'notifiche_service.dart';
-import 'dart:async';
 
 class EmergencyService {
   // Dipendenze: Repository per DB e Servizi Ausiliari
   final EmergencyRepository _repository = EmergencyRepository();
-
-  // Inietta le dipendenze per le notifiche
-  final NotificationService _notificationService = NotificationService();
-  final UserRepository _userRepository = UserRepository();
-
-  // Configurazione: Raggio per l'invio notifiche di pericolo ai cittadini
-  static const double dangerRadiusKm = 5.0;
 
   // Gestione Invio SOS Completo
   // Valida i dati, salva nel DB e innesca le notifiche push.
@@ -50,13 +40,6 @@ class EmergencyService {
         lng: lng,
       );
 
-      // Invio Notifiche Push (Async)
-      await _triggerSOSNotification(
-        userId: userId,
-        lat: lat,
-        lng: lng,
-        type: normalizedType,
-      );
 
     } catch (e) {
       print("Errore critico Service SOS: $e");
@@ -64,46 +47,6 @@ class EmergencyService {
     }
   }
 
-  // Logica Notifiche Push (Soccorritori + Cittadini)
-  Future<void> _triggerSOSNotification({
-    required String userId,
-    required double lat,
-    required double lng,
-    required String type,
-  }) async {
-    final String sosId = userId;
-
-    // Eseguiamo in parallelo per non bloccare l'esecuzione
-    await Future.wait([
-      // Notifica ai Soccorritori (Tutti)
-      (() async {
-        final rescuerTokens = await _userRepository.findRescuerTokens();
-        if (rescuerTokens.isNotEmpty) {
-          await _notificationService.sendNotificationToTokens(
-            rescuerTokens,
-            "🚨 RICHIESTA INTERVENTO: $type",
-            "Nuova emergenza rilevata. Posizione: $lat, $lng.",
-            {'sosId': sosId, 'type': 'RESCUER_ALERT', 'lat': '$lat', 'lng': '$lng'},
-          );
-        }
-      })(),
-
-      // Notifica ai Cittadini (Solo vicini)
-      (() async {
-        final citizenTokens = await _userRepository.findNearbyTokensReal(
-          lat, lng, dangerRadiusKm,
-        );
-        if (citizenTokens.isNotEmpty) {
-          await _notificationService.sendNotificationToTokens(
-            citizenTokens,
-            "⚠️ PERICOLO VICINO A TE",
-            "Segnalato $type a meno di ${dangerRadiusKm.toInt()}km.",
-            {'sosId': sosId, 'type': 'DANGER_ALERT', 'lat': '$lat', 'lng': '$lng'},
-          );
-        }
-      })(),
-    ]);
-  }
 
   // Annullamento SOS
   Future<void> cancelSos(String userId) async {

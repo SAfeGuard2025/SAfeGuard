@@ -206,7 +206,7 @@ class ProfileController {
     try {
       final body = jsonDecode(await request.readAsString());
       String? numero =
-          body['numero']; //Validazione, Controllo esistenza, numeri e pulizia per il Dato
+      body['numero']; //Validazione, Controllo esistenza, numeri e pulizia per il Dato
 
       if (numero == null || numero.isEmpty) {
         return _jsonResponse(400, body: {'error': 'Numero mancante'});
@@ -290,39 +290,6 @@ class ProfileController {
       return _jsonResponse(
         500,
         body: {'error': 'Errore durante l\'eliminazione'},
-      );
-    }
-  }
-  // 🆕 14. POST /profile/device/token
-  // Salva il Token Firebase Cloud Messaging (FCM) del dispositivo
-  Future<Response> updateFCMToken(Request request) async {
-    final userId = _getUserId(request);
-    if (userId == null) {
-      return _jsonResponse(401, body: {'error': 'Non autorizzato'});
-    }
-
-    try {
-      final body = jsonDecode(await request.readAsString());
-      final String? fcmToken = body['fcm_token'];
-
-      if (fcmToken == null || fcmToken.isEmpty) {
-        return _jsonResponse(
-          400,
-          body: {'error': 'Token FCM mancante nel body'},
-        );
-      }
-
-      await _profileService.saveFCMToken(userId, fcmToken);
-
-      return _jsonResponse(
-        200,
-        body: {'message': 'Token FCM aggiornato con successo'},
-      );
-    } catch (e) {
-      print("❌ Errore controller updateFCMToken: $e");
-      return _jsonResponse(
-        500,
-        body: {'error': 'Errore interno durante l\'aggiornamento del token'},
       );
     }
   }

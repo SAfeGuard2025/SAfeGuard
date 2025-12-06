@@ -2,7 +2,6 @@ import 'package:firedart/firedart.dart';
 import 'package:data_models/utente.dart';
 import 'package:data_models/soccorritore.dart';
 import 'package:data_models/utente_generico.dart';
-import 'dart:math';
 import 'dart:convert';
 
 class UserRepository {
@@ -58,9 +57,9 @@ class UserRepository {
 
   // Crea utente usato specificamente per flussi esterni (Google/Apple Login)
   Future<Map<String, dynamic>> createUser(
-    Map<String, dynamic> userData, {
-    String collection = 'users',
-  }) async {
+      Map<String, dynamic> userData, {
+        String collection = 'users',
+      }) async {
     // Assicura che l'ID interno sia presente
     if (userData['id'] == null || userData['id'] == 0) {
       userData['id'] = DateTime.now().millisecondsSinceEpoch;
@@ -131,10 +130,10 @@ class UserRepository {
 
   // Rimuove un elemento specifico da un campo array
   Future<void> removeFromArrayField(
-    int id,
-    String fieldName,
-    dynamic item,
-  ) async {
+      int id,
+      String fieldName,
+      dynamic item,
+      ) async {
     final docId = await _findDocIdByIntId(id);
     if (docId == null) return;
 
@@ -191,74 +190,6 @@ class UserRepository {
         'attivo': true,
       });
     }
-  }
-
-  // 🆕 1. SALVATAGGIO/AGGIORNAMENTO TOKEN FCM
-  Future<void> updateUserFCMToken(int userId, String fcmToken) async {
-    final docId = await _findDocIdByIntId(userId); // Usa la tua utility esistente
-    if (docId != null) {
-      await _usersCollection.document(docId).update({
-        'fcmToken': fcmToken,
-        'token_updated_at': DateTime.now().toIso8601String(),
-      });
-    } else {
-      throw Exception("Utente con ID $userId non trovato per aggiornamento token.");
-    }
-  }
-
-  // 🆕 2. RECUPERO TOKEN SOCCOTRITORI (Chiamato da EmergenzeService)
-  Future<List<String>> findRescuerTokens() async {
-    // Presupposto: gli utenti soccorritori hanno un campo 'ruolo'/'isSoccorritore' corretto
-    final snapshot = await _usersCollection.where('ruolo', isEqualTo: 'Soccorritore').get();
-    // Oppure: .where('isSoccorritore', isEqualTo: true) a seconda del tuo schema
-
-    final tokens = snapshot
-        .map((doc) => doc.map['fcmToken'] as String?)
-        .where((token) => token != null && token!.isNotEmpty) // Controlla anche che non sia vuoto
-        .cast<String>()
-        .toList();
-    return tokens;
-  }
-
-  // 🆕 3. RECUPERO CITTADINI VICINI (Chiamato da EmergenzeService)
-  Future<List<String>> findNearbyTokensReal(
-      double lat,
-      double lng,
-      double radiusKm,
-      ) async {
-    final snapshot = await _usersCollection.get();
-
-    final List<String> nearbyTokens = [];
-    for (var doc in snapshot) {
-      final userLat = (doc.map['lat'] as num?)?.toDouble();
-      final userLng = (doc.map['lng'] as num?)?.toDouble();
-      final token = doc.map['fcmToken'] as String?;
-
-      // Filtra solo gli utenti cittadini che hanno una posizione salvata e un token valido
-      if (userLat != null && userLng != null && token != null && token.isNotEmpty && doc.map['ruolo'] == 'Cittadino') {
-        final distance = _calculateDistance(lat, lng, userLat, userLng);
-
-        if (distance <= radiusKm) {
-          nearbyTokens.add(token);
-        }
-      }
-    }
-    return nearbyTokens;
-  }
-
-  // 🆕 4. FUNZIONE DI CALCOLO DISTANZA PRECISA (Haversine)
-  double _calculateDistance(double lat1, double lng1, double lat2, double lng2) {
-    const p = 0.017453292519943295; // Pi greco / 180
-    const R = 6371; // Raggio medio della Terra in km
-
-    final a = 0.5 -
-        cos((lat2 - lat1) * p) / 2 +
-        cos(lat1 * p) *
-            cos(lat2 * p) *
-            (1 - cos((lng2 - lng1) * p)) /
-            2;
-
-    return R * 2 * asin(sqrt(a)); // Distanza in Km
   }
 }
 
