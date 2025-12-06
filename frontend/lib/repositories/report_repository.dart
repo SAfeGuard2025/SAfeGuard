@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -99,5 +100,19 @@ class ReportRepository {
     if (response.statusCode != 200) {
       throw Exception('Errore chiusura report: ${response.body}');
     }
+  }
+
+
+  Stream<List<Map<String, dynamic>>> getReportsStream() {
+    return FirebaseFirestore.instance
+        .collection('active_emergencies')
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id; // Importante per identificare il report
+        return data;
+      }).toList();
+    });
   }
 }

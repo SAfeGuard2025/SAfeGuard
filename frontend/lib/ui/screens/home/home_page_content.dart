@@ -64,12 +64,11 @@ class HomePageContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // Notifica di Emergenza Attiva
-        if (hasActiveAlert) ...[
           Padding(
             padding: const EdgeInsets.only(top: 8.0, bottom: 10.0),
             child: _buildEmergencyNotification(),
           ),
-        ],
+
 
         // 1. Menu emergenze (solo soccorritore)
         if (isRescuer) ...[
@@ -141,10 +140,9 @@ class HomePageContent extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    if (hasActiveAlert) ...[
                       _buildEmergencyNotification(),
                       const SizedBox(height: 10),
-                    ],
+
                     if (!isRescuer) ...[
                       _buildEmergencyContactsButton(context, isWideScreen),
                       const SizedBox(height: 15),
