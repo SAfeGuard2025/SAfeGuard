@@ -3,10 +3,11 @@ import 'package:frontend/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Widget riutilizzabile per visualizzare una singola segnalazione/emergenza
 class EmergencyCard extends StatelessWidget {
   final Map<String, dynamic> data; // Dati completi dell'emergenza
-  final VoidCallback? onTap;       //tap sulla card
-  final VoidCallback? onClose;     //azione chiusura (per soccorritori)
+  final VoidCallback? onTap;       // Callback per gestire il tap sulla card
+  final VoidCallback? onClose;     // Callback per l'azione di chiusura (visibile solo ai soccorritori)
 
   const EmergencyCard({
     super.key,
@@ -59,10 +60,12 @@ class EmergencyCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distribuisce lo spazio
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Riga superiore: Icona di allerta e Orario
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Icon(Icons.warning_amber_rounded, size: 32, color: Colors.white),
+                // Mostra l'orario solo se la stringa è stata formattata correttamente.
                 if (timeString.isNotEmpty)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -84,10 +87,11 @@ class EmergencyCard extends StatelessWidget {
 
             const Spacer(),
 
-            // --- CORPO: Titolo e Descrizione ---
+            // Corpo: Titolo e Descrizione
             Center(
               child: Column(
                 children: [
+                  // Tipo di emergenza
                   Text(
                     type.toUpperCase(),
                     style: const TextStyle(
@@ -100,6 +104,7 @@ class EmergencyCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  // Descrizione (mostrata solo se non vuota)
                   if (description.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
@@ -119,7 +124,8 @@ class EmergencyCard extends StatelessWidget {
 
             const Spacer(),
 
-            //Bottone Chiudi
+            // Bottone Chiudi Intervento
+            // Visibile solo se: L'utente è un Soccorritore
             if (isRescuer && onClose != null)
               SizedBox(
                 width: double.infinity,
@@ -134,7 +140,7 @@ class EmergencyCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: onClose,
+                  onPressed: onClose, // Esegue la funzione di chiusura fornita dal padre.
                   child: const Text(
                     "CHIUDI INTERVENTO",
                     style: TextStyle(

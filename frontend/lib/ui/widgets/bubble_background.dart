@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
+// Enum che definisce i diversi layout di bolle disponibili.
 enum BubbleType {
   type1, // Per RegistrationScreen Portrait
   type2, // Per LoginScreen Portrait
@@ -8,6 +9,7 @@ enum BubbleType {
   type4, // Per RegistrationScreen e LoginScreen in modalità landscape
 }
 
+// Widget principale: Funge da contenitore e chiama il pittore personalizzato.
 class BubbleBackground extends StatelessWidget {
   final BubbleType type;
   final Widget? child;
@@ -16,9 +18,8 @@ class BubbleBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Sfondo base del Container
-    // Solo type3 ha lo sfondo nativo Blu Scuro.
-    // Gli altri partono dal bianco per far risaltare le bolle colorate.
+    // Determina il colore di sfondo del Container base.
+    // Solo type3 (pagine interne) ha uno sfondo blu scuro, gli altri hanno sfondo bianco.
     Color backgroundColor = (type == BubbleType.type3)
         ? ColorPalette.backgroundDeepBlue
         : Colors.white;
@@ -27,14 +28,16 @@ class BubbleBackground extends StatelessWidget {
       width: double.infinity,
       height: double.infinity,
       color: backgroundColor,
+      // CustomPaint è il widget che delega il disegno a _BubblePainter.
       child: CustomPaint(
         painter: _BubblePainter(type: type),
-        child: child,
+        child: child, // Posiziona il contenuto sopra il disegno.
       ),
     );
   }
 }
 
+// Pittore Personalizzato: Contiene la logica di disegno geometrico delle bolle.
 class _BubblePainter extends CustomPainter {
   final BubbleType type;
 
@@ -45,12 +48,12 @@ class _BubblePainter extends CustomPainter {
     final double w = size.width;
     final double h = size.height;
 
-    // Palette Colori condivisa
+    // Colori presi dalla palette
     final Color mainBlue = ColorPalette.backgroundDeepBlue;
     final Color lighterBlue = const Color(0xFF1E3A5F); // Blu chiaro
     final Color darkerBlue = const Color(0xFF0D1B2A); // Blu scuro
 
-    // Definiamo i pennelli
+    // Definisce i pennelli
     final Paint paintMain = Paint()
       ..color = mainBlue
       ..style = PaintingStyle.fill;
@@ -67,9 +70,9 @@ class _BubblePainter extends CustomPainter {
       ..color = Colors.white.withValues(alpha: 0.05)
       ..style = PaintingStyle.fill;
 
+    // Switch per selezionare la funzione di disegno appropriata in base al BubbleType.
     switch (type) {
       case BubbleType.type1:
-        // Ora passiamo paintLight invece di gestire colori locali
         _drawType1(canvas, paintMain, paintLight, paintDark, w, h);
         break;
       case BubbleType.type2:
@@ -84,7 +87,7 @@ class _BubblePainter extends CustomPainter {
     }
   }
 
-  // --- TYPE 1: Registration Portrait (Colori corretti) ---
+  // TYPE 1: Registration Portrait
   void _drawType1(
     Canvas canvas,
     Paint paintMain,
@@ -93,21 +96,21 @@ class _BubblePainter extends CustomPainter {
     double w,
     double h,
   ) {
-    // 1. Grande cerchio a destra (Ora usa paintLight, identico a Type 2)
+    // 1. Grande cerchio a destra (colore chiaro).
     canvas.drawCircle(
       Offset(w * 0.8, h * 0.65),
       w * 0.8,
       paintLight, // <--- CAMBIATO QUI (Era paintMain con opacità)
     );
 
-    // 2. Cerchio principale a sinistra
+    // 2. Cerchio principale a sinistra (colore principale).
     canvas.drawCircle(Offset(0, h * 0.85), w * 0.9, paintMain);
 
-    // 3. Cerchio scuro in basso
+    // 3. Cerchio scuro in basso (colore scuro).
     canvas.drawCircle(Offset(w * 0.5, h * 1.35), w * 1.1, paintDark);
   }
 
-  // --- TYPE 2: Login Portrait ---
+  // TYPE 2: Login Portrait
   void _drawType2(
     Canvas canvas,
     Paint paintMain,
@@ -121,13 +124,13 @@ class _BubblePainter extends CustomPainter {
     canvas.drawCircle(Offset(w * 0.3, h * 1.3), w * 1.0, paintDark);
   }
 
-  // --- TYPE 3: Pagine interne (Sfondo scuro) ---
+  // TYPE 3: Pagine interne (Sfondo scuro)
   void _drawType3(Canvas canvas, Paint paintOverlay, double w, double h) {
     canvas.drawCircle(Offset(0, 0), w * 0.7, paintOverlay);
     canvas.drawCircle(Offset(w, h), w * 0.8, paintOverlay);
   }
 
-  // --- TYPE 4: Landscape ---
+  // TYPE 4: Landscape
   void _drawType4(
     Canvas canvas,
     Paint paintMain,
