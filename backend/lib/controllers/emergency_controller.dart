@@ -4,8 +4,8 @@ import 'package:shelf_router/shelf_router.dart';
 import '../services/emergency_service.dart';
 
 class EmergencyController {
-  // Istanzia il servizio che gestisce la logica di business e il DB
-  final EmergencyService _service = EmergencyService();
+  // Dipendenza: il Controller delega la logica di business a EmergencyService
+  final EmergencyService _emergencyService = EmergencyService();
 
   // Header standard per risposte JSON
   final Map<String, String> _headers = {'content-type': 'application/json'};
@@ -26,8 +26,6 @@ class EmergencyController {
     return router.call;
   }
 
-  // Handlers
-
   // Gestisce l'invio di una nuova emergenza
   Future<Response> handleSendSos(Request request) async {
     try {
@@ -45,7 +43,7 @@ class EmergencyController {
       }
 
       // Delega al service l'elaborazione e il salvataggio
-      await _service.processSosRequest(
+      await _emergencyService.processSosRequest(
         userId: userId,
         email: data['email'],
         phone: data['phone'],
@@ -70,7 +68,7 @@ class EmergencyController {
       if (userId == null) return _buildErrorResponse(403, 'Non autorizzato');
 
       // Chiama il service per cancellare
-      await _service.cancelSos(userId);
+      await _emergencyService.cancelSos(userId);
 
       return _buildSuccessResponse('SOS Annullato correttamente');
     } catch (e) {
@@ -78,7 +76,7 @@ class EmergencyController {
     }
   }
 
-  // Aggiorna solo la posizione GPS (Live Tracking)
+  // Aggiorna solo la posizione GPS in tempo reale
   Future<Response> handleUpdateLocation(Request request) async {
     try {
       final userId = _extractUserId(request);
@@ -92,7 +90,7 @@ class EmergencyController {
       }
 
       // Aggiornamento parziale tramite service
-      await _service.updateUserLocation(
+      await _emergencyService.updateUserLocation(
         userId,
         (data['lat'] as num).toDouble(),
         (data['lng'] as num).toDouble(),
@@ -107,14 +105,13 @@ class EmergencyController {
   // Restituisce la lista di tutte le emergenze attive
   Future<Response> handleGetAllEmergenciesRequest(Request request) async {
     try {
-      final emergencies = await _service.getActiveEmergencies();
+      final emergencies = await _emergencyService.getActiveEmergencies();
       return Response.ok(jsonEncode(emergencies), headers: _headers);
     } catch (e) {
       return _buildErrorResponse(500, 'Impossibile recuperare lista: $e');
     }
   }
 
-  // Utility
   // Estrae l'ID utente dal context
   String? _extractUserId(Request request) {
     final userContext = request.context['user'] as Map<String, dynamic>?;

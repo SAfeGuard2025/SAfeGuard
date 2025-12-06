@@ -260,7 +260,7 @@ class ProfileService {
       final existingUser = await _userRepository.findUserById(userId);
       // Controlla se il profilo ha già i campi di default
       if (existingUser != null && existingUser['permessi'] == null) {
-        print("🆕 Inizializzazione profilo default...");
+        print("Inizializzazione profilo default...");
 
         final String email = existingUser['email'] ?? '';
         final bool isSoccorritore = RescuerConfig.isSoccorritore(email);
@@ -295,8 +295,7 @@ class ProfileService {
     }
   }
 
-
-
+  // Aggiorna il token FCM di un utente.
   Future<void> updateFcmToken(int userId, String token) async {
     try {
       await _userRepository.updateUserField(userId, 'fcmToken', token);

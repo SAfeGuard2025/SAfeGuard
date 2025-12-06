@@ -192,17 +192,14 @@ class UserRepository {
     }
   }
 
-
-
-// backend/repositories/user_repository.dart
-
-  Future<List<String>> getCitizenTokens({int? excludedId}) async { // <--- Aggiungi parametro
+  // Recupera i token FCM di tutti gli utenti normali che hanno autorizzato le notifiche.
+  Future<List<String>> getCitizenTokens({int? excludedId}) async {
     try {
       final users = await _usersCollection.where('isSoccorritore', isEqualTo: false).get();
 
       List<String> validTokens = [];
       for (var doc in users) {
-        // 1. FILTRO MITTENTE: Se l'ID del documento corrisponde a chi invia, SALTA.
+        // 1. Filtro mittente per evitare di inviare la notifica a chi la manda.
         if (excludedId != null && doc.id == excludedId.toString()) {
           continue;
         }
@@ -212,6 +209,8 @@ class UserRepository {
 
         if (token == null || token.isEmpty) continue;
 
+        // 2. Controlla le preferenze utente per le notifiche push.
+        // Si assume che siano abilitate per default.
         bool isPushEnabled = true;
         if (data['notifiche'] != null && data['notifiche'] is Map) {
           final prefs = data['notifiche'] as Map<String, dynamic>;
@@ -229,13 +228,14 @@ class UserRepository {
     }
   }
 
+  // Recupera i token FCM di tutti i soccorritori che hanno autorizzato le notifiche.
   Future<List<String>> getRescuerTokens({int? excludedId}) async { // <--- Aggiungi parametro
     try {
       final users = await _usersCollection.where('isSoccorritore', isEqualTo: true).get();
 
       List<String> validTokens = [];
       for (var doc in users) {
-        // 1. FILTRO MITTENTE
+        // Filtro mittente per evitare di inviare la notifica a chi la manda.
         if (excludedId != null && doc.id == excludedId.toString()) {
           continue;
         }

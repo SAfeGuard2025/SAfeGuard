@@ -3,9 +3,10 @@ import '../repositories/user_repository.dart';
 import 'notification_service.dart';
 
 class EmergencyService {
+  // Dipendenze: Repository per il DB e Service per le notifiche
   final EmergencyRepository _repository = EmergencyRepository();
-  final NotificationService _notificationService = NotificationService(); // Istanza
-  final UserRepository _userRepo = UserRepository(); // Istanza per i token
+  final NotificationService _notificationService = NotificationService();
+  final UserRepository _userRepo = UserRepository();
 
   // Gestione Invio SOS Completo
   Future<void> processSosRequest({
@@ -16,7 +17,7 @@ class EmergencyService {
     required double lat,
     required double lng,
   }) async {
-    // ... (Validazioni esistenti) ...
+    // Area geografica accettata
     if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
       throw ArgumentError("Coordinate GPS non valide");
     }
@@ -36,7 +37,6 @@ class EmergencyService {
         lng: lng,
       );
 
-      // 2. INVIO NOTIFICA AI SOCCORRITORI [NUOVO]
       await _notifyRescuers(normalizedType, userId);
 
     } catch (e) {
@@ -45,32 +45,29 @@ class EmergencyService {
     }
   }
 
-  // Metodo privato per notificare i soccorritori
+  // Invio notifica ai soccorritori
   Future<void> _notifyRescuers(String type, String senderId) async {
     try {
-      // Recupera i token di TUTTI i soccorritori (escluso chi invia, per sicurezza)
-      // Nota: Convertiamo senderId in int se necessario o lo passiamo come stringa
-      // Assumendo che senderId sia una stringa numerica dal DB
+      // Recupera i token di tutti i soccorritori
       final int? senderIdInt = int.tryParse(senderId);
 
       List<String> tokens = await _userRepo.getRescuerTokens(excludedId: senderIdInt);
 
       if (tokens.isNotEmpty) {
-        print("🚑 Invio notifica SOS a ${tokens.length} soccorritori...");
+        print("Invio notifica SOS a ${tokens.length} soccorritori...");
         await _notificationService.sendBroadcast(
-          title: "🆘 SOS ATTIVO: $type",
+          title: "SOS ATTIVO: $type",
           body: "Richiesta di soccorso urgente! Clicca per vedere la posizione.",
           tokens: tokens,
           type: 'emergency_alert', // Questo triggera la navigazione nel frontend
         );
       } else {
-        print("⚠️ Nessun soccorritore disponibile per la notifica.");
+        print("⚠Nessun soccorritore disponibile per la notifica.");
       }
     } catch (e) {
-      print("❌ Errore invio notifica SOS: $e");
+      print("Errore invio notifica SOS: $e");
     }
   }
-
 
   // Annullamento SOS
   Future<void> cancelSos(String userId) async {
@@ -78,7 +75,7 @@ class EmergencyService {
     await _repository.deleteSos(userId);
   }
 
-  // Live Tracking (Aggiornamento Posizione)
+  // Aggiornamento posizione in tempo reale
   Future<void> updateUserLocation(String userId, double lat, double lng) async {
     // Validazione rapida per evitare dati sporchi nel DB
     if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return;
