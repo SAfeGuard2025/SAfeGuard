@@ -1,124 +1,119 @@
 import 'dart:convert';
-import 'dart:io'; // Necessario per leggere il file
+import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:googleapis_auth/auth_io.dart'; // Per l'autenticazione OAuth2
+import 'package:googleapis_auth/auth_io.dart';
+import 'package:dotenv/dotenv.dart'; // Assicurati di avere dotenv caricato
 
 class NotificationService {
-  // Scope necessari per inviare messaggi tramite FCM
-  final _scopes = ['https://www.googleapis.com/auth/firebase.messaging'];
+  static final _scopes = ['https://www.googleapis.com/auth/firebase.messaging'];
 
-  // Nome del file JSON scaricato da Firebase
-  final String _serviceAccountPath = 'safeguard-c08-e1861c983cab.json';
-
-  // Cache per il token e il client per evitare di rileggere il file a ogni invio
+  // Caricamento Lazy: il client viene creato solo alla prima necessità
   AutoRefreshingAuthClient? _client;
   String? _projectId;
 
-  /// Inizializza il client autenticato se non esiste già
-  Future<void> _initializeClient() async {
+  /// Percorso del file credenziali (meglio metterlo in .env)
+  String get _serviceAccountPath =>
+      Platform.environment['GOOGLE_APPLICATION_CREDENTIALS'] ?? 'safeguard-service-account.json';
+
+  /// Inizializza e autentica il client Google
+  Future<void> _ensureAuth() async {
     if (_client != null) return;
 
-    try {
-      final file = File(_serviceAccountPath);
-      if (!await file.exists()) {
-        throw Exception("File $_serviceAccountPath non trovato. Assicurati di averlo scaricato da Firebase e messo nella root.");
-      }
+    final file = File(_serviceAccountPath);
+    if (!await file.exists()) {
+      throw Exception("❌ File credenziali non trovato in: $_serviceAccountPath");
+    }
 
+    try {
       final jsonString = await file.readAsString();
       final jsonData = jsonDecode(jsonString);
-
-      // Estrai il Project ID direttamente dal JSON per costruire l'URL
       _projectId = jsonData['project_id'];
 
       final credentials = ServiceAccountCredentials.fromJson(jsonData);
-
-      // Crea un client che rinfresca automaticamente il token quando scade
       _client = await clientViaServiceAccount(credentials, _scopes);
 
-      print("✅ NotificationService: Autenticazione Service Account riuscita per il progetto: $_projectId");
+      print("✅ FCM Service Authenticated. Project: $_projectId");
     } catch (e) {
-      print("❌ NotificationService: Errore inizializzazione credenziali: $e");
+      print("❌ Errore autenticazione FCM: $e");
       rethrow;
     }
   }
 
-  /// Invia notifica a una lista di token
-  Future<void> sendBroadcastNotification(String title, String body, List<String> tokens) async {
+  /// Invia una notifica broadcast a una lista di token
+  Future<void> sendBroadcast({
+    required String title,
+    required String body,
+    required List<String> tokens,
+    String type = 'emergency_alert',
+  }) async {
     if (tokens.isEmpty) return;
 
-    // Assicurati che il client sia pronto
-    await _initializeClient();
+    await _ensureAuth();
 
-    // Invia a ogni token (in produzione considera l'invio batch/multicast se i numeri sono alti)
+    // In produzione, considera l'invio in batch (max 500 per richiesta) o code asincrone
     for (var token in tokens) {
-      await _sendSingle(title, body, token);
+      // Non aspettiamo l'invio (fire-and-forget) per non bloccare il loop
+      _sendSingle(title, body, token, type).catchError((e) {
+        print("⚠️ Errore invio a $token: $e");
+      });
     }
   }
 
-  /// Invia la singola notifica usando l'API v1 HTTP di Firebase
-  Future<void> _sendSingle(String title, String bodyText, String token) async {
-    if (_client == null || _projectId == null) {
-      print("❌ Errore: Client non inizializzato.");
-      return;
-    }
+  Future<void> _sendSingle(String title, String body, String token, String type) async {
+    if (_client == null) return;
 
-    // URL dinamico basato sul project_id estratto dal JSON
-    final Uri url = Uri.parse(
-        'https://fcm.googleapis.com/v1/projects/$_projectId/messages:send'
-    );
+    final uri = Uri.parse(
+        'https://fcm.googleapis.com/v1/projects/$_projectId/messages:send');
 
-    final Map<String, dynamic> message = {
+    final message = {
       'message': {
         'token': token,
         'notification': {
           'title': title,
-          'body': bodyText,
+          'body': body,
         },
         'data': {
+          'type': type,
           'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-          'type': 'emergency_alert',
           'timestamp': DateTime.now().toIso8601String(),
         },
         'android': {
-          'priority': 'high',
-          // CAMBIA IL NOME DEL CANALE IN V3 PER FORZARE UN RESET SU ANDROID
+          // Priorità di consegna del messaggio (risparmio batteria vs velocità)
+          'priority': 'HIGH',
           'notification': {
             'channel_id': 'emergency_channel_v3',
-            // QUESTO È IL TRUCCO: Un tag diverso per ogni messaggio impedisce il raggruppamento
-            'tag': DateTime.now().millisecondsSinceEpoch.toString(),
-            'visibility': 'public',
+            // CORREZIONE: Si chiama 'notification_priority', non 'priority'
+            'notification_priority': 'PRIORITY_MAX',
             'default_sound': true,
-            'notification_priority': 'PRIORITY_MAX', // Per vecchie versioni Android
+            'visibility': 'public',
+          }
+        },
+        // Configurazione iOS
+        'apns': {
+          'payload': {
+            'aps': {
+              'sound': 'default',
+              'content-available': 1,
+            }
           }
         }
       }
     };
 
     try {
-      // Usiamo _client invece di http standard perché _client inietta automaticamente
-      // l'header 'Authorization: Bearer <token>' e lo rinnova se scaduto.
       final response = await _client!.post(
-        url,
+        uri,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(message),
       );
 
-      if (response.statusCode == 200) {
-        print("📨 Notifica inviata a: ${token.substring(0, 10)}...");
+      if (response.statusCode != 200) {
+        print("FCM Error (${response.statusCode}): ${response.body}");
       } else {
-        print("⚠️ Errore invio FCM (${response.statusCode}): ${response.body}");
-        // Se il token non è più valido (es. app disinstallata), qui dovresti rimuoverlo dal DB
-        if (response.body.contains("UNREGISTERED") || response.body.contains("INVALID_ARGUMENT")) {
-          print("   -> Token invalido, andrebbe rimosso dal DB.");
-        }
+        print("Notifica inviata con successo a: ...${token.substring(token.length - 6)}");
       }
     } catch (e) {
-      print("❌ Eccezione durante l'invio HTTP: $e");
+      print("Errore rete FCM: $e");
     }
-  }
-
-  // Chiude il client quando il server si spegne (opzionale)
-  void close() {
-    _client?.close();
   }
 }
