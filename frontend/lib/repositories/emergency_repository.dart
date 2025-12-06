@@ -5,25 +5,17 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Gestisce la comunicazione HTTP verso il Backend per le operazioni di emergenza.
 class EmergencyRepository {
-  // --- CONFIGURAZIONE AMBIENTE (Identica ad AuthRepository) ---
 
-  static const String _envHost = String.fromEnvironment(
-    'SERVER_HOST',
-    defaultValue: 'http://localhost',
-  );
-  static const String _envPort = String.fromEnvironment(
-    'SERVER_PORT',
-    defaultValue: '8080',
-  );
-  static const String _envPrefix = String.fromEnvironment(
-    'API_PREFIX',
-    defaultValue: '',
-  );
+  // Recupera host e porta dalle variabili d'ambiente o usa i default.
+  static const String _envHost = String.fromEnvironment('SERVER_HOST', defaultValue: 'http://localhost');
+  static const String _envPort = String.fromEnvironment('SERVER_PORT', defaultValue: '8080');
+  static const String _envPrefix = String.fromEnvironment('API_PREFIX', defaultValue: '');
 
+  // Costruisce l'URL base corretto, gestendo la differenza tra localhost e 10.0.2.2 per Android.
   String get _baseUrl {
     String host = _envHost;
-    // Fix per emulatore Android
     if (!kIsWeb && Platform.isAndroid && host.contains('localhost')) {
       host = host.replaceFirst('localhost', '10.0.2.2');
     }
@@ -31,15 +23,16 @@ class EmergencyRepository {
     return '$host$portPart$_envPrefix';
   }
 
-  // Helper per ottenere il Token
+  // Helper per recuperare il Token JWT salvato localmente (necessario per l'autenticazione).
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('auth_token');
   }
 
-  // --- METODI API ---
+  // Metodi
 
-  /// Invia SOS al Backend (POST /api/emergency)
+  // Invio SOS
+  // Invia i dati iniziali dell'emergenza al server per creare il record nel DB.
   Future<void> sendSos({
     required String type,
     required double lat,
@@ -48,19 +41,14 @@ class EmergencyRepository {
     String? email,
   }) async {
     final token = await _getToken();
-    final url = Uri.parse('$_baseUrl/api/emergenza');
+    final url = Uri.parse('$_baseUrl/api/emergency');
 
-    if (token == null) {
-      throw Exception("Utente non autenticato (Token mancante)");
-    }
+    if (token == null) throw Exception("Token mancante");
 
     try {
       final response = await http.post(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token', // Fondamentale per il Backend
-        },
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
         body: jsonEncode({
           'type': type,
           'lat': lat,
@@ -72,42 +60,51 @@ class EmergencyRepository {
 
       // Gestione Errori
       if (response.statusCode != 200 && response.statusCode != 201) {
-        // Proviamo a leggere il messaggio di errore dal backend se c'è
-        String errorMsg = "Errore invio SOS";
-        try {
-          final body = jsonDecode(response.body);
-          errorMsg = body['message'] ?? body['error'] ?? errorMsg;
-        } catch (_) {}
-
-        throw Exception("$errorMsg (Codice: ${response.statusCode})");
+        throw Exception("Errore Server: ${response.body}");
       }
     } catch (e) {
-      throw Exception("Errore di connessione SOS: $e");
+      throw Exception("Errore connessione SOS: $e");
     }
   }
 
-  /// Annulla SOS (DELETE /api/emergency)
+  // Stop SOS
+  // Segnala al server di chiudere e cancellare l'emergenza attiva.
   Future<void> stopSos() async {
     final token = await _getToken();
-    // CORREZIONE: Uniformato a 'emergenza' per combaciare con il mount del backend
-    final url = Uri.parse('$_baseUrl/api/emergenza');
+    final url = Uri.parse('$_baseUrl/api/emergency');
 
     if (token == null) return;
 
+    final response = await http.delete(
+      url,
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Impossibile annullare SOS: ${response.statusCode}");
+    }
+  }
+
+  // Aggiornamento posizione
+  // Invia aggiornamenti leggeri delle sole coordinate mentre l'utente si muove.
+  Future<void> updateLocation(double lat, double lng) async {
+    final token = await _getToken();
+
+    if (token == null) return;
+
+    final url = Uri.parse('$_baseUrl/api/emergency/location');
+
     try {
-      final response = await http.delete(
+      await http.patch(
         url,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
+        body: jsonEncode({'lat': lat, 'lng': lng}),
       );
-
-      if (response.statusCode != 200) {
-        throw Exception("Impossibile annullare SOS (Codice: ${response.statusCode})");
-      }
     } catch (e) {
-      throw Exception("Errore connessione Stop SOS: $e");
+      debugPrint("❌ [REPO] ERRORE DI RETE TRACKING: $e");
     }
   }
 }

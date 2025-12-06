@@ -4,55 +4,47 @@ import 'package:shelf_router/shelf_router.dart';
 import '../services/emergency_service.dart';
 
 class EmergencyController {
+  // Istanzia il servizio che gestisce la logica di business e il DB
   final EmergencyService _service = EmergencyService();
 
-  // Router interno del controller
+  // Header standard per risposte JSON
+  final Map<String, String> _headers = {'content-type': 'application/json'};
+
+  // Definizione delle rotte
   Handler get router {
     final router = Router();
 
-    // 1. INVIA SOS (POST /api/emergency)
-    // L'utente invia i dati (GPS, tipo) e il server usa il suo ID dal token
-    router.post('/', sendSos);
+    // Invio SOS
+    router.post('/', handleSendSos);
+    // Annullamento SOS
+    router.delete('/', handleStopSos);
+    // Lista completa (per dashboard/soccorritori)
+    router.get('/all', handleGetAllEmergenciesRequest);
+    // Tracking GPS in tempo reale
+    router.patch('/location', handleUpdateLocation);
 
-    // 2. STOP SOS (DELETE /api/emergency)
-    // Cancella l'SOS dell'utente che fa la richiesta
-    router.delete('/', _stopMySos);
-
-    // 3. GET TUTTE LE EMERGENZE (GET /api/emergency/all)
-    // (Opzionale: Solo per Soccorritori o Dashboard)
-    router.get('/all', _getAllEmergencies);
-
-    return router;
+    return router.call;
   }
 
-  // --- HANDLERS ---
+  // Handlers
 
-  /// Invia una nuova segnalazione di emergenza.
-  Future<Response> sendSos(Request request) async {
+  // Gestisce l'invio di una nuova emergenza
+  Future<Response> handleSendSos(Request request) async {
     try {
-      // 1. Recupero l'utente dal Context (iniettato dall'AuthGuard)
-      // Questo è il passaggio FONDAMENTALE di sicurezza.
-      final userContext = request.context['user'] as Map<String, dynamic>?;
+      final userId = _extractUserId(request);
+      if (userId == null) return _buildErrorResponse(403, 'Utente non identificato');
 
-      if (userContext == null) {
-        return Response.forbidden(jsonEncode({'error': 'Utente non identificato'}));
-      }
+      final body = await request.readAsString();
+      if (body.isEmpty) return _buildErrorResponse(400, 'Body vuoto');
 
-      final String userId = userContext['id'].toString();
+      final Map<String, dynamic> data = jsonDecode(body);
 
-      // 2. Leggo il Body della richiesta
-      final payload = await request.readAsString();
-      final data = jsonDecode(payload) as Map<String, dynamic>;
-
-      // 3. Validazione dati minimi (GPS)
+      // Verifica coordinate obbligatorie
       if (data['lat'] == null || data['lng'] == null) {
-        return Response.badRequest(
-          body: jsonEncode({'error': 'Coordinate GPS mancanti'}),
-          headers: {'content-type': 'application/json'},
-        );
+        return _buildErrorResponse(400, 'Coordinate GPS obbligatorie');
       }
 
-      // 4. Chiamo il Service per la logica di business
+      // Delega al service l'elaborazione e il salvataggio
       await _service.processSosRequest(
         userId: userId,
         email: data['email'],
@@ -63,61 +55,88 @@ class EmergencyController {
         lng: (data['lng'] as num).toDouble(),
       );
 
-      return Response.ok(
-        jsonEncode({'success': true, 'message': 'SOS Inviato con successo'}),
-        headers: {'content-type': 'application/json'},
-      );
-
+      return _buildSuccessResponse('SOS Inviato con successo');
+    } on FormatException {
+      return _buildErrorResponse(400, 'JSON non valido');
     } catch (e) {
-      print("Errore Controller SOS: $e");
-      return Response.internalServerError(
-        body: jsonEncode({'error': 'Errore interno del server: $e'}),
-        headers: {'content-type': 'application/json'},
-      );
+      return _buildErrorResponse(500, 'Errore server: $e');
     }
   }
 
-  /// Cancella l'SOS dell'utente corrente.
-  Future<Response> _stopMySos(Request request) async {
+  // Gestisce la cancellazione dell'SOS per l'utente corrente
+  Future<Response> handleStopSos(Request request) async {
     try {
-      final userContext = request.context['user'] as Map<String, dynamic>?;
-      if (userContext == null) {
-        return Response.forbidden(jsonEncode({'error': 'Non autorizzato'}));
-      }
-
-      final String userId = userContext['id'].toString();
+      final userId = _extractUserId(request);
+      if (userId == null) return _buildErrorResponse(403, 'Non autorizzato');
 
       // Chiama il service per cancellare
       await _service.cancelSos(userId);
 
-      return Response.ok(
-        jsonEncode({'success': true, 'message': 'SOS Annullato'}),
-        headers: {'content-type': 'application/json'},
-      );
+      return _buildSuccessResponse('SOS Annullato correttamente');
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': e.toString()}),
-        headers: {'content-type': 'application/json'},
-      );
+      return _buildErrorResponse(500, 'Errore cancellazione: $e');
     }
   }
 
-  /// Restituisce la lista di tutte le emergenze attive.
-  Future<Response> _getAllEmergencies(Request request) async {
+  // Aggiorna solo la posizione GPS (Live Tracking)
+  Future<Response> handleUpdateLocation(Request request) async {
     try {
-      // (Opzionale) Qui potresti controllare se userContext['type'] == 'soccorritore'
+      final userId = _extractUserId(request);
+      if (userId == null) return _buildErrorResponse(403, 'Non autorizzato');
 
-      final emergencies = await _service.getActiveEmergencies();
+      final body = await request.readAsString();
+      final Map<String, dynamic> data = jsonDecode(body);
 
-      return Response.ok(
-        jsonEncode(emergencies),
-        headers: {'content-type': 'application/json'},
+      if (data['lat'] == null || data['lng'] == null) {
+        return _buildErrorResponse(400, 'Coordinate mancanti');
+      }
+
+      // Aggiornamento parziale tramite service
+      await _service.updateUserLocation(
+        userId,
+        (data['lat'] as num).toDouble(),
+        (data['lng'] as num).toDouble(),
       );
+
+      return _buildSuccessResponse('Posizione aggiornata');
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'error': e.toString()}),
-        headers: {'content-type': 'application/json'},
-      );
+      return _buildErrorResponse(500, '$e');
     }
+  }
+
+  // Restituisce la lista di tutte le emergenze attive
+  Future<Response> handleGetAllEmergenciesRequest(Request request) async {
+    try {
+      final emergencies = await _service.getActiveEmergencies();
+      return Response.ok(jsonEncode(emergencies), headers: _headers);
+    } catch (e) {
+      return _buildErrorResponse(500, 'Impossibile recuperare lista: $e');
+    }
+  }
+
+  // Utility
+  // Estrae l'ID utente dal context
+  String? _extractUserId(Request request) {
+    final userContext = request.context['user'] as Map<String, dynamic>?;
+    return userContext?['id']?.toString();
+  }
+
+  // Helper per risposta 200 OK standard
+  Response _buildSuccessResponse(String message, {Map<String, dynamic>? data}) {
+    final responseBody = {
+      'success': true,
+      'message': message,
+      if (data != null) ...data,
+    };
+    return Response.ok(jsonEncode(responseBody), headers: _headers);
+  }
+
+  // Helper per risposte di errore
+  Response _buildErrorResponse(int statusCode, String message) {
+    return Response(
+      statusCode,
+      body: jsonEncode({'success': false, 'message': message}),
+      headers: _headers,
+    );
   }
 }

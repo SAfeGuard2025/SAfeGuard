@@ -1,17 +1,15 @@
 // Modello: Emergenza
-// Versione "Pure Dart": Non ha dipendenze esterne (no firebase, no firedart).
-// Compatibile al 100% sia con Frontend che con Backend.
 
 class Emergenza {
-  final String id; // ID del documento
-  final String userId; // ID dell'utente
-  final String? email; // Email contatto
-  final String? phone; // Telefono contatto
-  final String type; // Tipo (es. Generico, Medico)
-  final double lat; // Latitudine
-  final double lng; // Longitudine
-  final DateTime timestamp; // Usiamo DateTime nativo di Dart
-  final String status; // Status (active, resolved)
+  final String id;          // ID univoco del documento/segnalazione
+  final String userId;      // ID dell'utente che ha inviato l'SOS
+  final String? email;      // Email di contatto (opzionale)
+  final String? phone;      // Telefono di contatto (opzionale)
+  final String type;        // Tipo di emergenza (es. Generico, Medico, Incendio)
+  final double lat;         // Latitudine GPS
+  final double lng;         // Longitudine GPS
+  final DateTime timestamp; // Data e ora dell'invio (standard Dart)
+  final String status;      // Stato corrente (active, resolved, handled)
 
   Emergenza({
     required this.id,
@@ -25,8 +23,8 @@ class Emergenza {
     required this.status,
   });
 
-  // Factory per creare un oggetto partendo da una Map JSON.
-  // Accetta 'docId' opzionale perché a volte l'ID è la chiave del documento.
+  // Factory per creare un oggetto da JSON (es. da API o DB).
+  // Gestisce conversioni sicure di tipi (int->double) e date eterogenee.
   factory Emergenza.fromJson(Map<String, dynamic> json, [String? docId]) {
     return Emergenza(
       id: docId ?? json['id']?.toString() ?? '',
@@ -35,19 +33,19 @@ class Emergenza {
       phone: json['phone']?.toString(),
       type: json['type']?.toString() ?? 'Generico',
 
-      // Parsing robusto per i numeri (gestisce sia int che double senza crashare)
+      // Parsing robusto: accetta sia int che double senza crashare
       lat: (json['lat'] is num) ? (json['lat'] as num).toDouble() : 0.0,
       lng: (json['lng'] is num) ? (json['lng'] as num).toDouble() : 0.0,
 
-      // Gestione intelligente della data (funziona con Stringhe ISO, DateTime e Timestamp)
+      // Gestione universale della data (Stringa ISO o Timestamp Firebase)
       timestamp: _parseDate(json['timestamp']),
 
       status: json['status']?.toString() ?? 'active',
     );
   }
 
-  // Converte l'oggetto in una Map JSON pura.
-  // Utile per inviare i dati via HTTP o per salvarli su DB.
+  // Converte l'oggetto in una Map JSON pura per l'invio via rete.
+  // Standardizza la data in formato ISO8601 string.
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -63,7 +61,8 @@ class Emergenza {
     };
   }
 
-  // Metodo copyWith: utile per modificare solo alcuni campi (es. aggiornare posizione)
+  // Crea una copia dell'oggetto modificando solo i campi specificati.
+  // Utile per aggiornamenti di stato immutabili.
   Emergenza copyWith({
     String? id,
     String? userId,
@@ -87,23 +86,26 @@ class Emergenza {
       status: status ?? this.status,
     );
   }
+
+  // Helper privati
+
+  // Converte qualsiasi formato data in ingresso (null, String, Timestamp, DateTime)
+  // in un DateTime Dart nativo, senza bisogno di importare librerie esterne.
   static DateTime _parseDate(dynamic input) {
     if (input == null) return DateTime.now();
-
-    // 1. Se è già DateTime
     if (input is DateTime) return input;
 
-    // 2. Se è Stringa (es. da API JSON)
+    // Caso 1: Stringa
     if (input is String) {
       return DateTime.tryParse(input) ?? DateTime.now();
     }
 
-    // 3. Se è un oggetto Timestamp (da Firestore o Firedart)
-    // Usiamo 'dynamic' per chiamare .toDate() se esiste
+    // Caso 2: Oggetto Timestamp
     try {
+      // Usato 'dynamic' per chiamare .toDate() se esiste, evitando dipendenze dirette.
       return (input as dynamic).toDate();
     } catch (_) {
-      return DateTime.now(); // Fallback
+      return DateTime.now(); // Fallback in caso di formato sconosciuto
     }
   }
 }

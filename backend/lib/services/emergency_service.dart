@@ -1,20 +1,21 @@
 import '../repositories/emergency_repository.dart';
-import '../repositories/user_repository.dart'; // 1. Importa UserRepository
-import 'notifiche_service.dart';            // 2. Importa NotificationService
+import '../repositories/user_repository.dart';
+import 'notifiche_service.dart';
 import 'dart:async';
 
 class EmergencyService {
+  // Dipendenze: Repository per DB e Servizi Ausiliari
   final EmergencyRepository _repository = EmergencyRepository();
 
   // Inietta le dipendenze per le notifiche
   final NotificationService _notificationService = NotificationService();
   final UserRepository _userRepository = UserRepository();
 
-  // Definisci il raggio di pericolo
+  // Configurazione: Raggio per l'invio notifiche di pericolo ai cittadini
   static const double dangerRadiusKm = 5.0;
 
-  /// Gestisce la richiesta di invio SOS.
-  /// Esegue validazioni di business logic prima di salvare nel DB.
+  // Gestione Invio SOS Completo
+  // Valida i dati, salva nel DB e innesca le notifiche push.
   Future<void> processSosRequest({
     required String userId,
     required String? email,
@@ -23,24 +24,23 @@ class EmergencyService {
     required double lat,
     required double lng,
   }) async {
-
-    // 1. Validazione GPS di base
+    // Validazione Input (Coordinate e ID)
     if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-      throw ArgumentError("Coordinate GPS non valide: Lat $lat, Lng $lng");
+      throw ArgumentError("Coordinate GPS non valide");
     }
 
-    // 2. Controllo ID Utente
+    // Controllo ID Utente
     if (userId.isEmpty) {
-      throw ArgumentError("ID Utente mancante.");
+      throw ArgumentError("ID Utente mancante");
     }
 
-    // 3. Normalizzazione Tipo Emergenza (Opzionale)
-    // Se arriva un tipo sconosciuto, lo forziamo a "Generico" per pulizia dati
+    // Normalizzazione Tipo Emergenza
     const allowedTypes = ['Generico', 'Medico', 'Incendio', 'Polizia', 'Incidente'];
     final normalizedType = allowedTypes.contains(type) ? type : 'Generico';
 
-    // 4. Salvataggio su DB
+    // Salvataggio su DB
     try {
+      // Scrittura su Database
       await _repository.sendSos(
         userId: userId,
         email: email ?? "N/A",
@@ -50,90 +50,76 @@ class EmergencyService {
         lng: lng,
       );
 
-      // 2. 🚨 ATTIVAZIONE NOTIFICHE PUSH 🚨
+      // Invio Notifiche Push (Async)
       await _triggerSOSNotification(
         userId: userId,
         lat: lat,
         lng: lng,
         type: normalizedType,
-        // Altri dati necessari per la notifica (es. l'ID specifico dell'SOS se generato qui)
       );
 
     } catch (e) {
-      print("Errore critico salvataggio SOS nel Service: $e");
-      rethrow; // Rilancia l'errore al Controller per inviare risposta HTTP 500
+      print("Errore critico Service SOS: $e");
+      rethrow;
     }
   }
 
+  // Logica Notifiche Push (Soccorritori + Cittadini)
   Future<void> _triggerSOSNotification({
     required String userId,
     required double lat,
     required double lng,
     required String type,
-    // Aggiungi qui gli altri dati necessari per l'invio (es. sosId, description)
   }) async {
     final String sosId = userId;
 
-    // Eseguiamo gli invii in parallelo per velocità
+    // Eseguiamo in parallelo per non bloccare l'esecuzione
     await Future.wait([
-
-      // A. 🧑‍🚒 Notifica per i Soccorritori
+      // Notifica ai Soccorritori (Tutti)
       (() async {
         final rescuerTokens = await _userRepository.findRescuerTokens();
         if (rescuerTokens.isNotEmpty) {
-          print('Trovati ${rescuerTokens.length} soccorritori. Invio alert...');
           await _notificationService.sendNotificationToTokens(
             rescuerTokens,
             "🚨 RICHIESTA INTERVENTO: $type",
             "Nuova emergenza rilevata. Posizione: $lat, $lng.",
-            {
-              'sosId': sosId,
-              'type': 'RESCUER_ALERT',
-              'category': type,
-              'lat': lat.toString(),
-              'lng': lng.toString(),
-            },
+            {'sosId': sosId, 'type': 'RESCUER_ALERT', 'lat': '$lat', 'lng': '$lng'},
           );
         }
       })(),
 
-      // B. ⚠️ Notifica per i Cittadini Vicini
+      // Notifica ai Cittadini (Solo vicini)
       (() async {
         final citizenTokens = await _userRepository.findNearbyTokensReal(
-          lat,
-          lng,
-          dangerRadiusKm,
+          lat, lng, dangerRadiusKm,
         );
         if (citizenTokens.isNotEmpty) {
-          print('Trovati ${citizenTokens.length} cittadini nel raggio di $dangerRadiusKm km. Invio alert...');
           await _notificationService.sendNotificationToTokens(
             citizenTokens,
             "⚠️ PERICOLO VICINO A TE",
-            "È stato segnalato un $type a meno di ${dangerRadiusKm.toInt()}km dalla tua posizione.",
-            {
-              'sosId': sosId,
-              'type': 'DANGER_ALERT',
-              'category': type,
-              'lat': lat.toString(),
-              'lng': lng.toString(),
-            },
+            "Segnalato $type a meno di ${dangerRadiusKm.toInt()}km.",
+            {'sosId': sosId, 'type': 'DANGER_ALERT', 'lat': '$lat', 'lng': '$lng'},
           );
         }
       })(),
     ]);
-    print('Catena notifiche SOS completata per $sosId.');
   }
 
-  /// Annulla l'SOS attivo per un utente.
+  // Annullamento SOS
   Future<void> cancelSos(String userId) async {
-    if (userId.isEmpty) {
-      throw ArgumentError("ID Utente mancante per cancellazione.");
-    }
-
+    if (userId.isEmpty) throw ArgumentError("ID Utente mancante");
     await _repository.deleteSos(userId);
   }
 
-  /// Recupera tutte le emergenze attive.
+  // Live Tracking (Aggiornamento Posizione)
+  Future<void> updateUserLocation(String userId, double lat, double lng) async {
+    // Validazione rapida per evitare dati sporchi nel DB
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return;
+
+    await _repository.updateLocation(userId, lat, lng);
+  }
+
+  // Recupero Lista Emergenze Attive
   Future<List<Map<String, dynamic>>> getActiveEmergencies() async {
     return await _repository.getAllActiveEmergencies();
   }

@@ -98,9 +98,6 @@ void main() async {
   reportApi.get('/', reportController.getAllReports);
 
   reportApi.delete('/<id>', reportController.deleteReport);
-  //ERRORE QUI
-  final emergencyApi = Router();
-  emergencyApi.post('/emergenza', emergencyController.sendSos);
 
   // 6. Mounting & Middleware
   // Collega il router profilo a '/api/profile'
@@ -114,10 +111,10 @@ void main() async {
       '/api/reports',
       Pipeline().addMiddleware(authGuard.middleware).addHandler(reportApi.call),
   );
-  //ERRORE QUI
+
   app.mount(
-    '/api/emergenza',
-    Pipeline().addMiddleware(authGuard.middleware).addHandler(emergencyController.router),
+    '/api/emergency',
+    Pipeline().addMiddleware(authGuard.middleware).addHandler(emergencyController.router.call),
   );
 
   // 7. Pipeline Server e Configurazione CORS
@@ -125,7 +122,7 @@ void main() async {
   final corsMiddleware = corsHeaders(
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
       'Access-Control-Allow-Headers': '*', // Accetta tutti gli header
     },
   );

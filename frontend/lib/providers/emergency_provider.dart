@@ -4,7 +4,7 @@ import 'package:geolocator/geolocator.dart';
 // Importiamo il repository del frontend che comunica col backend
 import '../repositories/emergency_repository.dart';
 
-// 🆕 CLASSE PER MODELLARE I DATI DI EMERGENZA RICEVUTI DA FCM
+// Classe per modellare i dati di emergenza ricevuti da FCM
 class EmergencyAlert {
   final String sosId;
   final String type;
@@ -13,19 +13,18 @@ class EmergencyAlert {
   final double lng;
 
   EmergencyAlert.fromJson(Map<String, dynamic> data)
-      : sosId = data['sosId'] as String,
-        type = data['type'] as String, // RESCUER_ALERT o DANGER_ALERT
-        category = data['category'] as String,
-  // Parsing sicuro da stringa (come inviato dal backend) a double
-        lat = double.tryParse(data['lat'] ?? '') ?? 0.0,
-        lng = double.tryParse(data['lng'] ?? '') ?? 0.0;
+      : sosId = data['sosId'] as String? ?? '',
+        type = data['type'] as String? ?? '',
+        category = data['category'] as String? ?? '',
+        lat = double.tryParse(data['lat']?.toString() ?? '') ?? 0.0,
+        lng = double.tryParse(data['lng']?.toString() ?? '') ?? 0.0;
 
-  // 🆕 METODO AGGIUNTO: Converte l'oggetto in Map per passarlo ai gestori
+  // Converte l'oggetto in Map per passarlo ai gestori
   Map<String, dynamic> toJson() => {
     'sosId': sosId,
     'type': type,
     'category': category,
-    'lat': lat.toString(), // Riconverte in stringa come nel payload FCM
+    'lat': lat.toString(),
     'lng': lng.toString(),
   };
 }
@@ -38,40 +37,48 @@ class EmergencyProvider extends ChangeNotifier {
   String? _errorMessage;
   EmergencyAlert? _currentAlert;
 
-  // Getters per la UI
+  // Stream per mantenere aperta la connessione col GPS
+  StreamSubscription<Position>? _positionStreamSubscription;
+
   bool get isSendingSos => _isSendingSos;
   String? get errorMessage => _errorMessage;
   EmergencyAlert? get currentAlert => _currentAlert;
 
-  /// Invia un segnale SOS immediato.
-  ///
-  /// Raccoglie la posizione GPS e delega al Repository l'invio dei dati al Backend.
-  /// Ritorna [true] se l'invio ha successo, [false] altrimenti.
+  // Invia un segnale SOS immediato (LOGICA IBRIDA VELOCE)
   Future<bool> sendInstantSos({
     required String? email,
     required String? phone,
-    String type = "Generico", required String userId
+    String type = "Generico",
+    required String userId
   }) async {
-    print("🔥 [Provider] Inizio procedura SOS...");
+    // Uso debugPrint per evitare warning in produzione
+    debugPrint("🔥 [Provider] Inizio procedura SOS...");
 
-    // Reset stato
     _isSendingSos = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      // 1. Logica Frontend: Ottieni la posizione GPS attuale.
-      // Questa parte DEVE stare nel frontend perché accede al sensore del telefono.
-      Position position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-        ),
-      );
+      Position position;
 
-      print("📍 [Provider] Posizione ottenuta: ${position.latitude}, ${position.longitude}");
+      // Strategia GPS ibrida
+      Position? lastKnown = await Geolocator.getLastKnownPosition();
 
-      // 2. Logica Backend: Chiama il Repository per inviare i dati via API.
-      // Non passiamo 'userId' perché il Backend lo ricaverà in modo sicuro dal Token JWT.
+      if (lastKnown != null) {
+        debugPrint("🚀 [Provider] Trovata ultima posizione nota. Invio Immediato.");
+        position = lastKnown;
+      } else {
+        debugPrint("⏳ [Provider] Nessuna posizione in memoria. Attendo fix preciso...");
+        position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+          ),
+        );
+      }
+
+      debugPrint("📍 [Provider] Posizione invio iniziale: ${position.latitude}, ${position.longitude}");
+
+      // 2. Chiamata al Backend (POST)
       await _repository.sendSos(
         email: email,
         phone: phone,
@@ -80,18 +87,18 @@ class EmergencyProvider extends ChangeNotifier {
         lng: position.longitude,
       );
 
-      print("✅ [Provider] SOS inviato al server con successo!");
+      debugPrint("✅ [Provider] SOS inviato al server con successo!");
 
-      // Ritardo estetico per UX (opzionale)
-      await Future.delayed(const Duration(seconds: 1));
+      // 3. Avvia il live tracking
+      _startLiveTracking();
 
-      // Non resettiamo _isSendingSos a false subito se vogliamo che la UI
-      // mostri uno stato di "Allarme Attivo". Se invece la UI torna alla Home,
-      // possiamo resettarlo. Per ora lo lasciamo true finché non viene stoppato.
+      // Ritardo estetico minimo
+      await Future.delayed(const Duration(milliseconds: 500));
+
       return true;
 
     } catch (e) {
-      print("❌ [Provider] Errore invio SOS: $e");
+      debugPrint("❌ [Provider] Errore invio SOS: $e");
       _errorMessage = _cleanError(e);
       _isSendingSos = false;
       notifyListeners();
@@ -99,52 +106,67 @@ class EmergencyProvider extends ChangeNotifier {
     }
   }
 
-  /// Interrompe l'SOS attivo.
+  // Interrompe l'SOS attivo
   Future<void> stopSos() async {
     try {
+      // Ferma il tracking GPS
+      _positionStreamSubscription?.cancel();
+      _positionStreamSubscription = null;
+
       // Chiama l'API di stop
       await _repository.stopSos();
 
       _isSendingSos = false;
       notifyListeners();
     } catch (e) {
-      print("❌ [Provider] Errore stop SOS: $e");
-      // Anche se fallisce la chiamata server, resettiamo lo stato locale
-      // per non bloccare l'utente.
+      debugPrint("❌ [Provider] Errore stop SOS: $e");
       _isSendingSos = false;
+      _positionStreamSubscription?.cancel();
       notifyListeners();
     }
   }
 
-    /// Gestisce una nuova allerta ricevuta in tempo reale (in foreground).
-    void handleNewAlert(Map<String, dynamic> data) {
-      final type = data['type'];
-      print('EmergencyProvider: Allerta in Foreground ricevuta: $type');
+  // Metodo per gestire il tracciamento continuo (Live Tracking)
+  void _startLiveTracking() {
+    _positionStreamSubscription?.cancel();
 
-      final newAlert = EmergencyAlert.fromJson(data);
-      _currentAlert = newAlert;
+    // Aggiorna ogni 10 metri
+    const locationSettings = LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 10,
+    );
 
-      notifyListeners(); // Aggiorna la UI per mostrare l'allerta (es. un banner)
-    }
+    _positionStreamSubscription = Geolocator.getPositionStream(
+        locationSettings: locationSettings
+    ).listen((Position position) {
+      debugPrint("📍 MOVIMENTO RILEVATO: ${position.latitude}, ${position.longitude}");
 
-    /// Gestisce il tocco sulla notifica o il messaggio iniziale (per la navigazione).
-    void handleNotificationTap(Map<String, dynamic> data) {
-      final type = data['type'];
-      print('EmergencyProvider: Notifica toccata/Iniziale. Tipo: $type');
+      // Invia aggiornamento silenzioso al server (PATCH)
+      _repository.updateLocation(position.latitude, position.longitude);
+    });
+  }
 
-      final newAlert = EmergencyAlert.fromJson(data);
-      _currentAlert = newAlert;
-
-      // Qui devi implementare la LOGICA DI NAVIGAZIONE
-      // (Es. usando GoRouter o un NavigatorKey globale per spostare l'utente)
-      // Esempio: NavigatorService.navigateToEmergencyMap(newAlert);
-
-      notifyListeners();
-    }
+  void handleNewAlert(Map<String, dynamic> data) {
+    debugPrint('EmergencyProvider: Allerta in Foreground ricevuta: ${data['type']}');
+    _currentAlert = EmergencyAlert.fromJson(data);
+    notifyListeners();
+  }
+  // Gestisce il tocco sulla notifica o il messaggio iniziale (per la navigazione).
+  void handleNotificationTap(Map<String, dynamic> data) {
+    debugPrint('EmergencyProvider: Notifica toccata/Iniziale. Tipo: ${data['type']}');
+    _currentAlert = EmergencyAlert.fromJson(data);
+    notifyListeners();
+  }
 
 
   // Helper per pulire l'output di un errore (stile AuthProvider)
   String _cleanError(Object e) {
     return e.toString().replaceAll("Exception: ", "");
+  }
+
+  @override
+  void dispose() {
+    _positionStreamSubscription?.cancel();
+    super.dispose();
   }
 }
