@@ -6,8 +6,8 @@ import 'package:frontend/ui/style/color_palette.dart';
 // Widget riutilizzabile per visualizzare una singola segnalazione/emergenza
 class EmergencyCard extends StatelessWidget {
   final Map<String, dynamic> data; // Dati completi dell'emergenza
-  final VoidCallback? onTap;       // Callback per gestire il tap sulla card
-  final VoidCallback? onClose;     // Callback per l'azione di chiusura (visibile solo ai soccorritori)
+  final VoidCallback? onTap; //tap sulla card
+  final VoidCallback? onClose; //azione chiusura (per soccorritori)
 
   const EmergencyCard({
     super.key,
@@ -23,11 +23,33 @@ class EmergencyCard extends StatelessWidget {
     // Colori di sfondo
     final bgColor = !isRescuer
         ? ColorPalette.backgroundDeepBlue
-        : ColorPalette.amberOrange;
+        : ColorPalette.cardDarkOrange;
 
     // Estrazione dati sicura
     final String type = data['type']?.toString() ?? 'GENERICO';
-    final String description = data['description']?.toString() ?? 'Nessuna descrizione';
+    IconData icon;
+    final String description =
+        data['description']?.toString() ?? 'Nessuna descrizione';
+
+    switch(data['type'].toString().toUpperCase()){
+      case 'INCENDIO':
+        icon = Icons.local_fire_department;
+        break;
+      case 'TSUNAMI':
+        icon = Icons.water;
+        break;
+      case 'ALLUVIONE':
+        icon = Icons.flood;
+        break;
+      case 'MALESSERE':
+        icon = Icons.medical_services;
+        break;
+      case 'BOMBA':
+        icon = Icons.warning;
+        break;
+      default:
+        icon = Icons.warning_amber_rounded;
+    }
 
     // Formattazione orario (solo se presente)
     String timeString = '';
@@ -35,7 +57,8 @@ class EmergencyCard extends StatelessWidget {
       try {
         DateTime dt = DateTime.parse(data['timestamp'].toString());
         // Formato HH:mm
-        timeString = "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+        timeString =
+            "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
       } catch (e) {
         timeString = '';
       }
@@ -57,18 +80,25 @@ class EmergencyCard extends StatelessWidget {
           ],
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distribuisce lo spazio
+          mainAxisAlignment:
+              MainAxisAlignment.spaceBetween, // Distribuisce lo spazio
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Riga superiore: Icona di allerta e Orario
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Icon(Icons.warning_amber_rounded, size: 32, color: Colors.white),
-                // Mostra l'orario solo se la stringa è stata formattata correttamente.
+                Icon(
+                  icon,
+                  size: 32,
+                  color: Colors.white,
+                ),
                 if (timeString.isNotEmpty)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10),
@@ -76,9 +106,9 @@ class EmergencyCard extends StatelessWidget {
                     child: Text(
                       timeString,
                       style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
@@ -133,7 +163,8 @@ class EmergencyCard extends StatelessWidget {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    foregroundColor: ColorPalette.cardDarkOrange, // Testo arancione scuro
+                    foregroundColor:
+                        ColorPalette.cardDarkOrange, // Testo arancione scuro
                     elevation: 0,
                     padding: EdgeInsets.zero,
                     shape: RoundedRectangleBorder(
@@ -143,15 +174,12 @@ class EmergencyCard extends StatelessWidget {
                   onPressed: onClose, // Esegue la funzione di chiusura fornita dal padre.
                   child: const Text(
                     "CHIUDI INTERVENTO",
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                   ),
                 ),
               )
             else
-            // Spazio vuoto per mantenere le dimensioni uniformi se non c'è bottone
+              // Spazio vuoto per mantenere le dimensioni uniformi se non c'è bottone
               const SizedBox(height: 10),
           ],
         ),

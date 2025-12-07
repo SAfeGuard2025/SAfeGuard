@@ -36,18 +36,25 @@ class UserRepository {
     return pages.first.map;
   }
 
-  // Salva un nuovo utente nel DB, genera l'ID interno e lo usa come DocId
+  // Salva un nuovo utente o aggiorna uno esistente
   Future<UtenteGenerico> saveUser(UtenteGenerico newUser) async {
-    final int newId = DateTime.now().millisecondsSinceEpoch;
+    // Se l'utente ha già un ID (es. registrazione non verificata), usalo.
+    // Altrimenti ne genera uno nuovo.
+    int idToUse = newUser.id != null && newUser.id! > 0
+        ? newUser.id!
+        : DateTime.now().millisecondsSinceEpoch;
+
     final userData = newUser.toJson();
-    userData['id'] = newId;
+    userData['id'] = idToUse; // Assicura che il JSON abbia l'ID corretto
 
-    // Usa l'ID numerico come chiave stringa per il documento (DocId)
-    final String docId = newId.toString();
+    // Usa l'ID come chiave stringa per il documento
+    final String docId = idToUse.toString();
 
+    // .set(userData) sovrascriverà il documento esistente se l'ID è lo stesso,
+    // invece di crearne uno nuovo.
     await _usersCollection.document(docId).set(userData);
 
-    // Ritorna l'oggetto UtenteGenerico con i dati aggiornati e l'ID
+    // Ritorna l'oggetto aggiornato
     if (newUser is Soccorritore || (userData['isSoccorritore'] == true)) {
       return Soccorritore.fromJson(userData);
     } else {
@@ -108,11 +115,38 @@ class UserRepository {
   }
 
   // Elimina l'utente dal database tramite il suo ID interno
+  // Elimina l'utente dal database archiviandolo prima in 'deleted_users'
   Future<bool> deleteUser(int id) async {
     final docId = await _findDocIdByIntId(id);
+
     if (docId != null) {
-      await _usersCollection.document(docId).delete();
-      return true;
+      try {
+        // 1. Recupero i dati attuali dell'utente prima di eliminarlo
+        final docSnapshot = await _usersCollection.document(docId).get();
+        final userData = docSnapshot.map;
+
+        // 2. Preparo i dati per l'archiviazione
+        // Creo una copia modificabile della mappa
+        final archiveData = Map<String, dynamic>.from(userData);
+
+        // Aggiungo un timestamp per sapere quando è avvenuta l'eliminazione
+        archiveData['deletedAt'] = DateTime.now().toIso8601String();
+
+        // 3. Salvo nella collezione 'deleted_users'
+        // Uso .add() invece di .set() per generare un ID documento casuale.
+        // Questo permette di avere più record per lo stesso utente se si registra
+        // e si cancella più volte (duplicati ammessi).
+        await Firestore.instance.collection('deleted_users').add(archiveData);
+
+        // 4. Elimino il documento dalla collezione principale 'users'
+        await _usersCollection.document(docId).delete();
+
+        return true;
+      } catch (e) {
+        print("Errore durante l'archiviazione o eliminazione utente: $e");
+        // Se fallisce l'archiviazione, decidiamo di non eliminare l'utente per sicurezza,
+        return false;
+      }
     }
     return false;
   }

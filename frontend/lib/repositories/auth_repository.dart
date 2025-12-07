@@ -237,4 +237,28 @@ class AuthRepository {
       throw Exception("Errore connessione: $e");
     }
   }
+
+  // Metodo per rinviare
+  Future<void> resendOtp({String? email, String? phone}) async {
+    final url = Uri.parse('$_baseUrl/api/auth/resend');
+
+    final Map<String, dynamic> body = {};
+    if (email != null) body['email'] = email;
+    if (phone != null) body['telefono'] = phone;
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode != 200) {
+        final errorData = jsonDecode(response.body);
+        throw Exception(errorData['message'] ?? "Errore rinvio codice");
+      }
+    } catch (e) {
+      throw Exception("Errore connessione: $e");
+    }
+  }
 }

@@ -14,6 +14,7 @@ import 'package:backend/controllers/auth_guard.dart';
 import 'package:backend/controllers/report_controller.dart';
 import 'package:backend/controllers/emergency_controller.dart';
 
+import 'package:backend/controllers/resend_controller.dart';
 
 void main() async {
   // 1. Configurazione ambiente
@@ -40,6 +41,7 @@ void main() async {
   final loginController = LoginController();
   final registerController = RegisterController();
   final verifyController = VerificationController();
+  final resendController = ResendController();
   final profileController = ProfileController();
   final reportController = ReportController();
   final emergencyController = EmergencyController();
@@ -54,6 +56,7 @@ void main() async {
   app.post('/api/auth/apple', loginController.handleAppleLoginRequest);
   app.post('/api/auth/register', registerController.handleRegisterRequest);
   app.post('/api/verify', verifyController.handleVerificationRequest);
+  app.post('/api/auth/resend', resendController.handleResendRequest);
   app.get('/health', (Request request) => Response.ok('OK'));
 
   // 5. Routing Protetto

@@ -52,8 +52,6 @@ class AuthProvider extends ChangeNotifier {
   String? _tempEmail;
   String? _tempPhone;
   String? _tempPassword;
-  String? _tempNome;
-  String? _tempCognome;
 
   int _secondsRemaining = 30;
   Timer? _timer;
@@ -207,8 +205,6 @@ class AuthProvider extends ChangeNotifier {
       _tempEmail = email;
       _tempPhone = null;
       _tempPassword = password;
-      _tempNome = nome;
-      _tempCognome = cognome;
 
       startTimer();
       _setLoading(false);
@@ -241,8 +237,6 @@ class AuthProvider extends ChangeNotifier {
       _tempPhone = phoneNumber;
       _tempEmail = null;
       _tempPassword = password;
-      _tempNome = nome;
-      _tempCognome = cognome;
 
       startTimer();
       _setLoading(false);
@@ -282,8 +276,6 @@ class AuthProvider extends ChangeNotifier {
       _tempEmail = null;
       _tempPhone = null;
       _tempPassword = null;
-      _tempNome = null;
-      _tempCognome = null;
 
       _setLoading(false);
       return true;
@@ -300,32 +292,12 @@ class AuthProvider extends ChangeNotifier {
     try {
       // Logica per rinviare il codice basata sull'ultima modalità usata
       if (_tempEmail != null && _tempPassword != null) {
-        // Usiamo dei placeholder per soddisfare la richiesta, tanto il backend
         // riconoscerà l'email esistente e aggiornerà solo l'OTP.
-        final String nomeToSend = _tempNome ?? "Utente";
-        final String cognomeToSend = _tempCognome ?? "Generico";
-
-        // Delega ad AuthRepository
-        await _authRepository.register(
-          _tempEmail!,
-          _tempPassword!,
-          nomeToSend,
-          cognomeToSend,
-        );
+        await _authRepository.resendOtp(email: _tempEmail);
         startTimer();
         _errorMessage = null;
       } else if (_tempPhone != null) {
-        // Gestione fallback per Nome e Cognome (come per l'email)
-        final String nomeToSend = _tempNome ?? "Utente";
-        final String cognomeToSend = _tempCognome ?? "Generico";
-
-        // Rinvia OTP Telefono con i dati completi
-        await _authRepository.sendPhoneOtp(
-          _tempPhone!,
-          password: _tempPassword,
-          nome: nomeToSend,
-          cognome: cognomeToSend,
-        );
+        await _authRepository.resendOtp(phone: _tempPhone);
         startTimer();
         _errorMessage = null;
       } else {
@@ -333,6 +305,7 @@ class AuthProvider extends ChangeNotifier {
       }
     } catch (e) {
       _errorMessage = "Impossibile rinviare codice: ${_cleanError(e)}";
+      notifyListeners();
     } finally {
       _setLoading(false);
     }
@@ -359,6 +332,23 @@ class AuthProvider extends ChangeNotifier {
     _isRescuer = false;
 
     notifyListeners();
+  }
+
+  // Eliminazione account
+  Future<void> deleteAccount() async {
+    _setLoading(true);
+    try {
+      // Chiamata al repository per comunicare al backend l'eliminazione
+      await _profileRepo.deleteAccount();
+      // Se l'operazione ha successo viene eseguito il logout locale per pulire la sessione
+      await logout();
+      _setLoading(false);
+    } catch (e) {
+      _errorMessage = _cleanError(e);
+      _setLoading(false);
+      // Rilancia l'errore affinché la UI (DeleteProfilePage) possa mostrare la SnackBar
+      rethrow;
+    }
   }
 
   // Gestione Google

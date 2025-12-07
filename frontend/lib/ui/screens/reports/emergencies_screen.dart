@@ -14,7 +14,6 @@ class EmergencyGridPage extends StatefulWidget {
 }
 
 class _EmergencyGridPageState extends State<EmergencyGridPage> {
-
   @override
   void initState() {
     super.initState();
@@ -30,10 +29,15 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
     final reportProvider = context.watch<ReportProvider>();
 
     return Scaffold(
-      backgroundColor: !isRescuer ? ColorPalette.backgroundDarkBlue : ColorPalette.cardDarkOrange,
+      backgroundColor: !isRescuer
+          ? ColorPalette.backgroundDarkBlue
+          : ColorPalette.primaryOrange,
 
       appBar: AppBar(
-        title: const Text("Emergenze Attive", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          "Emergenze Attive",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
@@ -43,7 +47,7 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
             icon: const Icon(Icons.refresh, color: Colors.white),
             // Chiama loadReports per ricaricare i dati dal DB.
             onPressed: () => reportProvider.loadReports(),
-          )
+          ),
         ],
       ),
 
@@ -52,7 +56,9 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
         builder: (context) {
           // 1. Stato di Caricamento
           if (reportProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator(color: Colors.white));
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
           }
 
           // 2. Lista vuota
@@ -85,17 +91,27 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
                   data: item, // Passa i dati specifici dell'emergenza.
                   onClose: () async {
                     // Logica di chiusura chiamata dal bottone
-                    bool confirm = await showDialog(
-                      context: context,
-                      builder: (c) => AlertDialog(
-                        title: const Text("Conferma"),
-                        content: const Text("Vuoi chiudere questa segnalazione?"),
-                        actions: [
-                          TextButton(onPressed: ()=>Navigator.pop(c, false), child: const Text("No")),
-                          TextButton(onPressed: ()=>Navigator.pop(c, true), child: const Text("Si")),
-                        ],
-                      ),
-                    ) ?? false;
+                    bool confirm =
+                        await showDialog(
+                          context: context,
+                          builder: (c) => AlertDialog(
+                            title: const Text("Conferma"),
+                            content: const Text(
+                              "Vuoi chiudere questa segnalazione?",
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(c, false),
+                                child: const Text("No"),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(c, true),
+                                child: const Text("Si"),
+                              ),
+                            ],
+                          ),
+                        ) ??
+                        false;
 
                     if (confirm) {
                       await reportProvider.resolveReport(item['id']);
