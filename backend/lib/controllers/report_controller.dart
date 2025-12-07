@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'package:shelf/shelf.dart';
-import '../services/report_service.dart'; // Importa il Service
+import '../services/report_service.dart';
 
 class ReportController {
-  // Istanziamo il Service invece di chiamare Firestore direttamente
+  // Dipendenza: il Controller delega la logica di business a ReportService
   final ReportService _reportService = ReportService();
 
   final Map<String, String> _headers = {'content-type': 'application/json'};
 
-// POST /api/reports/create
+  //Creazione nuova segnalazione
   Future<Response> createReport(Request request) async {
     try {
       final userContext = request.context['user'] as Map<String, dynamic>?;
@@ -17,25 +17,22 @@ class ReportController {
       }
 
       final int senderId = userContext['id'];
-
-      // 1. Estrazione sicura del tipo utente
       final String userType = userContext['type']?.toString() ?? 'Utente';
 
-      // DEBUG: Stampa cosa vede il server
-      print("🔍 DEBUG REPORT: ID: $senderId, Tipo Token: '$userType'");
+      print("DEBUG REPORT: ID: $senderId, Tipo Token: '$userType'");
 
-      // Controllo case-insensitive per sicurezza
       final bool isSenderRescuer = userType.toLowerCase() == 'soccorritore';
 
       if (isSenderRescuer) {
-        print("✅ Riconosciuto come SOCCORRITORE. Notificherò i cittadini.");
+        print(" Riconosciuto come SOCCORRITORE. Notificherò i cittadini.");
       } else {
-        print("👤 Riconosciuto come CITTADINO. Notificherò i soccorritori.");
+        print(" Riconosciuto come CITTADINO. Notificherò i soccorritori.");
       }
 
       final body = await request.readAsString();
       if (body.isEmpty) return Response.badRequest(body: 'Nessun dato inviato');
 
+      //Deserializzazione della segnalazione
       final Map<String, dynamic> data = jsonDecode(body);
       final String? type = data['type'];
       final String? description = data['description'];
@@ -49,7 +46,7 @@ class ReportController {
         );
       }
 
-      // 2. Passaggio al Service
+      // Delega a ReportService
       await _reportService.createReport(
         senderId: senderId,
         isSenderRescuer: isSenderRescuer, // <--- BOOLEANO CRUCIALE
@@ -72,7 +69,7 @@ class ReportController {
     }
   }
 
-// GET /api/reports
+  // Recupera tutti le segnalazioni dal db
   Future<Response> getAllReports(Request request) async {
     try {
       final list = await _reportService.getReports();
@@ -95,6 +92,8 @@ class ReportController {
       );
     }
   }
+
+  //Rimozione segnalazione
   Future<Response> deleteReport(Request request, String id) async {
     try {
       await _reportService.closeReport(id);

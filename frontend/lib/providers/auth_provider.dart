@@ -10,9 +10,8 @@ import 'package:data_models/utente.dart';
 import 'package:data_models/soccorritore.dart';
 import '../repositories/profile_repository.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:http/http.dart' as http;
-import 'package:flutter/foundation.dart'; // Per kIsWeb
-import 'dart:io'; // Per Platform
+import 'package:flutter/foundation.dart';
+import 'dart:io';
 
 
 // L'URL base viene costruito come in UserApiService, usando le costanti di default
@@ -78,7 +77,6 @@ class AuthProvider extends ChangeNotifier {
         final userMap = jsonDecode(userDataString);
         _currentUser = _parseUser(userMap);
 
-        // AGGIUNTA: Assicurati che il token sia aggiornato anche all'avvio
         await _initializeNotifications();
         
         notifyListeners();
@@ -100,7 +98,7 @@ class AuthProvider extends ChangeNotifier {
     _authToken = token;
     _currentUser = _parseUser(userMap);
 
-    // AGGIUNTA: Inizializza le notifiche dopo aver salvato la sessione
+    // Inizializza le notifiche dopo aver salvato la sessione
     await _initializeNotifications();
   }
 
@@ -519,10 +517,10 @@ class AuthProvider extends ChangeNotifier {
   }
 
 
-  // Nel metodo _saveSession o dopo un login avvenuto con successo [cite: 632]
+  // Inizializza le notifiche una volta effettuato l accesso all app
   Future<void> _initializeNotifications() async {
     try {
-      // Richiedi permessi (soprattutto per iOS)
+      // Richiedi permessi
       FirebaseMessaging messaging = FirebaseMessaging.instance;
       NotificationSettings settings = await messaging.requestPermission(
         alert: true,

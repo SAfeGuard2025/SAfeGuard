@@ -1,13 +1,14 @@
 import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-// Handler top-level per i messaggi in background (deve essere fuori dalla classe)
+// Handler top-level per i messaggi in background
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  print("🌙 Messaggio in background: ${message.messageId}");
+  debugPrint("Messaggio in background: ${message.messageId}");
 }
 
 class NotificationHandler {
@@ -28,7 +29,7 @@ class NotificationHandler {
     enableVibration: true,
   );
 
-  /// Inizializza tutto il sistema di notifiche
+  // Inizializza tutto il sistema di notifiche
   Future<void> initialize() async {
     // 1. Richiesta permessi (iOS e Android 13+)
     await _requestPermissions();
@@ -40,8 +41,7 @@ class NotificationHandler {
     await _localNotifications.initialize(
       const InitializationSettings(android: androidSettings, iOS: iosSettings),
       onDidReceiveNotificationResponse: (response) {
-        print("🔔 Notifica cliccata: ${response.payload}");
-        // Qui puoi gestire la navigazione
+        debugPrint("Notifica cliccata: ${response.payload}");
       },
     );
 
@@ -55,13 +55,14 @@ class NotificationHandler {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   }
 
+  // Richiesta permessi
   Future<void> _requestPermissions() async {
     final messaging = FirebaseMessaging.instance;
     await messaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
-      criticalAlert: true, // Importante per app di emergenza su iOS
+      criticalAlert: true,
     );
   }
 
@@ -70,15 +71,15 @@ class NotificationHandler {
         AndroidFlutterLocalNotificationsPlugin>();
 
     if (androidPlugin != null) {
-      // Pulizia vecchi canali (opzionale ma consigliato durante lo sviluppo)
+      // Pulizia vecchi canali
       await androidPlugin.deleteNotificationChannel('emergency_channel');
       await androidPlugin.createNotificationChannel(_androidChannel);
     }
   }
 
-  /// Gestisce la ricezione della notifica quando l'app è aperta
+  // Gestisce la ricezione della notifica quando l'app è aperta
   void _handleForegroundMessage(RemoteMessage message) {
-    print("☀️ Messaggio in Foreground: ${message.notification?.title}");
+    debugPrint("Messaggio in Foreground: ${message.notification?.title}");
 
     final notification = message.notification;
     final android = message.notification?.android;
@@ -87,6 +88,7 @@ class NotificationHandler {
       // Genera un ID univoco per evitare sovrascritture
       final int id = DateTime.now().millisecondsSinceEpoch.remainder(100000);
 
+      //Mostra la notifica in foreground rispetto all app
       _localNotifications.show(
         id,
         notification.title,

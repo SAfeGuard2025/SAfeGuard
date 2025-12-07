@@ -5,8 +5,10 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Repository: ReportRepository
+// Gestisce la comunicazione HTTP verso il Backend per le segnalazioni specifiche.
 class ReportRepository {
-  // Configurazione URL base (copiata dalla logica degli altri tuoi repository)
+  // Costanti dall'ambiente di compilazione
   static const String _envHost = String.fromEnvironment(
       'SERVER_HOST',
       defaultValue: 'http://localhost',
@@ -20,6 +22,7 @@ class ReportRepository {
       defaultValue: '',
   );
 
+  // Metodo per determinare l'URL base del Backend in base alla piattaforma
   String get _baseUrl {
     String host = _envHost;
     if (!kIsWeb && Platform.isAndroid && host.contains('localhost')) {
@@ -35,7 +38,7 @@ class ReportRepository {
     return prefs.getString('auth_token');
   }
 
-  // CREA SEGNALAZIONE (POST)
+  // Crea segnalazione
   Future<void> createReport(String type, String description, double? lat, double? lng) async {
     final token = await _getToken();
     if (token == null) throw Exception("Utente non autenticato");
@@ -64,6 +67,8 @@ class ReportRepository {
       throw Exception('Errore connessione: $e');
     }
   }
+
+  // Recupera la lista delle segnalazioni
   Future<List<dynamic>> getReports() async {
     final token = await _getToken();
     if (token == null) throw Exception("Utente non autenticato");
@@ -84,7 +89,7 @@ class ReportRepository {
     }
   }
 
-  //Chiude una emergenza
+  // Chiude una segnalazione
   Future<void> closeReport(String id) async {
     final token = await _getToken();
     final url = Uri.parse('$_baseUrl/api/reports/$id');
@@ -102,7 +107,7 @@ class ReportRepository {
     }
   }
 
-
+  // Recupera la lista delle emergenze attive
   Stream<List<Map<String, dynamic>>> getReportsStream() {
     return FirebaseFirestore.instance
         .collection('active_emergencies')
@@ -110,7 +115,7 @@ class ReportRepository {
         .map((snapshot) {
       return snapshot.docs.map((doc) {
         final data = doc.data();
-        data['id'] = doc.id; // Importante per identificare il report
+        data['id'] = doc.id;
         return data;
       }).toList();
     });

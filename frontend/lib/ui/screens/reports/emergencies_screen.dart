@@ -5,6 +5,7 @@ import 'package:frontend/providers/report_provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 import 'package:frontend/ui/widgets/emergency_card.dart';
 
+// Schermata principale per la visualizzazione delle emergenze attive
 class EmergencyGridPage extends StatefulWidget {
   const EmergencyGridPage({super.key});
 
@@ -44,14 +45,16 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
           // Tasto refresh manuale
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
+            // Chiama loadReports per ricaricare i dati dal DB.
             onPressed: () => reportProvider.loadReports(),
           ),
         ],
       ),
 
+      // Contenuto Principale
       body: Builder(
         builder: (context) {
-          // 1. Loading
+          // 1. Stato di Caricamento
           if (reportProvider.isLoading) {
             return const Center(
               child: CircularProgressIndicator(color: Colors.white),
@@ -68,11 +71,12 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
             );
           }
 
-          // 3. Griglia Dati Veri
+          // 3. Griglia delle segnalazioni attive
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: GridView.builder(
               itemCount: reportProvider.emergencies.length,
+              // Definisce la struttura della griglia (2 colonne fisse).
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
@@ -82,8 +86,9 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
               itemBuilder: (context, index) {
                 final item = reportProvider.emergencies[index];
 
+                // Costruisce la singola Card per l'emergenza.
                 return EmergencyCard(
-                  data: item, // Passa l'intero oggetto mappa
+                  data: item, // Passa i dati specifici dell'emergenza.
                   onClose: () async {
                     // Logica di chiusura chiamata dal bottone
                     bool confirm =

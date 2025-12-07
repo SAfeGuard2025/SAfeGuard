@@ -69,9 +69,7 @@ class _SAfeGuardState extends State<SAfeGuard> {
   void _handleMessage(RemoteMessage message) {
     if (message.data['type'] == 'emergency_alert') {
       // Naviga alla schermata mappa o lista emergenze
-      // Nota: Per fare questo in modo pulito serve un NavigatorKey globale o
-      // gestire lo stato nella Home per cambiare tab.
-      print("🚨 Navigazione verso Emergenze richiesta!");
+      debugPrint("Navigazione verso Emergenze richiesta!");
     }
   }
 

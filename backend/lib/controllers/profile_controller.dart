@@ -294,9 +294,8 @@ class ProfileController {
     }
   }
 
-
-
-  // PUT /api/profile/fcm-token
+  // 14. PUT /api/profile/fcm-token
+  // Aggiorna il token FCM di un utente.
   Future<Response> updateFcmToken(Request request) async {
     final userId = _getUserId(request);
     if (userId == null) {

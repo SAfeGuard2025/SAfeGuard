@@ -85,7 +85,7 @@ class HomePageContent extends StatelessWidget {
           const SizedBox(height: 10),
         ],
 
-        // 4. Pulsante SOS
+        // 4. Pulsante SOS solo per utente normale
     if (!isRescuer) ...[
         Expanded(
           flex: 3,

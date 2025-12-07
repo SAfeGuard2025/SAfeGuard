@@ -5,9 +5,9 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Repository: EmergencyRepository
 // Gestisce la comunicazione HTTP verso il Backend per le operazioni di emergenza.
 class EmergencyRepository {
-
   // Recupera host e porta dalle variabili d'ambiente o usa i default.
   static const String _envHost = String.fromEnvironment('SERVER_HOST', defaultValue: 'http://localhost');
   static const String _envPort = String.fromEnvironment('SERVER_PORT', defaultValue: '8080');
@@ -28,8 +28,6 @@ class EmergencyRepository {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('auth_token');
   }
-
-  // Metodi
 
   // Invio SOS
   // Invia i dati iniziali dell'emergenza al server per creare il record nel DB.
@@ -104,7 +102,7 @@ class EmergencyRepository {
         body: jsonEncode({'lat': lat, 'lng': lng}),
       );
     } catch (e) {
-      debugPrint("❌ [REPO] ERRORE DI RETE TRACKING: $e");
+      debugPrint("[REPO] ERRORE DI RETE TRACKING: $e");
     }
   }
 }

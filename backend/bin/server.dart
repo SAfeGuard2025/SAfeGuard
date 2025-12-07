@@ -95,12 +95,9 @@ void main() async {
   //Router per le Segnalazioni---
   final reportApi = Router();
 
-  // Rotta per creare la segnalazione
+  // Rotte gestione segnalazioni
   reportApi.post('/create', reportController.createReport);
-
-  // Rotta per leggere la lista
   reportApi.get('/', reportController.getAllReports);
-
   reportApi.delete('/<id>', reportController.deleteReport);
 
   // 6. Mounting & Middleware

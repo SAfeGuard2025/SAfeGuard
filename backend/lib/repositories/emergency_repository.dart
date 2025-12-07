@@ -10,7 +10,7 @@ class EmergencyRepository {
       Firestore.instance.collection('emergencies_history');
 
   // Crea o sovrascrive una richiesta di soccorso per un utente
-  // Usa l'userId come chiave del documento (Document ID) per garantire
+  // Usa l'userId come chiave del documento per garantire
   // che un utente possa avere solo una emergenza attiva alla volta.
   Future<void> sendSos({
     required String userId,
@@ -57,7 +57,7 @@ class EmergencyRepository {
 
     // Controlla se esiste prima di provare a cancellare
     if (await docRef.exists) {
-      // 1. Archiviazione
+      // 1. Recupero emergenza
       final data = await docRef.get();
 
       // 2. Salva nello storico con un ID univoco basato sul tempo
@@ -74,7 +74,7 @@ class EmergencyRepository {
     }
   }
 
-  // Aggiorna solo le coordinate GPS (Live Tracking)
+  // Aggiorna solo le coordinate GPS
   Future<void> updateLocation(String userId, double lat, double lng) async {
     final docRef = _emergenciesCollection.document(userId);
 

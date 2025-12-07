@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/ui/widgets/emergency_item.dart';
 
+// Schermata per la creazione e l'invio di nuove segnalazioni/emergenze.
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
 
@@ -15,11 +16,13 @@ class ReportsScreen extends StatefulWidget {
 }
 
 class _ReportsScreenState extends State<ReportsScreen> {
+  // Stato del checkbox "Ho bisogno di aiuto" (usato solo dai cittadini).
   bool _needsHelp = false;
+  // Controller per il campo di testo della descrizione.
   final TextEditingController _descriptionController = TextEditingController();
   EmergencyItem? _selectedEmergency;
 
-  //Variabile per memorizzare la posizione scelta
+  //Variabile per memorizzare la posizione scelta dall'utente sulla mappa
   LatLng? _selectedLocation;
 
   @override
@@ -28,9 +31,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
     super.dispose();
   }
 
-  //METODO PER APRIRE IL POPUP MAPPA
+  //Metodo per aprire il popup della mappa
   void _openMapDialog(BuildContext context) {
-    // Variabile temporanea per il dialog
+    // Variabile locale per tenere traccia del punto selezionato.
     LatLng? tempPoint;
 
     showDialog(
@@ -41,6 +44,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return Dialog(
+              // Configurazione estetica del Dialog
               insetPadding: const EdgeInsets.all(20),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20.0),
@@ -52,11 +56,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   height: 550,
                   child: Stack(
                     children: [
-                      // Mappa in modalità selezione
+                      // Mappa interattiva
                       RealtimeMap(
                         isSelectionMode: true,
                         onLocationPicked: (point) {
-                          // Aggiorniamo la variabile locale del dialog
+                          // Callback chiamato quando l'utente seleziona un punto sulla mappa.
+                          // Aggiorna la variabile locale e ricostruisce solo il Dialog.
                           setStateDialog(() {
                             tempPoint = point;
                           });
@@ -78,7 +83,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         ),
                       ),
 
-                      // Tasto CONFERMA
+                      // Tasto Conferma visibile solo se il punto è stato selezionato
                       if (tempPoint != null)
                         Positioned(
                           bottom: 20,
@@ -87,6 +92,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                           child: SizedBox(
                             height: 50,
                             child: ElevatedButton.icon(
+                              // Stile bottone
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green,
                                 shape: RoundedRectangleBorder(
@@ -106,11 +112,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
                                 ),
                               ),
                               onPressed: () {
-                                //Salviamo la posizione nello stato principale
+                                // Salvataggio della posizione nello stato principale
                                 setState(() {
                                   _selectedLocation = tempPoint;
                                 });
-                                //Chiudiamo il dialog
+                                // Chiusura del dialog
                                 Navigator.of(context).pop();
 
                                 //Feedback
@@ -135,10 +141,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  //INVIO SEGNALAZIONE
+  // Invio Segnalazione
   Future<void> _sendEmergency(ReportProvider reportProvider) async {
     final String description = _descriptionController.text;
 
+    // Validazione dei campi
     if (_selectedEmergency == null) {
       _showSnackBar(
         content: 'Inserisci un\'emergenza da segnalare',
@@ -163,6 +170,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       return;
     }
 
+    // Chiama il metodo sendReport sul provider per inviare i dati.
     bool success = await reportProvider.sendReport(
       _selectedEmergency!.label,
       description,
@@ -170,6 +178,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       _selectedLocation!.longitude,
     );
 
+    // Gestione feedback post-invio
     if (success && mounted) {
       _showSnackBar(
         content: 'Emergenza segnalata con successo',
@@ -192,12 +201,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final bool isWideScreen = size.width > 700;
+    final bool isWideScreen = size.width > 700; // Logica per responsive design
 
+    // Watch sui provider per accedere a ruoli e stati di caricamento.
     final isRescuer = context.watch<AuthProvider>().isRescuer;
     final reportProvider = context
         .watch<ReportProvider>(); // Per lo stato isLoading
 
+    // Logica per l'adattamento dei colori e delle dimensioni in base al ruolo/schermo.
     Color bgColor = isRescuer
         ? ColorPalette.primaryOrange
         : ColorPalette.backgroundMidBlue;
@@ -238,10 +249,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                 const SizedBox(height: 10.0),
 
-                //BOTTONE APRI MAPPA
+                // Bottone per aprire il dialog di selezione posizione
                 Center(
                   child: ElevatedButton.icon(
                     onPressed: () => _openMapDialog(context),
+                    // Icona e testo cambiano a seconda che la posizione sia stata selezionata o meno.
                     icon: Icon(
                       _selectedLocation != null
                           ? Icons.check_circle
@@ -261,6 +273,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    // Stile Bottone
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
@@ -277,6 +290,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 // -----------------------------
                 const SizedBox(height: 20.0),
 
+                // Widget per la selezione del tipo di emergenza
                 SizedBox(
                   height: 60,
                   child: _buildSpecificEmergency(context, isWideScreen),
@@ -284,6 +298,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                 isRescuer ? SizedBox(height: 40.0) : SizedBox(height: 20.0),
 
+                // Intestazione per la descrizione
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -298,6 +313,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                 const SizedBox(height: 20.0),
 
+                // Campo di testo per la descrizione
                 TextFormField(
                   controller: _descriptionController,
                   maxLines: 6,
@@ -320,6 +336,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                 const SizedBox(height: 20.0),
 
+                // CheckBox "Ho bisogno di aiuto" (visibile solo per i cittadini)
                 if (!isRescuer)
                   Container(
                     height: 70,
@@ -345,6 +362,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                           child: Checkbox(
                             value: _needsHelp,
                             onChanged: (bool? newValue) {
+                              // Aggiorna lo stato locale del checkbox.
                               setState(() {
                                 _needsHelp = newValue ?? false;
                               });
@@ -368,6 +386,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                 const SizedBox(height: 20.0),
 
+                // Bottone di invio
                 SizedBox(
                   width: double.infinity,
                   height: isWideScreen ? 70 : 50,
@@ -378,6 +397,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         borderRadius: BorderRadius.circular(15),
                       ),
                     ),
+                    // Disabilita il bottone se il provider è in stato di caricamento.
                     onPressed: reportProvider.isLoading
                         ? null
                         : () => _sendEmergency(reportProvider),
@@ -402,12 +422,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
+  // Costruisce il menu a tendina per la selezione del tipo di emergenza.
   Widget _buildSpecificEmergency(BuildContext context, bool isWideScreen) {
     return SizedBox(
       width: isWideScreen ? 500 : double.infinity,
       child: EmergencyDropdownMenu(
         value: _selectedEmergency,
         hintText: "Segnala il tipo di emergenza",
+        // Definizione delle opzioni fisse.
         items: [
           EmergencyItem(label: "Terremoto", icon: Icons.waves),
           EmergencyItem(label: "Incendio", icon: Icons.local_fire_department),
@@ -417,10 +439,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
           EmergencyItem(label: "Bomba", icon: Icons.warning),
         ],
         onSelected: (item) {
+          // Callback quando un elemento è selezionato.
           setState(() {
-            _selectedEmergency =
-                item; // mi salvo l'emergency item (item.label se vuoi una stringa)
+            _selectedEmergency = item;// Salva l'oggetto selezionato nello stato.
           });
+          // Feedback rapido tramite SnackBar.
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text("Selezionato: ${item.label}"),
@@ -433,10 +456,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
+  // Metodo helper per mostrare le SnackBar (messaggi di feedback).
   void _showSnackBar({required String content, required Color color}) {
     ScaffoldMessenger.of(
       context,
-    ).hideCurrentSnackBar(); // nasconde la notifica attuale
+    ).hideCurrentSnackBar(); // Nasconde la SnackBar precedente.
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

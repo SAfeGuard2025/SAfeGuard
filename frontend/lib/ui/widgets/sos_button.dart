@@ -17,7 +17,7 @@ class SosButton extends StatelessWidget {
           width: size,
           height: size,
 
-          // 1. BORDO GRIGIO (Esterno)
+          // 1. Bordo grigio (Esterno)
           decoration: BoxDecoration(
             color: Colors.grey.shade300, // Grigio chiaro metallico
             shape: BoxShape.circle,
@@ -26,7 +26,7 @@ class SosButton extends StatelessWidget {
           padding: EdgeInsets.all(size * 0.015),
 
           child: Container(
-            // 2. ANELLO ROSSO
+            // 2. Anello rosso
             decoration: const BoxDecoration(
               color: ColorPalette.primaryBrightRed, // Rosso brillante
               shape: BoxShape.circle,
@@ -35,7 +35,7 @@ class SosButton extends StatelessWidget {
             padding: EdgeInsets.all(size * 0.04),
 
             child: Container(
-              // 3. BORDINO BIANCO
+              // 3. Bordino bianco
               decoration: const BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
@@ -44,11 +44,11 @@ class SosButton extends StatelessWidget {
               padding: EdgeInsets.all(size * 0.007),
 
               child: Container(
-                // 4. SFONDO INTERNO
+                // 4. Sfondo interno
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  // Uso un gradiente per renderlo "diverso" e dare effetto 3D
+                  // Usa un gradiente per renderlo "diverso" e dare effetto 3D
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,

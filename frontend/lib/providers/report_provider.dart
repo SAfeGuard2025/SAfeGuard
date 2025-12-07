@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../repositories/report_repository.dart';
 
+// Provider di Stato: ReportProvider
+// Apre uno stream con il DB per gestire lo stato della segnalazione più vicina
+// in tempo reale e gestisce lo stato e la persistenza delle segnalazioni specifiche
 class ReportProvider extends ChangeNotifier {
-  final ReportRepository _repository = ReportRepository();
+  final ReportRepository _reportRepository = ReportRepository();
 
   // Stato di caricamento per le azioni utente (es. invio report)
   bool _isLoading = false;
@@ -28,7 +31,7 @@ class ReportProvider extends ChangeNotifier {
   StreamSubscription? _reportsSubscription;
   StreamSubscription? _positionSubscription;
 
-  // --- 1. AVVIO MONITORAGGIO (Sostituisce loadReports) ---
+  // Avvio Monitoraggio
   // Da chiamare nell'initState di EmergencyNotification o HomeScreen
   void startRealtimeMonitoring() {
     // Evita di avviare più sottoscrizioni doppie
@@ -37,7 +40,7 @@ class ReportProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    // A. Ascolta la posizione GPS dell'utente (aggiorna ogni 10 metri)
+    // 1. Ascolta la posizione GPS dell'utente (aggiorna ogni 10 metri)
     const locationSettings = LocationSettings(
       accuracy: LocationAccuracy.high,
       distanceFilter: 10,
@@ -49,13 +52,12 @@ class ReportProvider extends ChangeNotifier {
       _recalculateNearest(); // Ricalcola se l'utente si sposta
     });
 
-    // B. Ascolta il Database Firestore (Active Emergencies)
-    // Questo scatta automaticamente se QUALCUNO aggiunge un'emergenza nel DB
-    _reportsSubscription = _repository.getReportsStream().listen((dynamicData) {
-      // Conversione sicura per evitare l'errore "List<dynamic> is not subtype..."
+    // 2. Ascolta il Database Firestore (Active Emergencies)
+    // Questo scatta automaticamente se qualcuno aggiunge un'emergenza nel DB
+    _reportsSubscription = _reportRepository.getReportsStream().listen((dynamicData) {
       _emergencies = _parseEmergencies(dynamicData);
 
-      // Appena i dati cambiano, ricalcoliamo chi è il più vicino
+      // Appena i dati cambiano, ricalcola l'emergenza più vicina
       _recalculateNearest();
 
       _isLoading = false;
@@ -67,10 +69,9 @@ class ReportProvider extends ChangeNotifier {
     });
   }
 
-  // --- 2. LOGICA DI CALCOLO ---
+  // 3. Logica di Calcolo
   // Trova l'emergenza più vicina basandosi su _currentPosition e _emergencies aggiornate
   void _recalculateNearest() {
-    // Se mancano dati essenziali, resetta e esci
     if (_emergencies.isEmpty || _currentPosition == null) {
       _nearestEmergency = null;
       _distanceString = "";
@@ -82,7 +83,6 @@ class ReportProvider extends ChangeNotifier {
     Map<String, dynamic>? nearest;
 
     for (var item in _emergencies) {
-      // Parsing sicuro coordinate (gestisce sia int che double)
       final double? eLat = (item['lat'] as num?)?.toDouble();
       final double? eLng = (item['lng'] as num?)?.toDouble();
 
@@ -102,7 +102,7 @@ class ReportProvider extends ChangeNotifier {
       }
     }
 
-    // Aggiorna le variabili pubbliche
+    //Aggiorna l'emergenza più vicina
     _nearestEmergency = nearest;
 
     if (minDistance < 1000) {
@@ -115,7 +115,7 @@ class ReportProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- 3. HELPER DI CONVERSIONE (Fix Type Error) ---
+  // 4. Helper di Conversione
   List<Map<String, dynamic>> _parseEmergencies(List<dynamic> rawList) {
     return rawList.map((item) {
       // Cast esplicito da Object/Dynamic a Map
@@ -123,46 +123,46 @@ class ReportProvider extends ChangeNotifier {
     }).toList();
   }
 
-  // --- 4. AZIONI UTENTE ---
-
-  // Metodo legacy per compatibilità (se richiamato manualmente)
+  // Metodo legacy per compatibilità
   Future<void> loadReports() async {
     startRealtimeMonitoring();
   }
 
+  // Invia una segnalazione delega a ReportRepository l'interazione con il backend
   Future<bool> sendReport(String type, String description, double? lat, double? lng) async {
     _isLoading = true;
     notifyListeners();
     try {
-      await _repository.createReport(type, description, lat, lng);
+      await _reportRepository.createReport(type, description, lat, lng);
       // Non serve ricaricare: lo stream _reportsSubscription vedrà il nuovo dato e aggiornerà la UI
       _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
-      print("Errore invio report: $e");
+      debugPrint("Errore invio report: $e");
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
+  // Cancella una segnalazione delega a ReportRepository l'interazione con il backend
   Future<bool> resolveReport(String id) async {
     try {
-      await _repository.closeReport(id);
-      // Rimuoviamo localmente per feedback istantaneo,
-      // ma il vero aggiornamento arriverà dallo stream poco dopo
+      await _reportRepository.closeReport(id);
+      // Rimuove la segnalazione localmente per feedback istantaneo,
+      // ma il vero aggiornamento arriverà dallo stream inviato dal db
       _emergencies.removeWhere((item) => item['id'] == id);
       _recalculateNearest();
       notifyListeners();
       return true;
     } catch (e) {
-      print("Errore chiusura report: $e");
+      debugPrint("Errore chiusura report: $e");
       return false;
     }
   }
 
-  // Chiude le connessioni quando il provider viene distrutto (es. logout)
+  // Chiude le connessioni quando il provider viene distrutto
   @override
   void dispose() {
     _reportsSubscription?.cancel();
