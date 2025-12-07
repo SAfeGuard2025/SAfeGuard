@@ -64,9 +64,9 @@ class UserRepository {
 
   // Crea utente usato specificamente per flussi esterni (Google/Apple Login)
   Future<Map<String, dynamic>> createUser(
-    Map<String, dynamic> userData, {
-    String collection = 'users',
-  }) async {
+      Map<String, dynamic> userData, {
+        String collection = 'users',
+      }) async {
     // Assicura che l'ID interno sia presente
     if (userData['id'] == null || userData['id'] == 0) {
       userData['id'] = DateTime.now().millisecondsSinceEpoch;
@@ -164,10 +164,10 @@ class UserRepository {
 
   // Rimuove un elemento specifico da un campo array
   Future<void> removeFromArrayField(
-    int id,
-    String fieldName,
-    dynamic item,
-  ) async {
+      int id,
+      String fieldName,
+      dynamic item,
+      ) async {
     final docId = await _findDocIdByIntId(id);
     if (docId == null) return;
 
@@ -225,4 +225,69 @@ class UserRepository {
       });
     }
   }
+
+
+
+// backend/repositories/user_repository.dart
+
+  Future<List<String>> getCitizenTokens({int? excludedId}) async { // <--- Aggiungi parametro
+    try {
+      final users = await _usersCollection.where('isSoccorritore', isEqualTo: false).get();
+
+      List<String> validTokens = [];
+      for (var doc in users) {
+        // 1. FILTRO MITTENTE: Se l'ID del documento corrisponde a chi invia, SALTA.
+        if (excludedId != null && doc.id == excludedId.toString()) {
+          continue;
+        }
+
+        final data = doc.map;
+        final String? token = data['fcmToken'];
+
+        if (token == null || token.isEmpty) continue;
+
+        bool isPushEnabled = true;
+        if (data['notifiche'] != null && data['notifiche'] is Map) {
+          final prefs = data['notifiche'] as Map<String, dynamic>;
+          isPushEnabled = prefs['push'] ?? true;
+        }
+
+        if (isPushEnabled) {
+          validTokens.add(token);
+        }
+      }
+      return validTokens;
+    } catch (e) {
+      print("Errore recupero token cittadini: $e");
+      return [];
+    }
+  }
+
+  Future<List<String>> getRescuerTokens({int? excludedId}) async { // <--- Aggiungi parametro
+    try {
+      final users = await _usersCollection.where('isSoccorritore', isEqualTo: true).get();
+
+      List<String> validTokens = [];
+      for (var doc in users) {
+        // 1. FILTRO MITTENTE
+        if (excludedId != null && doc.id == excludedId.toString()) {
+          continue;
+        }
+
+        final data = doc.map;
+        final String? token = data['fcmToken'];
+
+        if (token != null && token.isNotEmpty) {
+          validTokens.add(token);
+        }
+      }
+      return validTokens;
+    } catch (e) {
+      print("Errore recupero token soccorritori: $e");
+      return [];
+    }
+  }
+
 }
+
+

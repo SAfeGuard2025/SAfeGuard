@@ -430,6 +430,12 @@ class ProfileRepository {
     }
   }
 
+
+  Future<void> sendFcmToken(String fcmToken) async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/api/profile/fcm-token');
+
+    final response = await http.put(
   // Elimina account
   Future<void> deleteAccount() async {
     final token = await _getToken();
@@ -442,6 +448,11 @@ class ProfileRepository {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
+      body: jsonEncode({'token': fcmToken}),
+    );
+
+    if (response.statusCode != 200) {
+      print("Errore aggiornamento FCM: ${response.body}");
     );
     if (response.statusCode != 200) {
       throw Exception(

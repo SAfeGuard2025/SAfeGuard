@@ -1,0 +1,184 @@
+import 'package:flutter/material.dart';
+import 'package:frontend/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:frontend/ui/style/color_palette.dart';
+
+class EmergencyCard extends StatelessWidget {
+  final Map<String, dynamic> data; // Dati completi dell'emergenza
+  final VoidCallback? onTap; //tap sulla card
+  final VoidCallback? onClose; //azione chiusura (per soccorritori)
+
+  const EmergencyCard({
+    super.key,
+    required this.data,
+    this.onTap,
+    this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isRescuer = context.watch<AuthProvider>().isRescuer;
+
+    // Colori di sfondo
+    final bgColor = !isRescuer
+        ? ColorPalette.backgroundDeepBlue
+        : ColorPalette.cardDarkOrange;
+
+    // Estrazione dati sicura
+    final String type = data['type']?.toString() ?? 'GENERICO';
+    IconData icon;
+    final String description =
+        data['description']?.toString() ?? 'Nessuna descrizione';
+
+    switch(data['type'].toString().toUpperCase()){
+      case 'INCENDIO':
+        icon = Icons.local_fire_department;
+        break;
+      case 'TSUNAMI':
+        icon = Icons.water;
+        break;
+      case 'ALLUVIONE':
+        icon = Icons.flood;
+        break;
+      case 'MALESSERE':
+        icon = Icons.medical_services;
+        break;
+      case 'BOMBA':
+        icon = Icons.warning;
+        break;
+      default:
+        icon = Icons.warning_amber_rounded;
+    }
+
+    // Formattazione orario (solo se presente)
+    String timeString = '';
+    if (data['timestamp'] != null) {
+      try {
+        DateTime dt = DateTime.parse(data['timestamp'].toString());
+        // Formato HH:mm
+        timeString =
+            "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+      } catch (e) {
+        timeString = '';
+      }
+    }
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment:
+              MainAxisAlignment.spaceBetween, // Distribuisce lo spazio
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(
+                  icon,
+                  size: 32,
+                  color: Colors.white,
+                ),
+                if (timeString.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      timeString,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+
+            const Spacer(),
+
+            // --- CORPO: Titolo e Descrizione ---
+            Center(
+              child: Column(
+                children: [
+                  Text(
+                    type.toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (description.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      description,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+            const Spacer(),
+
+            //Bottone Chiudi
+            if (isRescuer && onClose != null)
+              SizedBox(
+                width: double.infinity,
+                height: 35,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor:
+                        ColorPalette.cardDarkOrange, // Testo arancione scuro
+                    elevation: 0,
+                    padding: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: onClose,
+                  child: const Text(
+                    "CHIUDI INTERVENTO",
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              )
+            else
+              // Spazio vuoto per mantenere le dimensioni uniformi se non c'è bottone
+              const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
+  }
+}

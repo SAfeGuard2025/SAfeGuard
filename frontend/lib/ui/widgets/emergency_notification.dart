@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/providers/auth_provider.dart';
-import 'package:frontend/providers/emergency_provider.dart';
+import 'package:frontend/providers/report_provider.dart'; // Importa ReportProvider
 import 'package:provider/provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
 
-// Widget di Notifica di Emergenza
-// Mostra un banner colorato quando un'emergenza è attiva.
 class EmergencyNotification extends StatefulWidget {
   const EmergencyNotification({super.key});
 
@@ -14,43 +12,52 @@ class EmergencyNotification extends StatefulWidget {
 }
 
 class _EmergencyNotification extends State<EmergencyNotification> {
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Questo avvia l'ascolto continuo
+      Provider.of<ReportProvider>(context, listen: false).startRealtimeMonitoring();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // 1. Controllo Stato Login
-    // Utilizza watch per reagire al cambio di stato di login.
     final isLogged = context.watch<AuthProvider>().isLogged;
+    if (!isLogged) return const SizedBox.shrink();
 
-    // Se non è loggato non mostro nulla
-    if (!isLogged) {
+    // 2. Accesso ai dati del ReportProvider
+    final reportProvider = context.watch<ReportProvider>();
+    final nearest = reportProvider.nearestEmergency;
+
+    // Se non ci sono emergenze vicine, nascondi il banner
+    if (nearest == null) {
       return const SizedBox.shrink();
     }
 
-    // 2. Controllo Allerta Attiva
-    // Controlla se è in corso l'invio di un SOS.
-    final alert = context.watch<EmergencyProvider>().isSendingSos;
+    // 3. Estrazione Dati Dinamici
+    // Usa il tipo come Titolo (es. INCENDIO)
+    final String titolo = nearest['type']?.toString().toUpperCase() ?? "ALLERTA";
 
-    // Se non c'è l'allerta, la notifica deve rimanere chiusa.
-    if (!alert) {
-      return const SizedBox.shrink();
-    }
+    // Usa la descrizione o la distanza calcolata come sottotitolo
+    final String descrizioneDB = nearest['description']?.toString() ?? "";
+    final String distanza = reportProvider.distanceString;
 
-    // 3. Determinazione del Ruolo e Colori
+    // Combina descrizione e distanza per l'indirizzo/info
+    final String indirizzoInfo = descrizioneDB.isNotEmpty
+        ? "$descrizioneDB • $distanza"
+        : distanza;
+
+    // 4. Determinazione Colori (Logica esistente mantenuta)
     final isRescuer = context.watch<AuthProvider>().isRescuer;
-
-    // Testo temporaneo (da implementare tramite EmergencyProvider)
-    const titolo = "Titolo";
-    const indirizzo = "indirizzo 104";
-
-    // Colori dinamici basati sul ruolo per il massimo contrasto:
-    // Blu elettrico per il Soccorritore, Rosso vivo per il Cittadino (pericolo).
     Color notificationColor = isRescuer
         ? ColorPalette.electricBlue
         : ColorPalette.primaryBrightRed;
 
-    // Icona fissa per coerenza visiva con la pagina degli avvisi.
-    const emergencyIcon = Icons.notifications_none;
+    const emergencyIcon = Icons.warning_amber_rounded; // Icona più appropriata per allerta
 
-    // Layout del Banner di Notifica
     return Padding(
       padding: const EdgeInsetsGeometry.symmetric(
         horizontal: 16.0,
@@ -61,34 +68,50 @@ class _EmergencyNotification extends State<EmergencyNotification> {
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         decoration: BoxDecoration(
           color: notificationColor,
-          borderRadius: BorderRadius.circular(24.0), // valore dei mockup
+          borderRadius: BorderRadius.circular(24.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            )
+          ],
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            // Icona a sinistra
+            // Icona animata (opzionale: pulsazione)
             const Icon(emergencyIcon, color: Colors.white, size: 36.0),
-            SizedBox(width: 16.0), // spazio tra l'icona e il testo
-            // Contenitore del testo
+
+            const SizedBox(width: 16.0),
+
+            // Contenuto Testuale Aggiornato
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  // Titolo
                   Text(
                     titolo,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 18.0,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w900, // Grassetto forte
+                      letterSpacing: 1.0,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  // Indirizzo
+                  const SizedBox(height: 4),
                   Text(
-                    indirizzo,
-                    style: const TextStyle(color: Colors.white, fontSize: 14.0),
+                    indirizzoInfo,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.w500
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),

@@ -206,7 +206,7 @@ class ProfileController {
     try {
       final body = jsonDecode(await request.readAsString());
       String? numero =
-          body['numero']; //Validazione, Controllo esistenza, numeri e pulizia per il Dato
+      body['numero']; //Validazione, Controllo esistenza, numeri e pulizia per il Dato
 
       if (numero == null || numero.isEmpty) {
         return _jsonResponse(400, body: {'error': 'Numero mancante'});
@@ -292,5 +292,24 @@ class ProfileController {
         body: {'error': 'Errore durante l\'eliminazione'},
       );
     }
+  }
+
+
+
+  // PUT /api/profile/fcm-token
+  Future<Response> updateFcmToken(Request request) async {
+    final userId = _getUserId(request);
+    if (userId == null) {
+      return _jsonResponse(401, body: {'error': 'Non autorizzato'});
+    }
+
+    final body = jsonDecode(await request.readAsString());
+    final token = body['token'] as String?;
+
+    if (token != null) {
+      await _profileService.updateFcmToken(userId, token);
+      return _jsonResponse(200, body: {'message': 'Token aggiornato'});
+    }
+    return _jsonResponse(400, body: {'error': 'Token mancante'});
   }
 }

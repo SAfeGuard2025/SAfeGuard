@@ -64,7 +64,7 @@ class UtenteGenerico {
   UtenteGenerico.conTelefono(
     int? id,
     String telefono,
-    String passwordHash, {
+    String passwordHash,{
     String? email,
     String? nome,
     String? cognome,

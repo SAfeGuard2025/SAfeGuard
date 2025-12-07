@@ -235,48 +235,53 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
                           const SizedBox(height: 30),
 
-                          // Sezione "Richieste di aiuto"
-                          Container(
-                            padding: const EdgeInsets.all(20),
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: kCardColor,
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "Richieste di aiuto",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: isWideScreen ? 22 : 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {},
-                                      child: const Text(
-                                        "Guarda Tutto",
+                          // Sezione "Richieste di aiuto" (solo se si è cittadino e si devono vedere solo le emergenze che ha fatto il cittadino stesso)
+                          if (!isRescuer)
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color:
+                                    kCardColor, // Assicurati che kCardColor sia definito
+                                borderRadius: BorderRadius.circular(25),
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "Richieste di aiuto",
                                         style: TextStyle(
-                                          color: Colors.white70,
-                                          decoration: TextDecoration.underline,
+                                          color: Colors.white,
+                                          fontSize: isWideScreen
+                                              ? 22
+                                              : 18, // Assicurati che isWideScreen sia definito
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-                                const Text(
-                                  "Futura implementazione",
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ],
+                                      TextButton(
+                                        onPressed: () {},
+                                        child: const Text(
+                                          "Guarda Tutto",
+                                          style: TextStyle(
+                                            color: Colors.white70,
+                                            decoration:
+                                                TextDecoration.underline,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
+                                  const Text(
+                                    "Futura implementazione",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
                           const SizedBox(height: 80),
                         ],
                       ),

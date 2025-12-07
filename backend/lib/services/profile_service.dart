@@ -294,4 +294,14 @@ class ProfileService {
       print("Errore inizializzazione: $e");
     }
   }
+
+
+
+  Future<void> updateFcmToken(int userId, String token) async {
+    try {
+      await _userRepository.updateUserField(userId, 'fcmToken', token);
+    } catch (e) {
+      print("Errore aggiornamento token FCM: $e");
+    }
+  }
 }

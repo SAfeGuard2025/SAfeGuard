@@ -9,6 +9,28 @@ import 'package:data_models/utente_generico.dart';
 import 'package:data_models/utente.dart';
 import 'package:data_models/soccorritore.dart';
 import '../repositories/profile_repository.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart'; // Per kIsWeb
+import 'dart:io'; // Per Platform
+
+
+// L'URL base viene costruito come in UserApiService, usando le costanti di default
+// e sovrascrivendo per Android.
+String get _baseUrl {
+  String host = 'http://127.0.0.1';
+  String portPart = ':8080';
+
+  if (!kIsWeb && Platform.isAndroid && host.contains('127.0.0.1')) {
+    // Sostituisce 'localhost' con l'IP speciale per l'emulatore
+    host = 'http://10.0.2.2';
+  } else if (!kIsWeb && (Platform.isIOS || Platform.isMacOS) && host.contains('127.0.0.1')) {
+    // iOS / macOS usano localhost
+    host = 'http://localhost';
+  }
+
+  return '$host$portPart/api';
+}
 
 // Provider di Stato: AuthProvider
 // Gestisce l'autenticazione, usa ChangeNotifier per notificare la UI
@@ -55,6 +77,10 @@ class AuthProvider extends ChangeNotifier {
       try {
         final userMap = jsonDecode(userDataString);
         _currentUser = _parseUser(userMap);
+
+        // AGGIUNTA: Assicurati che il token sia aggiornato anche all'avvio
+        await _initializeNotifications();
+        
         notifyListeners();
       } catch (e) {
         await logout();
@@ -67,14 +93,15 @@ class AuthProvider extends ChangeNotifier {
     final token = response['token'];
     final userMap = response['user'];
 
-    // Salva su SharedPreferences per la persistenza
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
     await prefs.setString('user_data', jsonEncode(userMap));
 
-    // Aggiorna lo stato in memoria
     _authToken = token;
     _currentUser = _parseUser(userMap);
+
+    // AGGIUNTA: Inizializza le notifiche dopo aver salvato la sessione
+    await _initializeNotifications();
   }
 
   // Metodo per convertire la Map JSON nell'oggetto Utente o Soccorritore
@@ -489,5 +516,35 @@ class AuthProvider extends ChangeNotifier {
   void dispose() {
     _timer?.cancel();
     super.dispose();
+  }
+
+
+  // Nel metodo _saveSession o dopo un login avvenuto con successo [cite: 632]
+  Future<void> _initializeNotifications() async {
+    try {
+      // Richiedi permessi (soprattutto per iOS)
+      FirebaseMessaging messaging = FirebaseMessaging.instance;
+      NotificationSettings settings = await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+        // Ottieni il token
+        String? token = await messaging.getToken();
+        if (token != null) {
+          // Invia al backend tramite repository
+          await _profileRepo.sendFcmToken(token);
+
+          // Ascolta aggiornamenti del token
+          FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+            _profileRepo.sendFcmToken(newToken);
+          });
+        }
+      }
+    } catch (e) {
+      print("Errore inizializzazione notifiche: $e");
+    }
   }
 }

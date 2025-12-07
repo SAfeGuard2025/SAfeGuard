@@ -11,6 +11,9 @@ import 'package:backend/controllers/register_controller.dart';
 import 'package:backend/controllers/verification_controller.dart';
 import 'package:backend/controllers/profile_controller.dart';
 import 'package:backend/controllers/auth_guard.dart';
+import 'package:backend/controllers/report_controller.dart';
+import 'package:backend/controllers/emergency_controller.dart';
+
 import 'package:backend/controllers/resend_controller.dart';
 
 void main() async {
@@ -40,6 +43,8 @@ void main() async {
   final verifyController = VerificationController();
   final resendController = ResendController();
   final profileController = ProfileController();
+  final reportController = ReportController();
+  final emergencyController = EmergencyController();
   final authGuard = AuthGuard();
 
   // 4. Rounting pubblico
@@ -71,6 +76,7 @@ void main() async {
   profileApi.put('/notifiche', profileController.updateNotifiche);
   profileApi.put('/password', profileController.updatePassword);
 
+
   // Aggiunta elementi a liste
   profileApi.post('/allergie', profileController.addAllergia);
   profileApi.post('/medicinali', profileController.addMedicinale);
@@ -84,6 +90,18 @@ void main() async {
     '/',
     profileController.deleteAccount,
   ); // DELETE sull'utente stesso
+  profileApi.put('/fcm-token', profileController.updateFcmToken);
+
+  //Router per le Segnalazioni---
+  final reportApi = Router();
+
+  // Rotta per creare la segnalazione
+  reportApi.post('/create', reportController.createReport);
+
+  // Rotta per leggere la lista
+  reportApi.get('/', reportController.getAllReports);
+
+  reportApi.delete('/<id>', reportController.deleteReport);
 
   // 6. Mounting & Middleware
   // Collega il router profilo a '/api/profile'
@@ -93,12 +111,22 @@ void main() async {
     Pipeline().addMiddleware(authGuard.middleware).addHandler(profileApi.call),
   );
 
+  app.mount(
+      '/api/reports',
+      Pipeline().addMiddleware(authGuard.middleware).addHandler(reportApi.call),
+  );
+
+  app.mount(
+    '/api/emergency',
+    Pipeline().addMiddleware(authGuard.middleware).addHandler(emergencyController.router.call),
+  );
+
   // 7. Pipeline Server e Configurazione CORS
   // Configuro gli header per permettere l'accesso da qualsiasi origine
   final corsMiddleware = corsHeaders(
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
       'Access-Control-Allow-Headers': '*', // Accetta tutti gli header
     },
   );

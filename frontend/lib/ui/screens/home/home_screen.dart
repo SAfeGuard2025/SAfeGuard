@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/ui/screens/reports/emergencies_screen.dart';
 import 'package:frontend/ui/widgets/custom_bottom_nav_bar.dart';
 import 'package:frontend/ui/screens/home/home_page_content.dart';
 import 'package:provider/provider.dart';
@@ -25,14 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const HomePageContent(), // 0. HOME
     const ReportsScreen(), // 1. REPORT
     const MapScreen(), // 2. MAPPA
-    const Center(
-      // 3. AVVISI
-      child: Text(
-        "Avvisi\n(In lavorazione)",
-        textAlign: TextAlign.center,
-        style: TextStyle(color: Colors.white, fontSize: 24),
-      ),
-    ),
+    const EmergencyGridPage(),
     const ProfileSettingsScreen(), // 4. IMPOSTAZIONI
   ];
 
@@ -63,12 +57,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
         return Scaffold(
           backgroundColor: backgroundColor,
+          // Mostra la BottomNavBar solo se NON siamo su desktop
           bottomNavigationBar: isDesktop
               ? null
               : CustomBottomNavBar(onIconTapped: _onTabChange),
 
+          // Usa una Row per affiancare la Sidebar (se c'è) al contenuto principale
           body: Row(
             children: [
+              // Barra di navigazione laterale (Visibile solo su Desktop)
               if (isDesktop)
                 NavigationRail(
                   backgroundColor: Colors.white,
@@ -120,11 +117,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Center(
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        // Limita la larghezza massima del contenuto per schermi grandi,
-                        // tranne per la mappa che può occupare tutto lo spazio.
                         maxWidth: _currentIndex == 2 ? double.infinity : 1200,
                       ),
-                      // Mostra solo la pagina corrispondente all'indice selezionato
                       child: IndexedStack(
                         index: _currentIndex,
                         children: _pages,
