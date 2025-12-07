@@ -140,178 +140,266 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
                       await reportProvider.resolveReport(item['id']);
                     }
                   },
-                  // Costruzione del tap che apre i dettagli dell'emergenza
+                  // Costruzione del tap che apre i dettagli dell'emergenza (solo se è soccorritore)
                   onTap: () async {
-                    // Coordinate dell'emergenza
-                    final double? eLat = (item['lat'] as num?)?.toDouble();
-                    final double? eLng = (item['lng'] as num?)?.toDouble();
+                    if (isRescuer) {
+                      // Coordinate dell'emergenza
+                      final double? eLat = (item['lat'] as num?)?.toDouble();
+                      final double? eLng = (item['lng'] as num?)?.toDouble();
 
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext ctx) {
-                        return Dialog(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20.0),
-                          ),
-                          elevation: 10,
-                          backgroundColor: ColorPalette.cardDarkOrange,
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 500),
-                            child: SingleChildScrollView(
-                              child: Padding(
-                                padding: const EdgeInsets.all(24.0),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext ctx) {
+                          int currentPage = 0;
+                          final PageController pageController = PageController();
+                          return StatefulBuilder(
+                            builder: (context, setStateDialog) {
+                                return Dialog(
+                                  shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20.0),
+                                ),
+                                elevation: 10,
+                                backgroundColor: ColorPalette.cardDarkOrange,
+                                child: ConstrainedBox(
+                                  // Aumentato leggermente per far stare comodo lo slider
+                                  constraints: const BoxConstraints(
+                                    maxHeight: 550,
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 24.0,
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(
-                                          icon,
-                                          size: 50,
-                                          color: Colors.white,
-                                        ),
-                                        const SizedBox(
-                                          width: 15,
-                                        ), // Spazio orizzontale
-                                        Text(
-                                          item['type'].toString().toUpperCase(),
-                                          style: const TextStyle(
-                                            fontSize: 22,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
+                                        Expanded(
+                                          child: PageView(
+                                            controller: pageController,
+                                            onPageChanged: (int index) {
+                                              setStateDialog(() {
+                                                currentPage = index;
+                                              });
+                                            },
+                                            children: [
+                                              // Dettagli emergrnza e mappa
+                                              SingleChildScrollView(
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 24.0,
+                                                      ),
+                                                  child: Column(
+                                                    children: [
+                                                      Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          Icon(
+                                                            icon,
+                                                            size: 50,
+                                                            color: Colors.white,
+                                                          ),
+                                                          const SizedBox(
+                                                            width: 15,
+                                                          ),
+                                                          Flexible(
+                                                            child: Text(
+                                                              item['type']
+                                                                  .toString()
+                                                                  .toUpperCase(),
+                                                              style: const TextStyle(
+                                                                fontSize: 22,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: Colors
+                                                                    .white,
+                                                              ),
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 12,
+                                                      ),
+                                                      Text(
+                                                        item['description']
+                                                                ?.toString() ??
+                                                            'Nessuna descrizione',
+                                                        style: const TextStyle(
+                                                          fontSize: 16,
+                                                          color: Colors.white,
+                                                          fontWeight:
+                                                              FontWeight.normal,
+                                                        ),
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 20,
+                                                      ),
+
+                                                      // Mappa
+                                                      if (eLat != null &&
+                                                          eLng != null)
+                                                        SizedBox(
+                                                          height: 250,
+                                                          width:
+                                                              double.infinity,
+                                                          child: ClipRRect(
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  20.0,
+                                                                ),
+                                                            child:
+                                                                MiniMapPreview(
+                                                                  lat: eLat,
+                                                                  lng: eLng,
+                                                                ),
+                                                          ),
+                                                        )
+                                                      else
+                                                        Container(
+                                                          height: 50,
+                                                          decoration: BoxDecoration(
+                                                            color:
+                                                                Colors.white10,
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  10,
+                                                                ),
+                                                          ),
+                                                          alignment:
+                                                              Alignment.center,
+                                                          child: const Text(
+                                                            "Posizione non disponibile",
+                                                            style: TextStyle(
+                                                              color: Colors
+                                                                  .white70,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+
+                                              // Dettagli cittadino
+                                              SingleChildScrollView(
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 24.0,
+                                                      ),
+                                                  child: Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      const SizedBox(
+                                                        height: 20,
+                                                      ),
+                                                      const Icon(
+                                                        Icons.person,
+                                                        size: 60,
+                                                        color: Colors.white,
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 20,
+                                                      ),
+                                                      const Text(
+                                                        "Dettagli Cittadino",
+                                                        style: TextStyle(
+                                                          fontSize: 22,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: Colors.white,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 20,
+                                                      ),
+                                                      Container(
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              15,
+                                                            ),
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.white10,
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                15,
+                                                              ),
+                                                        ),
+                                                        child: const Text(
+                                                          "Nome: Mario Rossi\nEtà: 45\nTelefono: +39 333 1234567\nNote Mediche: Nessuna", // Placeholder
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 16,
+                                                            height: 1.5,
+                                                          ),
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                          textAlign: TextAlign.center,
+                                        ),
+
+                                        const SizedBox(height: 10),
+
+                                        // Pallini dello slider
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: List.generate(2, (index) {
+                                            bool isActive = currentPage == index;
+                                            return Container(
+                                              margin:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 4,
+                                                  ),
+                                              width: 10,
+                                              height: 10,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: Colors.white.withValues(
+                                                  alpha: isActive? 1 : 0.5,
+                                                ),
+                                                border: Border.all(
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            );
+                                          }),
+                                        ),
+
+                                        const SizedBox(height: 10),
+                                        const Text(
+                                          "Scorri per info cittadino >",
+                                          style: TextStyle(
+                                            color: Colors.white54,
+                                            fontSize: 12,
+                                          ),
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 12),
-
-                                    Text(
-                                      item['description'].toString(),
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.normal,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-
-                                    const SizedBox(height: 20),
-
-                                    // Costruzione della mappa
-                                    if (eLat != null && eLng != null)
-                                      SizedBox(
-                                        height: 180,
-                                        width: double.infinity,
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            20.0,
-                                          ),
-                                          child: MiniMapPreview(
-                                            lat: eLat,
-                                            lng: eLng,
-                                          ),
-                                        ),
-                                      )
-                                    else
-                                      Container(
-                                        height: 50,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white10,
-                                          borderRadius: BorderRadius.circular(
-                                            10,
-                                          ),
-                                        ),
-                                        alignment: Alignment.center,
-                                        child: const Text(
-                                          "Posizione non disponibile",
-                                          style: TextStyle(
-                                            color: Colors.white70,
-                                          ),
-                                        ),
-                                      ),
-                                    const SizedBox(height: 10),
-                                    // Bottone che apre la scheda del cittadino
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.white,
-                                          foregroundColor:
-                                              ColorPalette.cardDarkOrange,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                          ),
-                                          padding: const EdgeInsets.symmetric(
-                                            vertical: 15,
-                                          ),
-                                        ),
-
-                                        onPressed: () {
-                                          showDialog(
-                                            context: context,
-                                            builder: (BuildContext secondCtx) {
-                                              return AlertDialog(
-                                                backgroundColor: ColorPalette
-                                                    .backgroundMidBlue,
-                                                title: const Text(
-                                                  "Dettagli del cittadino",
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight:
-                                                        FontWeight.normal,
-                                                  ),
-                                                ),
-                                                content: const Text(
-                                                  "Placeholder cittadino",
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                actions: [
-                                                  TextButton(
-                                                    child: const Text(
-                                                      "Chiudi",
-                                                      style: TextStyle(
-                                                        color: ColorPalette
-                                                            .cardDarkOrange,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                    onPressed: () {
-                                                      Navigator.of(
-                                                        secondCtx,
-                                                      ).pop();
-                                                    },
-                                                  ),
-                                                ],
-                                              );
-                                            },
-                                          );
-                                        },
-                                        child: const Text(
-                                          "Dettagli del cittadino",
-                                          style: TextStyle(
-                                            color: ColorPalette.cardDarkOrange,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    );
+                              );
+                            },
+                          );
+                        },
+                      );
+                    }
                   },
                 );
               },
