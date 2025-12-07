@@ -13,6 +13,39 @@ class RiskController {
   // URL del microservizio AI Python
   final String _aiServiceUrl;
 
+  /* Schema richiesta HTTP POST (Payload inviato al Microservizio AI Python)
+
+  Il corpo della richiesta HTTP POST inviata dal frontend mobile
+  deve essere un oggetto JSON contenente un array di 'reports'.
+
+  Schema JSON atteso:
+
+  {
+      "reports": [
+          {
+              // ID univoco della segnalazione (necessario per la tracciabilità)
+              "id": "123456",
+              // Latitudine del report (valore decimale obbligatorio)
+              "lat": 40.75899247,
+              // Longitudine del report (valore decimale obbligatorio)
+              "lon": 14.65552131,
+              // Tipo di evento (stringa: es. "Fire", "Flood", "Medical", ecc.)
+              "event_type": "Fire",
+              // Gravità dell'evento da 1 (bassa) a 5 (alta) (intero obbligatorio)
+              "severity": 5
+          },
+          // L'array 'reports' può contenere più report in una singola richiesta
+          {
+              "id": 789012
+              "lat": 40.760000,
+              "lon": 14.656000,
+              "event_type": "Road_Accident",
+              "severity": 3
+          }
+      ]
+  }
+  */
+
   RiskController(this._aiServiceUrl)
   {
     // Log utile per capire quale URL sta usando il server all'avvio
@@ -45,12 +78,14 @@ class RiskController {
       print('📥 Risposta ricevuta da Python: ${aiResponse.statusCode}');
 
       if (aiResponse.statusCode == 200) {
-        final data = jsonDecode(aiResponse.body);
+        final Map<String, dynamic> data = jsonDecode(aiResponse.body);
 
         // Log formattato per debug
-        _printFormattedJsonLog(data);
+        //_printFormattedJsonLog(data);
 
-        return Response.ok(jsonEncode(data), headers: _headers);
+        final Map<String, dynamic> cleanResponse = _extractCleanReports(data);
+
+        return Response.ok(jsonEncode(cleanResponse), headers: _headers);
       } else {
         // Errore generico dal microservizio (es. errore logica Python, eccezione, Pydantic fallito)
         print('Errore AI (${aiResponse.statusCode}): ${aiResponse.body}');
@@ -62,6 +97,24 @@ class RiskController {
       print('Errore RiskController (Analisi AI): $e');
       return _internalServerError('Errore interno: $e');
     }
+  }
+
+  // Prende la risposta completa dell'AI e restituisce solo ciò che serve all'app.
+  Map<String, dynamic> _extractCleanReports(Map<String, dynamic> aiData) {
+
+    // 1. Isola i metadati per log interno
+    final int historicalCount = aiData['historical_hotspots_count'] ?? 0;
+    final int highRiskCount = aiData['high_risk_reports'] ?? 0;
+    print('INFO AI: Hotspot storici usati: $historicalCount | Report ad alto rischio: $highRiskCount');
+
+    // 2. Estrae la lista dei report analizzati
+    final List<dynamic> rawReports = aiData['analyzed_reports'] ?? [];
+
+    return {
+      'success': true,
+      'timestamp': DateTime.now().toIso8601String(),
+      'results': rawReports, // Qui ci sono solo i report singoli con ID, score, ecc.
+    };
   }
 
   // Handler per l'API: GET /api/risk/hotspots
