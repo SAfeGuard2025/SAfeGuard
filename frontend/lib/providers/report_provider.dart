@@ -26,6 +26,8 @@ class ReportProvider extends ChangeNotifier {
 
   // Posizione corrente dell'utente
   Position? _currentPosition;
+  // Getter della posizione attuale dell'utente
+  Position? get currentPosition => _currentPosition;
 
   // Sottoscrizioni ai flussi di dati (fondamentali per il tempo reale)
   StreamSubscription? _reportsSubscription;
