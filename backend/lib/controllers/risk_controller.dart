@@ -65,14 +65,17 @@ class RiskController {
       final String body = await request.readAsString();
       if (body.isEmpty) return _badRequest('Nessun dato inviato');
 
-      final Map<String, dynamic> payload = jsonDecode(body);
+      final payload = jsonDecode(body);
+      _printFormattedJsonLog(payload);
+
+      //final Map<String, dynamic> payload = jsonDecode(body);
       print('📤 Dart invia dati al server AI...');
 
       // Chiamata asincrona al microservizio Python
       final aiResponse = await http.post(
         Uri.parse(_aiServiceUrl),
         headers: _headers,
-        body: jsonEncode(payload),
+        body: body,
       );
 
       print('📥 Risposta ricevuta da Python: ${aiResponse.statusCode}');
