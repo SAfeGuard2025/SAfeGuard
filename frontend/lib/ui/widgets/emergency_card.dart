@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/ui/style/color_palette.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
-// Widget riutilizzabile per visualizzare una singola segnalazione/emergenza
 class EmergencyCard extends StatelessWidget {
-  final Map<String, dynamic> data; // Dati completi dell'emergenza
-  final VoidCallback? onTap; //tap sulla card
-  final VoidCallback? onClose; //azione chiusura (per soccorritori)
+  final Map<String, dynamic> data;
+  final VoidCallback? onTap;
+  final VoidCallback? onClose;
 
   const EmergencyCard({
     super.key,
@@ -16,16 +18,51 @@ class EmergencyCard extends StatelessWidget {
     this.onClose,
   });
 
+  // Funzione che genera il pdf
+  Future<void> _generatePdf(BuildContext context) async {
+    final pdf = pw.Document();
+    final logoImage = await imageFromAssetBundle('assets/logo.png');
+    // Dati per la stampa
+    final title = data['type']?.toString() ?? 'GENERICO';
+    final desc = data['description']?.toString() ?? 'Nessuna descrizione';
+    final time = data['timestamp']?.toString() ?? 'N/D';
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) {
+          return pw.Center(
+            child: pw.Column(
+              children: [
+                pw.Header(
+                  level: 0,
+                  child: pw.Image(logoImage, height: 100, width: 100),
+                ),
+                pw.SizedBox(height: 20),
+                pw.Text("TIPO: $title", style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
+                pw.SizedBox(height: 10),
+                pw.Text("DESCRIZIONE: $desc"),
+                pw.SizedBox(height: 10),
+                pw.Text("DATA/ORA: $time"),
+                pw.SizedBox(height: 20),
+                pw.Divider(),
+                pw.Text("Documento generato da SAfeGuard"),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+
+    await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => pdf.save());
+  }
+
   @override
   Widget build(BuildContext context) {
     final isRescuer = context.watch<AuthProvider>().isRescuer;
-
-    // Colori di sfondo
     final bgColor = !isRescuer
         ? ColorPalette.backgroundDeepBlue
         : ColorPalette.cardDarkOrange;
-
-    // Estrazione dati sicura
     final String type = data['type']?.toString() ?? 'GENERICO';
     IconData icon;
     final String description =
@@ -51,14 +88,12 @@ class EmergencyCard extends StatelessWidget {
         icon = Icons.warning_amber_rounded;
     }
 
-    // Formattazione orario (solo se presente)
     String timeString = '';
     if (data['timestamp'] != null) {
       try {
         DateTime dt = DateTime.parse(data['timestamp'].toString());
-        // Formato HH:mm
         timeString =
-            "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+        "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
       } catch (e) {
         timeString = '';
       }
@@ -81,10 +116,9 @@ class EmergencyCard extends StatelessWidget {
         ),
         child: Column(
           mainAxisAlignment:
-              MainAxisAlignment.spaceBetween, // Distribuisce lo spazio
+          MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Riga superiore: Icona di allerta e Orario
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -93,35 +127,56 @@ class EmergencyCard extends StatelessWidget {
                   size: 32,
                   color: Colors.white,
                 ),
-                if (timeString.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      timeString,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                Row(
+                  children: [
+                    InkWell(
+                      onTap: () => _generatePdf(context),
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                            Icons.picture_as_pdf,
+                            color: Colors.white,
+                            size: 16
+                        ),
                       ),
                     ),
-                  ),
+
+                    const SizedBox(width: 8),
+
+                    if (timeString.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          timeString,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ],
             ),
 
             const Spacer(),
 
-            // Corpo: Titolo e Descrizione
             Center(
               child: Column(
                 children: [
-                  // Tipo di emergenza
                   Text(
                     type.toUpperCase(),
                     style: const TextStyle(
@@ -134,7 +189,6 @@ class EmergencyCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  // Descrizione (mostrata solo se non vuota)
                   if (description.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
@@ -154,8 +208,6 @@ class EmergencyCard extends StatelessWidget {
 
             const Spacer(),
 
-            // Bottone Chiudi Intervento
-            // Visibile solo se: L'utente è un Soccorritore
             if (isRescuer && onClose != null)
               SizedBox(
                 width: double.infinity,
@@ -164,14 +216,14 @@ class EmergencyCard extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor:
-                        ColorPalette.cardDarkOrange, // Testo arancione scuro
+                    ColorPalette.cardDarkOrange,
                     elevation: 0,
                     padding: EdgeInsets.zero,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: onClose, // Esegue la funzione di chiusura fornita dal padre.
+                  onPressed: onClose,
                   child: const Text(
                     "CHIUDI INTERVENTO",
                     style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
@@ -179,7 +231,6 @@ class EmergencyCard extends StatelessWidget {
                 ),
               )
             else
-              // Spazio vuoto per mantenere le dimensioni uniformi se non c'è bottone
               const SizedBox(height: 10),
           ],
         ),
