@@ -151,8 +151,6 @@ class _HomePageContentState extends State<HomePageContent> {
           ),
         ],
 
-
-
         const SizedBox(height: 10),
       ],
     );

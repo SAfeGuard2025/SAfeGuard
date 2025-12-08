@@ -5,17 +5,17 @@ import 'package:frontend/ui/style/color_palette.dart';
 class TutorialHelper {
   static void showTutorial({
     required BuildContext context,
-    required bool isRescuer, // <--- Parametro fondamentale
+    required bool isRescuer,
     required GlobalKey keyMap,
-    required GlobalKey keyContacts, // Solo Cittadino
-    required GlobalKey keySos,      // Solo Cittadino
-    GlobalKey? keyEmergencyInfo,    // Solo Soccorritore (Il box blu in alto)
-    List<GlobalKey>? navbarKeys,    // Lista chiavi per i singoli tab (0: Home, 1: Report, etc)
+    required GlobalKey keyContacts,
+    required GlobalKey keySos,
+    GlobalKey? keyEmergencyInfo,
+    List<GlobalKey>? navbarKeys,    // Lista chiavi per i singoli tab della navbar
     required VoidCallback onFinish,
   }) {
     final screenSize = MediaQuery.of(context).size;
 
-    // Decidiamo quale lista di target creare in base al ruolo
+    // Decide quale lista target (la serie di step del tutorial) creare
     List<TargetFocus> targets = isRescuer
         ? _createRescuerTargets(
       screenSize: screenSize,
@@ -28,13 +28,14 @@ class TutorialHelper {
       keyMap: keyMap,
       keyContacts: keyContacts,
       keySos: keySos,
+      keyEmergencyInfo: keyEmergencyInfo,
       navbarKeys: navbarKeys,
     );
 
     TutorialCoachMark(
       targets: targets,
+      hideSkip: true,
       colorShadow: Colors.black,
-      textSkip: "SALTA",
       paddingFocus: 10,
       opacityShadow: 0.8,
       onFinish: onFinish,
@@ -45,12 +46,13 @@ class TutorialHelper {
     ).show(context: context);
   }
 
-  // --- LISTA TARGET CITTADINO (Quella che avevi già) ---
+  // Lista target cittadino
   static List<TargetFocus> _createCitizenTargets({
     required Size screenSize,
     required GlobalKey keyMap,
     required GlobalKey keyContacts,
     required GlobalKey keySos,
+    GlobalKey? keyEmergencyInfo,
     List<GlobalKey>? navbarKeys,
   }) {
     List<TargetFocus> targets = [];
@@ -61,7 +63,19 @@ class TutorialHelper {
         "assets/cavalluccio.png"
     ));
 
-    // 2. Mappa
+    // 2. Info Emergenza Attiva
+    if (keyEmergencyInfo != null) {
+      targets.add(_buildTarget(
+        identify: "emergency_info",
+        keyTarget: keyEmergencyInfo,
+        text: "Qui vedi i dettagli dell'emergenza più vicina a te, inclusi tipo, dati e distanza",
+        imagePath: "assets/cavalluccio.png",
+        alignText: ContentAlign.bottom,
+        radius: 15,
+      ));
+    }
+
+    // 3. Mappa
     targets.add(_buildTarget(
       identify: "map",
       keyTarget: keyMap,
@@ -70,7 +84,7 @@ class TutorialHelper {
       alignText: ContentAlign.bottom,
     ));
 
-    // 3. Contatti
+    // 4. Contatti
     targets.add(_buildTarget(
       identify: "contacts",
       keyTarget: keyContacts,
@@ -79,7 +93,7 @@ class TutorialHelper {
       alignText: ContentAlign.top,
     ));
 
-    // 4. SOS
+    // 5. SOS
     targets.add(_buildTarget(
       identify: "sos",
       keyTarget: keySos,
@@ -89,10 +103,81 @@ class TutorialHelper {
       shape: ShapeLightFocus.Circle,
     ));
 
+    // 6. Tab Home (Indice 0)
+    if (navbarKeys != null && navbarKeys.isNotEmpty) {
+      targets.add(_buildTarget(
+        identify: "nav_home",
+        keyTarget: navbarKeys[0],
+        text: "Cliccando qui, ritornerai alla schermata home, quella dove stiamo ora",
+        imagePath: "assets/cavalluccio.png",
+        alignText: ContentAlign.top,
+        shape: ShapeLightFocus.Circle,
+        radius: 30,
+      ));
+    }
+
+    // 7. Tab Report (Indice 1)
+    if (navbarKeys != null && navbarKeys.length > 1) {
+      targets.add(_buildTarget(
+        identify: "nav_report",
+        keyTarget: navbarKeys[1],
+        text: "Qui puoi creare una sagnalazione specifica scegliendone posizione, tipologia, eventuale descrizione e spuntando la casellina se hai bisogno d'aiuto!",
+        imagePath: "assets/cavalluccio.png",
+        alignText: ContentAlign.top,
+        shape: ShapeLightFocus.Circle,
+        radius: 30,
+      ));
+    }
+
+    // 8. Tab Mappa (Indice 2)
+    if (navbarKeys != null && navbarKeys.length > 2) {
+      targets.add(_buildTarget(
+        identify: "nav_map",
+        keyTarget: navbarKeys[2],
+        text: "Da qui puoi accedere alla mappa a schermo intero",
+        imagePath: "assets/cavalluccio.png",
+        alignText: ContentAlign.top,
+        shape: ShapeLightFocus.Circle,
+        radius: 30,
+      ));
+    }
+
+    // 9. Tab Avvisi (Indice 3)
+    if (navbarKeys != null && navbarKeys.length > 3) {
+      targets.add(_buildTarget(
+        identify: "nav_alerts",
+        keyTarget: navbarKeys[3],
+        text: "Controlla qui le notifiche sulle emergenze attive, così da non perderne mai una",
+        imagePath: "assets/cavalluccio.png",
+        alignText: ContentAlign.top,
+        shape: ShapeLightFocus.Circle,
+        radius: 30,
+      ));
+    }
+
+    // 10. Tab Impostazioni (Indice 4)
+    if (navbarKeys != null && navbarKeys.length > 4) {
+      targets.add(_buildTarget(
+        identify: "nav_settings",
+        keyTarget: navbarKeys[4],
+        text: "Questo è un collegamento per la pagina delle impostazioni del profilo",
+        imagePath: "assets/cavalluccio.png",
+        alignText: ContentAlign.top,
+        shape: ShapeLightFocus.Circle,
+        radius: 30,
+      ));
+    }
+
+    // 11. Outro Utente
+    targets.add(_buildWelcomeTarget(screenSize,
+        "Detto ciò, buona giornata e ricorda: siamo sempre a tua disposizione! Come dice il nostro motto: uniti nell'emergenza, più sicuri insieme!",
+        "assets/cavalluccio.png"
+    ));
+
     return targets;
   }
 
-  // --- LISTA TARGET SOCCORRITORE (Nuova) ---
+  // Lista target soccorritore
   static List<TargetFocus> _createRescuerTargets({
     required Size screenSize,
     required GlobalKey keyMap,
@@ -101,19 +186,19 @@ class TutorialHelper {
   }) {
     List<TargetFocus> targets = [];
 
-    // 1. Intro Soccorritore (Tono più professionale)
+    // 1. Intro Soccorritore
     targets.add(_buildWelcomeTarget(screenSize,
         "Ciao Collega!\nSono qui per aiutarti a gestire gli interventi in modo rapido ed efficiente.",
-        "assets/cavalluccio.png" // Magari qui metti Neptie con l'elmetto se ce l'hai
+        "assets/cavalluccioSoccorritore.png"
     ));
 
-    // 2. Info Emergenza Attiva (Il box blu in alto)
+    // 2. Info Emergenza Attiva
     if (keyEmergencyInfo != null) {
       targets.add(_buildTarget(
         identify: "emergency_info",
         keyTarget: keyEmergencyInfo,
         text: "Qui vedi i dettagli dell'intervento assegnato: tipo, indirizzo e distanza.",
-        imagePath: "assets/cavalluccio.png",
+        imagePath: "assets/cavalluccioSoccorritore.png",
         alignText: ContentAlign.bottom,
         radius: 15,
       ));
@@ -134,25 +219,24 @@ class TutorialHelper {
         enableOverlayTab: true,
         contents: [
           TargetContent(
-            // 1. Usiamo 'custom' per sganciarci dalla posizione della mappa
+            // Qui si usa custom per sganciare il focus dalla mappa e piazzare
+            // il cavalluccio a centro schermo, altrimenti uscirebbe fuori
             align: ContentAlign.custom,
-            // 2. Definiamo un'area che copre tutto lo schermo
             customPosition: CustomTargetContentPosition(
                 top: 0,
                 left: 0,
                 right: 0,
                 bottom: 0
             ),
-            // 3. Nel builder usiamo un Container centrato
             builder: (context, controller) {
               return Container(
                 width: screenSize.width,
                 height: screenSize.height,
-                alignment: Alignment.center, // <-- MAGIA: Centra tutto sopra la mappa
+                alignment: Alignment.center,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Mascotte
+                    // Cavalluccio
                     SizedBox(
                         height: 180,
                         child: Image.asset(imagePath)
@@ -186,44 +270,89 @@ class TutorialHelper {
       );
     }
 
-    // 3. Mappa Operativa
+    // 3. Mappa
     targets.add(buildMapTarget(
       keyTarget: keyMap,
       screenSize: screenSize,
       text: "La mappa mostra la tua posizione, il target e i colleghi vicini.",
-      imagePath: "assets/cavalluccio.png",
+      imagePath: "assets/cavalluccioSoccorritore.png",
     ));
 
-    // 4. Esempio Navbar Specifica: Tab Report (Indice 1)
-    if (navbarKeys != null && navbarKeys.length > 1) {
+    // 4. Tab Home (Indice 0)
+    if (navbarKeys != null && navbarKeys.isNotEmpty) {
       targets.add(_buildTarget(
-        identify: "nav_report",
-        keyTarget: navbarKeys[1], // Puntiamo al secondo elemento (Report)
-        text: "A fine intervento, usa la sezione Report per compilare il verbale.",
-        imagePath: "assets/cavalluccio.png",
-        alignText: ContentAlign.top,
-        shape: ShapeLightFocus.Circle, // Spesso le icone sono tonde o quadrate stondate
-        radius: 30, // Raggio largo per prendere l'icona
-      ));
-    }
-
-    // 5. Esempio Navbar Specifica: Tab Avvisi (Indice 3)
-    if (navbarKeys != null && navbarKeys.length > 3) {
-      targets.add(_buildTarget(
-        identify: "nav_alerts",
-        keyTarget: navbarKeys[3],
-        text: "Controlla qui le notifiche dalla centrale operativa.",
-        imagePath: "assets/cavalluccio.png",
+        identify: "nav_home",
+        keyTarget: navbarKeys[0],
+        text: "Cliccando qui, ritornerai alla schermata home, quella dove stiamo ora",
+        imagePath: "assets/cavalluccioSoccorritore.png",
         alignText: ContentAlign.top,
         shape: ShapeLightFocus.Circle,
         radius: 30,
       ));
     }
+
+    // 5. Tab Report (Indice 1)
+    if (navbarKeys != null && navbarKeys.length > 1) {
+      targets.add(_buildTarget(
+        identify: "nav_report",
+        keyTarget: navbarKeys[1],
+        text: "Qui puoi creare una sagnalazione specifica scegliendone posizione, tipologia e eventuale descrizione",
+        imagePath: "assets/cavalluccioSoccorritore.png",
+        alignText: ContentAlign.top,
+        shape: ShapeLightFocus.Circle,
+        radius: 30,
+      ));
+    }
+
+    // 6. Tab Mappa (Indice 2)
+    if (navbarKeys != null && navbarKeys.length > 2) {
+      targets.add(_buildTarget(
+        identify: "nav_map",
+        keyTarget: navbarKeys[2],
+        text: "Da qui puoi accedere alla mappa a schermo intero",
+        imagePath: "assets/cavalluccioSoccorritore.png",
+        alignText: ContentAlign.top,
+        shape: ShapeLightFocus.Circle,
+        radius: 30,
+      ));
+    }
+
+    // 7. Tab Avvisi (Indice 3)
+    if (navbarKeys != null && navbarKeys.length > 3) {
+      targets.add(_buildTarget(
+        identify: "nav_alerts",
+        keyTarget: navbarKeys[3],
+        text: "Controlla qui le notifiche sulle emergenze attive, così da non perderne mai una",
+        imagePath: "assets/cavalluccioSoccorritore.png",
+        alignText: ContentAlign.top,
+        shape: ShapeLightFocus.Circle,
+        radius: 30,
+      ));
+    }
+
+    // 8. Tab Impostazioni (Indice 4)
+    if (navbarKeys != null && navbarKeys.length > 4) {
+      targets.add(_buildTarget(
+        identify: "nav_settings",
+        keyTarget: navbarKeys[4],
+        text: "Questo è un collegamento per la pagina delle impostazioni del profilo",
+        imagePath: "assets/cavalluccioSoccorritore.png",
+        alignText: ContentAlign.top,
+        shape: ShapeLightFocus.Circle,
+        radius: 30,
+      ));
+    }
+
+    // 9. Outro Soccorritore
+    targets.add(_buildWelcomeTarget(screenSize,
+        "Detto ciò, buon lavoro e ricorda: contiamo su di te! Come dice il nostro motto: uniti nell'emergenza, più sicuri insieme!",
+        "assets/cavalluccioSoccorritore.png"
+    ));
+
     return targets;
   }
 
-  // --- HELPER CONDIVISI ---
-
+  // Metodo per intro e outro
   static TargetFocus _buildWelcomeTarget(Size screenSize, String text, String imagePath) {
     return TargetFocus(
       identify: "intro",
@@ -265,6 +394,7 @@ class TutorialHelper {
     );
   }
 
+  //Metodo per centrare il focus sull'elemento attuale
   static TargetFocus _buildTarget({
     required String identify,
     required GlobalKey keyTarget,
@@ -310,7 +440,7 @@ class TutorialHelper {
   }
 }
 
-// Piccolo painter per fare la punta della nuvoletta (Opzionale)
+// Painter per fare la punta della nuvoletta
 class TrianglePainter extends CustomPainter {
   final Color strokeColor;
   final PaintingStyle paintingStyle;

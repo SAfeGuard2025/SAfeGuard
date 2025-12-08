@@ -24,11 +24,11 @@ class _HomeScreenState extends State<HomeScreen> {
   // Lista dei widget/schermate visualizzati
   List<Widget> get _pages => [
     HomePageContent(
-      navbarKeys: _navbarItemKeys, // <--- PASSIAMO LA CHIAVE QUI
+      navbarKeys: _navbarItemKeys, //Passaggio della chiave per gli elementi della navbar
     ), // 0. HOME
     const ReportsScreen(), // 1. REPORT
     const MapScreen(), // 2. MAPPA
-    const EmergencyGridPage(),
+    const EmergencyGridPage(),  // 3. EMERGENZE ATTIVE
     const ProfileSettingsScreen(), // 4. IMPOSTAZIONI
   ];
 
