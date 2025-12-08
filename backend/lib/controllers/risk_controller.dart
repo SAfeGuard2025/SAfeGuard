@@ -71,6 +71,12 @@ class RiskController {
       //final Map<String, dynamic> payload = jsonDecode(body);
       print('📤 Dart invia dati al server AI...');
 
+      if (body.length > 50) {
+        print('DART PROXY: IN USCITA (SNIPPET): ${body.substring(0, 50)}...');
+      } else {
+        _printFormattedJsonLog(payload);
+      }
+
       // Chiamata asincrona al microservizio Python
       final aiResponse = await http.post(
         Uri.parse(_aiServiceUrl),
