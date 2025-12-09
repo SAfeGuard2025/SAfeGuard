@@ -29,10 +29,8 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
   //FUNZIONE PER GENERARE IL PDF DEL LOG COMPLETO
   Future<void> _generateFullLogPdf(BuildContext context, List<Map<String, dynamic>> emergencies) async {
     final pdf = pw.Document();
-
     final logoImage = await imageFromAssetBundle('assets/logo.png');
     final DateTime now = DateTime.now();
-
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
@@ -100,7 +98,6 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
         },
       ),
     );
-
     // Apre l'anteprima di stampa/salvataggio
     await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => pdf.save());
   }
@@ -108,13 +105,40 @@ class _EmergencyGridPageState extends State<EmergencyGridPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isRescuer = context.watch<AuthProvider>().isRescuer;
+    //Recupero dati utente per i filtri
+    final authProvider = context.watch<AuthProvider>();
+    final isRescuer = authProvider.isRescuer;
+    // ID utente corrente
+    final currentUserId = authProvider.currentUser?.id?.toString();
+
     final reportProvider = context.watch<ReportProvider>();
 
-    // FILTRO: Nascondi le segnalazioni "SAFE" dalla lista delle emergenze attive
-    final activeEmergencies = reportProvider.emergencies
-        .where((e) => e['type'] != 'SAFE')
-        .toList();
+    //LOGICA DI FILTRAGGIO AGGIORNATA
+    final activeEmergencies = reportProvider.emergencies.where((e) {
+      final String type = e['type']?.toString() ?? '';
+
+      //Nascondi sempre "SAFE" (Stato "Sto bene")
+      if (type == 'SAFE') return false;
+
+      //Se sei un soccorritore, vedi tutto il resto
+      if (isRescuer) return true;
+
+      //Se sei un CITTADINO:
+      // Recupera la gravità
+      final int severity = (e['severity'] is int) ? e['severity'] : 1;
+
+      final bool isPrivateSOS = type.contains('SOS') || severity >= 5;
+
+      if (isPrivateSOS) {
+        // Recupera l'ID del proprietario del report
+        final String? ownerId = e['user_id']?.toString() ?? e['rescuer_id']?.toString();
+
+        return ownerId == currentUserId;
+      }
+
+      // Mostra le altre emergenze (Arancioni/Pubbliche)
+      return true;
+    }).toList();
 
     return Scaffold(
       backgroundColor: !isRescuer

@@ -6,40 +6,36 @@ import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/risk_provider.dart';
+// Import necessario per accedere all'utente corrente
+import 'package:frontend/providers/auth_provider.dart';
 
 class RealtimeMap extends StatefulWidget {
   // Parametri per la modalità selezione
   final bool isSelectionMode;
   final Function(LatLng)? onLocationPicked;
-
   const RealtimeMap({
     super.key,
     this.isSelectionMode = false, // Default false: comportamento normale
     this.onLocationPicked,
   });
-
   @override
   State<RealtimeMap> createState() => _RealtimeMapState();
 }
 
 class _RealtimeMapState extends State<RealtimeMap> {
   final MapController _mapController = MapController();
-
   // Riferimento alla collezione del database
   final CollectionReference _firestore = FirebaseFirestore.instance.collection(
     'active_emergencies',
   );
-
   final CollectionReference _safePointsRef = FirebaseFirestore.instance.collection('safe_points');
   final CollectionReference _hospitalsRef = FirebaseFirestore.instance.collection('hospitals');
-
   // Coordinate di default (Salerno) usate finché il GPS non risponde
   LatLng _center = const LatLng(40.6824, 14.7681);
   final double _minZoom = 5.0;
   final double _maxZoom = 18.0;
 
   LatLng? _selectedPoint;
-
   // All'avvio, controlla i permessi GPS e inizializziamo la posizione
   @override
   void initState() {
@@ -134,6 +130,12 @@ class _RealtimeMapState extends State<RealtimeMap> {
   Widget build(BuildContext context) {
     // Ottieni gli hotspot dal provider
     final riskHotspots = context.watch<RiskProvider>().hotspots;
+
+    //Ottieni dati utente corrente per il filtro
+    final authProvider = context.watch<AuthProvider>();
+    final isRescuer = authProvider.isRescuer;
+    final currentUserId = authProvider.currentUser?.id?.toString();
+
     return Stack(
       children: [
         FlutterMap(
@@ -298,6 +300,9 @@ class _RealtimeMapState extends State<RealtimeMap> {
                   final String type = data['type']?.toString() ?? 'Generico';
                   final int severity = (data['severity'] is int) ? data['severity'] : 1;
 
+                  // Recupero ID proprietario (Supporta sia SOS che Report)
+                  final String? ownerId = data['user_id']?.toString() ?? data['rescuer_id']?.toString();
+
                   // Recupero Timestamp per calcolare quanti secondi passano
                   DateTime? timestamp;
                   if (data['timestamp'] != null) {
@@ -313,15 +318,30 @@ class _RealtimeMapState extends State<RealtimeMap> {
                     }
                   }
 
-                  // --- LOGICA DI VISUALIZZAZIONE ---
+                  // --- LOGICA DI VISUALIZZAZIONE E FILTRO ---
                   Widget markerWidget;
+
+                  bool isCritical = false;
 
                   if (type == 'SAFE') {
                     markerWidget = _buildDotMarker(Colors.green, pulse: false);
+                    isCritical = true;
                   } else if (type.contains('SOS') || severity >= 5) {
                     markerWidget = _buildDotMarker(Colors.red, pulse: true);
+                    isCritical = true;
                   } else {
                     markerWidget = _buildDotMarker(Colors.orange, pulse: false);
+                    isCritical = false;
+                  }
+                  // Se l'utente NON è un soccorritore:
+                  if (!isRescuer) {
+                    if (isCritical) {
+                      // Controlla se è il proprietario
+                      bool isMine = (currentUserId != null && ownerId == currentUserId);
+                      if (!isMine) {
+                        continue;
+                      }
+                    }
                   }
 
                   markers.add(
