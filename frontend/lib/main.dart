@@ -14,6 +14,9 @@ import 'package:frontend/providers/notification_provider.dart';
 import 'package:frontend/providers/report_provider.dart';
 import 'package:frontend/providers/risk_provider.dart';
 import 'package:frontend/ui/screens/auth/loading_screen.dart';
+import 'package:frontend/ui/screens/home/safe_check_screen.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -70,9 +73,20 @@ class _SAfeGuardState extends State<SAfeGuard> {
   }
 
   void _handleMessage(RemoteMessage message) {
-    if (message.data['type'] == 'emergency_alert') {
-      // Naviga alla schermata mappa o lista emergenze
-      debugPrint("Navigazione verso Emergenze richiesta!");
+    // Controlla se la notifica è di tipo "emergency_alert" o "safe_check"
+    if (message.data['type'] == 'emergency_alert' || message.data['type'] == 'safe_check') {
+
+      // Estrai i dati dal payload della notifica (se presenti)
+      final String title = message.notification?.title ?? "ALLERTA DI SICUREZZA";
+
+      // Usa la navigatorKey per spingere la schermata
+      navigatorKey.currentState?.push(
+        MaterialPageRoute(
+          builder: (_) => SafeCheckScreen(
+            title: title,
+          ),
+        ),
+      );
     }
   }
 
@@ -81,6 +95,7 @@ class _SAfeGuardState extends State<SAfeGuard> {
     return MaterialApp(
       title: 'SafeGuard',
       debugShowCheckedModeBanner: false,
+      navigatorKey: navigatorKey,
       home: const LoadingScreen(),
     );
   }

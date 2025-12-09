@@ -2,7 +2,10 @@ import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:frontend/main.dart';
+import 'package:frontend/ui/screens/home/safe_check_screen.dart';
 
 // Handler top-level per i messaggi in background
 @pragma('vm:entry-point')
@@ -108,6 +111,25 @@ class NotificationHandler {
           ),
         ),
         payload: jsonEncode(message.data),
+      );
+    }
+
+    //LOGICA AUTOMATICA: APERTURA PAGINA
+    // Controlla se è un alert critico
+    if (message.data['type'] == 'emergency_alert' || message.data['type'] == 'safe_check') {
+
+      debugPrint("🚨 ALLERTA RILEVATA: Apro SafeCheckScreen automaticamente...");
+
+      // Estrae i dati dal messaggio (se il backend li manda, altrimenti usa default)
+      final String title = message.notification?.title ?? "ALLERTA DI SICUREZZA";
+
+      // Usa la navigatorKey per "spingere" la pagina sopra a tutto
+      navigatorKey.currentState?.push(
+        MaterialPageRoute(
+          builder: (_) => SafeCheckScreen(
+            title: title,
+          ),
+        ),
       );
     }
   }

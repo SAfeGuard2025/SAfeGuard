@@ -60,6 +60,7 @@ class ReportService {
           title: "ALLERTA CITTADINO: $type",
           body: description ?? "Richiesta di intervento inviata da un cittadino.",
           tokens: tokens,
+          type: 'citizen_report',
         );
       }
     } catch (e) {
@@ -78,6 +79,7 @@ class ReportService {
           title: "AVVISO PROTEZIONE CIVILE: $type",
           body: description ?? "Comunicazione ufficiale di emergenza.",
           tokens: tokens,
+          type: 'emergency_alert',
         );
       }
     } catch (e) {

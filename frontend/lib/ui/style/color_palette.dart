@@ -78,4 +78,7 @@ class ColorPalette {
 
   /// Ciano per barre di caricamento.
   static const Color progressCyan = Color(0xFF00B0FF);
+
+  /// Verde per pulsanti
+  static const Color safeGreen = Color(0xFF4ADE48);
 }
