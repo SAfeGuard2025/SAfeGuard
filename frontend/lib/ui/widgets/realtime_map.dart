@@ -129,7 +129,9 @@ class _RealtimeMapState extends State<RealtimeMap> {
   @override
   Widget build(BuildContext context) {
     // Ottieni gli hotspot dal provider
-    final riskHotspots = context.watch<RiskProvider>().hotspots;
+    final riskProvider = context.watch<RiskProvider>();
+    final riskHotspots = riskProvider.hotspots;
+    final areHotspotsVisible = riskProvider.showHotspots;
 
     //Ottieni dati utente corrente per il filtro
     final authProvider = context.watch<AuthProvider>();
@@ -158,6 +160,7 @@ class _RealtimeMapState extends State<RealtimeMap> {
             ),
 
             //NUOVO LAYER HOTSPOTS AI
+            if (areHotspotsVisible)
             CircleLayer(
               circles: riskHotspots.map((hotspot) {
                 return CircleMarker(
