@@ -23,11 +23,11 @@ class _EmergencyDetailDialogState extends State<EmergencyDetailDialog> {
   }
 
   // Ricerca dei dati del cittadino
-  Future<DocumentSnapshot?> _fetchCitizenProfile(String? userId) async {
-    if (userId == null || userId.isEmpty) return null;
+  Future<DocumentSnapshot?> _fetchCitizenProfile(int? userId) async {
+    if (userId == null) return null;
 
     try {
-      var doc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+      var doc = await FirebaseFirestore.instance.collection('users').doc(userId.toString()).get();
       if (doc.exists) return doc;
     } catch (e) {
       debugPrint("Errore fetch cittadino: $e");
@@ -179,66 +179,36 @@ class _EmergencyDetailDialogState extends State<EmergencyDetailDialog> {
   // 2. Scheda del cittadino
   Widget _buildCitizenPage() {
     return FutureBuilder<DocumentSnapshot?>(
-      future: _fetchCitizenProfile(widget.item['user_id']),
+      future: _fetchCitizenProfile(widget.item['rescuer_id']),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator(color: Colors.white));
         }
-        // Caso soccorritore
+        // Caso di errore
         if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
-          return SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 20),
-                  const CircleAvatar(
-                    radius: 40,
-                    backgroundColor: Colors.white10,
-                    child: Icon(Icons.security, size: 40, color: Colors.white70),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    "Segnalazione Operatore",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                  const SizedBox(height: 20),
-
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white10,
-                      borderRadius: BorderRadius.circular(15),
-                      border: Border.all(color: Colors.white24),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          "Questa segnalazione è stata creata da un Soccorritore o da un operatore del sistema.",
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          "Non sono disponibili dati anagrafici pubblici per questo utente.",
-                          style: TextStyle(color: Colors.white70, fontSize: 14, fontStyle: FontStyle.italic),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 40),
-
-                ],
-              ),
+          return Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white10,
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: Colors.white24),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  "Non sono disponibili dati anagrafici pubblici per questo utente.",
+                  style: TextStyle(color: Colors.white70, fontSize: 14, fontStyle: FontStyle.italic),
+                ),
+              ],
             ),
           );
         }
 
-        // Caso cittadino
+        // Caso di successo
         final userData = snapshot.data!.data() as Map<String, dynamic>;
+        bool isRescuer = userData['isSoccorritore'];
 
         return SingleChildScrollView(
           child: Padding(
@@ -246,7 +216,7 @@ class _EmergencyDetailDialogState extends State<EmergencyDetailDialog> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text("Dettagli Cittadino", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                Text(isRescuer ? "Dettagli soccorritore" : "Dettagli Cittadino", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
                 const SizedBox(height: 20),
 
                 Container(
@@ -260,19 +230,23 @@ class _EmergencyDetailDialogState extends State<EmergencyDetailDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildInfoRow("Nome:", "${userData['nome'] ?? userData['name'] ?? 'N/D'}"),
-                      _buildInfoRow("Cognome:", "${userData['cognome'] ?? userData['surname'] ?? 'N/D'}"),
-                      _buildInfoRow("Telefono:", "${userData['telefono'] ?? userData['phone'] ?? 'N/D'}"),
+                      _buildInfoRow("Nome:", "${userData['nome'] ?? 'N/D'}"),
+                      _buildInfoRow("Cognome:", "${userData['cognome'] ?? 'N/D'}"),
+                      if(!isRescuer)
+                        _buildInfoRow("Telefono:", "${userData['telefono'] ?? 'N/D'}"),
                       if (userData['dataDiNascita'] != null)
                         _buildInfoRow("Età:", _calculateAge(userData['dataDiNascita'])),
 
-                      const Divider(color: Colors.white24, height: 20),
-                      const Text("Note Mediche / Allergie:", style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 14)),
-                      const SizedBox(height: 5),
-                      Text(
-                        _formatMedicalNotes(userData['medical_notes'] ?? userData['allergie']),
-                        style: const TextStyle(color: Colors.white, fontSize: 16, fontStyle: FontStyle.italic),
-                      ),
+
+                      if (!isRescuer) ...{
+                        const Divider(color: Colors.white24, height: 20),
+                        const Text("Note Mediche / Allergie:", style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 14)),
+                        const SizedBox(height: 5),
+                        Text(
+                          _formatMedicalNotes(userData['allergie']),
+                          style: const TextStyle(color: Colors.white, fontSize: 16, fontStyle: FontStyle.italic),
+                        ),
+                      }
                     ],
                   ),
                 ),
