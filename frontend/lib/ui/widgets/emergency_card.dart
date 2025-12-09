@@ -129,6 +129,7 @@ class EmergencyCard extends StatelessWidget {
                 ),
                 Row(
                   children: [
+                    if (isRescuer) ...[
                     InkWell(
                       onTap: () => _generatePdf(context),
                       borderRadius: BorderRadius.circular(20),
@@ -167,6 +168,7 @@ class EmergencyCard extends StatelessWidget {
                           ),
                         ),
                       ),
+                    ],
                   ],
                 ),
               ],
