@@ -143,8 +143,6 @@ class UserRepository {
 
         return true;
       } catch (e) {
-        print("Errore durante l'archiviazione o eliminazione utente: $e");
-        // Se fallisce l'archiviazione, decidiamo di non eliminare l'utente per sicurezza,
         return false;
       }
     }
@@ -230,21 +228,19 @@ class UserRepository {
   Future<List<String>> getCitizenTokens({int? excludedId}) async {
     try {
       final users = await _usersCollection.where('isSoccorritore', isEqualTo: false).get();
-
       List<String> validTokens = [];
+      final String excludeStr = excludedId?.toString() ?? "";
+
       for (var doc in users) {
-        // 1. Filtro mittente per evitare di inviare la notifica a chi la manda.
-        if (excludedId != null && doc.id == excludedId.toString()) {
+        // Confronto robusto (Stringa vs Stringa)
+        if (excludeStr.isNotEmpty && doc.id == excludeStr) {
           continue;
         }
 
         final data = doc.map;
         final String? token = data['fcmToken'];
-
         if (token == null || token.isEmpty) continue;
 
-        // 2. Controlla le preferenze utente per le notifiche push.
-        // Si assume che siano abilitate per default.
         bool isPushEnabled = true;
         if (data['notifiche'] != null && data['notifiche'] is Map) {
           final prefs = data['notifiche'] as Map<String, dynamic>;
@@ -266,17 +262,18 @@ class UserRepository {
   Future<List<String>> getRescuerTokens({int? excludedId}) async { // <--- Aggiungi parametro
     try {
       final users = await _usersCollection.where('isSoccorritore', isEqualTo: true).get();
-
       List<String> validTokens = [];
+
+      final String excludeStr = excludedId?.toString() ?? "";
+
       for (var doc in users) {
-        // Filtro mittente per evitare di inviare la notifica a chi la manda.
-        if (excludedId != null && doc.id == excludedId.toString()) {
+        // Confronto robusto
+        if (excludeStr.isNotEmpty && doc.id == excludeStr) {
           continue;
         }
 
         final data = doc.map;
         final String? token = data['fcmToken'];
-
         if (token != null && token.isNotEmpty) {
           validTokens.add(token);
         }
@@ -287,7 +284,4 @@ class UserRepository {
       return [];
     }
   }
-
 }
-
-
