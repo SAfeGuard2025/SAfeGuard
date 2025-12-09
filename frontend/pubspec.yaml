@@ -33,6 +33,7 @@ dependencies:
   geolocator: ^13.0.0
   connectivity_plus: ^6.0.0  # Per sapere se c'è internet
   url_launcher: ^6.2.0
+  tutorial_coach_mark: ^1.2.10
 
   flutter_svg: ^2.2.3 # Aggiunto per supporto SVG
   flutter_native_splash: ^2.4.7

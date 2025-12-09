@@ -56,6 +56,9 @@ class AuthProvider extends ChangeNotifier {
   int _secondsRemaining = 30;
   Timer? _timer;
 
+  //Variabile per far funzionare il tutorial
+  bool _newlyRegistered = false;
+
   // Getters che espongono lo stato alla UI
   bool get isLoading => _isLoading;
   bool get isRescuer => _isRescuer;
@@ -63,6 +66,7 @@ class AuthProvider extends ChangeNotifier {
   int get secondsRemaining => _secondsRemaining;
   UtenteGenerico? get currentUser => _currentUser;
   bool get isLogged => _authToken != null;
+  bool get isNewlyRegistered => _newlyRegistered;
   String? get token => _authToken;
 
   // Tenta il login automatico se trova i dati di sessione salvati
@@ -545,5 +549,19 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       print("Errore inizializzazione notifiche: $e");
     }
+  }
+
+  //Metodo per far funzionare il tutorial
+  // Chiamato dopo la registrazione avvenuta con successo
+  void setRegistered() {
+    _newlyRegistered = true;
+    notifyListeners();
+  }
+
+  //Metodo per far funzionare il tutorial
+  // Chiamato alla fine del tutorial
+  void completeOnboarding() {
+    _newlyRegistered = false;
+    notifyListeners();
   }
 }

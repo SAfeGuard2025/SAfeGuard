@@ -26,10 +26,20 @@ class _HomeScreenState extends State<HomeScreen> {
   final UserLocationService _locationService = UserLocationService();
 
   // Lista dei widget/schermate visualizzati
-  final List<Widget> _pages = [
-    const HomePageContent(), // 0. HOME
+  List<Widget> get _pages => [
+    HomePageContent(
+      navbarKeys: _navbarItemKeys, //Passaggio della chiave per gli elementi della navbar
+    ), // 0. HOME
     const ReportsScreen(), // 1. REPORT
     const MapScreen(), // 2. MAPPA
+    const EmergencyGridPage(),  // 3. EMERGENZE ATTIVE
+    const ProfileSettingsScreen(), // 4. IMPOSTAZIONI
+  ];
+
+  // Chiave per visualizzare la navBar nel tutorial
+  final GlobalKey _navbarKey = GlobalKey();
+  // Lista di 5 chiavi, una per ogni tab della navbar
+  final List<GlobalKey> _navbarItemKeys = List.generate(5, (_) => GlobalKey());
     const EmergencyGridPage(), // 3. EMERGENZE
     const ProfileSettingsScreen(), // 4. IMPOSTAZIONI
   ];
@@ -93,10 +103,17 @@ class _HomeScreenState extends State<HomeScreen> {
         return Scaffold(
           backgroundColor: backgroundColor,
           // Mostra la BottomNavBar solo se NON siamo su desktop
+          // e le aggiungiamo una chiave per il tutorial
           bottomNavigationBar: isDesktop
               ? null
-              : CustomBottomNavBar(onIconTapped: _onTabChange),
-
+              : Container(
+            key: _navbarKey,
+            child: CustomBottomNavBar(
+            onIconTapped: _onTabChange,
+            //Passa le chiavi dei singoli elementi della navbar
+            itemKeys: _navbarItemKeys,
+          ),
+          ),
           // Usa una Row per affiancare la Sidebar (se c'è) al contenuto principale
           body: Row(
             children: [

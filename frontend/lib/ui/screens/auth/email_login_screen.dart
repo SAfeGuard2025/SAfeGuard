@@ -170,6 +170,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                               );
 
                               if (result == 'success') {
+                                context.read<AuthProvider>().setRegistered();
                                 navigator.pushAndRemoveUntil(
                                   MaterialPageRoute(
                                     builder: (context) => const HomeScreen(),
