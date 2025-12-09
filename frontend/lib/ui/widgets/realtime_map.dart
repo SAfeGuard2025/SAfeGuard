@@ -4,45 +4,48 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:frontend/providers/risk_provider.dart';
+// Import necessario per accedere all'utente corrente
+import 'package:frontend/providers/auth_provider.dart';
 
 class RealtimeMap extends StatefulWidget {
   // Parametri per la modalità selezione
   final bool isSelectionMode;
   final Function(LatLng)? onLocationPicked;
-
   const RealtimeMap({
     super.key,
     this.isSelectionMode = false, // Default false: comportamento normale
     this.onLocationPicked,
   });
-
   @override
   State<RealtimeMap> createState() => _RealtimeMapState();
 }
 
 class _RealtimeMapState extends State<RealtimeMap> {
   final MapController _mapController = MapController();
-
   // Riferimento alla collezione del database
   final CollectionReference _firestore = FirebaseFirestore.instance.collection(
     'active_emergencies',
   );
-
   final CollectionReference _safePointsRef = FirebaseFirestore.instance.collection('safe_points');
   final CollectionReference _hospitalsRef = FirebaseFirestore.instance.collection('hospitals');
-
   // Coordinate di default (Salerno) usate finché il GPS non risponde
   LatLng _center = const LatLng(40.6824, 14.7681);
   final double _minZoom = 5.0;
   final double _maxZoom = 18.0;
 
   LatLng? _selectedPoint;
-
   // All'avvio, controlla i permessi GPS e inizializziamo la posizione
   @override
   void initState() {
     super.initState();
     _initLocationService();
+
+    // Carica i dati di rischio all'avvio della mappa
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<RiskProvider>(context, listen: false).loadHotspots();
+    });
   }
 
   @override
@@ -72,7 +75,9 @@ class _RealtimeMapState extends State<RealtimeMap> {
             setState(() {
               _center = LatLng(position.latitude, position.longitude);
             });
-            _mapController.move(_center, 15.0);
+            if (!widget.isSelectionMode) {
+              _mapController.move(_center, 15.0);
+            }
           }
         } catch (e) {
           debugPrint("Errore posizione: $e");
@@ -93,8 +98,46 @@ class _RealtimeMapState extends State<RealtimeMap> {
     }
   }
 
+  // Helper per costruire il pallino colorato (sostituisce il pin)
+  Widget _buildDotMarker(Color color, {bool pulse = false}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.6),
+            blurRadius: pulse ? 15 : 6,
+            spreadRadius: pulse ? 5 : 1,
+          )
+        ],
+      ),
+      child: Center(
+        child: Container(
+          width: 8,
+          height: 8,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Ottieni gli hotspot dal provider
+    final riskProvider = context.watch<RiskProvider>();
+    final riskHotspots = riskProvider.hotspots;
+    final areHotspotsVisible = riskProvider.showHotspots;
+
+    //Ottieni dati utente corrente per il filtro
+    final authProvider = context.watch<AuthProvider>();
+    final isRescuer = authProvider.isRescuer;
+    final currentUserId = authProvider.currentUser?.id?.toString();
+
     return Stack(
       children: [
         FlutterMap(
@@ -116,16 +159,28 @@ class _RealtimeMapState extends State<RealtimeMap> {
               userAgentPackageName: 'com.safeguard.frontend',
             ),
 
+            //NUOVO LAYER HOTSPOTS AI
+            if (areHotspotsVisible)
+            CircleLayer(
+              circles: riskHotspots.map((hotspot) {
+                return CircleMarker(
+                  point: LatLng(hotspot.centerLat, hotspot.centerLng),
+                  color: Colors.red.withValues(alpha: 0.3),
+                  borderColor: Colors.red,
+                  borderStrokeWidth: 2,
+                  useRadiusInMeter: true,
+                  radius: hotspot.radiusKm * 1000, //Converte km in metri
+                );
+              }).toList(),
+            ),
+
             //STREAM BUILDER PER I PUNTI DI RACCOLTA
             StreamBuilder<QuerySnapshot>(
               stream: _safePointsRef.snapshots(),
               builder: (context, snapshot) {
-                // Se non ci sono dati o c'è un errore, restituisce un layer vuoto
                 if (!snapshot.hasData || snapshot.hasError) {
                   return const MarkerLayer(markers: []);
                 }
-
-                // Trasforma i documenti del DB in Marker
                 final markers = snapshot.data!.docs.map((doc) {
                   final data = doc.data() as Map<String, dynamic>;
                   final double lat = data['lat'];
@@ -171,12 +226,11 @@ class _RealtimeMapState extends State<RealtimeMap> {
                     ),
                   );
                 }).toList();
-
                 return MarkerLayer(markers: markers);
               },
             ),
 
-            // 2. LAYER OSPEDALI (HOSPITALS) - BLU [NUOVO]
+            // 2. LAYER OSPEDALI (HOSPITALS) - BLU
             StreamBuilder<QuerySnapshot>(
               stream: _hospitalsRef.snapshots(),
               builder: (context, snapshot) {
@@ -194,7 +248,6 @@ class _RealtimeMapState extends State<RealtimeMap> {
                     height: 50,
                     child: GestureDetector(
                       onTap: () {
-                        // Mostra nome ospedale
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text("🏥 Pronto Soccorso: $name"),
@@ -229,7 +282,6 @@ class _RealtimeMapState extends State<RealtimeMap> {
                     ),
                   );
                 }).toList();
-
                 return MarkerLayer(markers: markers);
               },
             ),
@@ -239,24 +291,79 @@ class _RealtimeMapState extends State<RealtimeMap> {
               stream: _firestore.snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) return const MarkerLayer(markers: []);
-                final List<Marker> markers = snapshot.data!.docs.map((doc) {
+
+                // Filtriamo e mappiamo i documenti
+                final List<Marker> markers = [];
+
+                for (var doc in snapshot.data!.docs) {
                   final data = doc.data() as Map<String, dynamic>;
-                  return Marker(
-                    point: LatLng(data['lat'] ?? 0, data['lng'] ?? 0),
-                    width: 50,
-                    height: 50,
-                    child: GestureDetector(
-                      onTap: () {
-                      },
-                      child: const Icon(
-                        Icons.location_on,
-                        size: 50,
-                        color: Colors.red,
-                        shadows: [Shadow(blurRadius: 10, color: Colors.black)],
+
+                  final double lat = (data['lat'] is num) ? (data['lat'] as num).toDouble() : 0.0;
+                  final double lng = (data['lng'] is num) ? (data['lng'] as num).toDouble() : 0.0;
+                  final String type = data['type']?.toString() ?? 'Generico';
+                  final int severity = (data['severity'] is int) ? data['severity'] : 1;
+
+                  // Recupero ID proprietario (Supporta sia SOS che Report)
+                  final String? ownerId = data['user_id']?.toString() ?? data['rescuer_id']?.toString();
+
+                  // Recupero Timestamp per calcolare quanti secondi passano
+                  DateTime? timestamp;
+                  if (data['timestamp'] != null) {
+                    timestamp = DateTime.tryParse(data['timestamp'].toString());
+                  }
+
+                  // LOGICA DI SCADENZA PER "STO BENE"
+                  if (timestamp != null) {
+                    final difference = DateTime.now().difference(timestamp).inSeconds;
+                    // Se il dato è più vecchio di 60 secondi, lo nascondiamo.
+                    if (difference > 60) {
+                      continue;
+                    }
+                  }
+
+                  // --- LOGICA DI VISUALIZZAZIONE E FILTRO ---
+                  Widget markerWidget;
+
+                  bool isCritical = false;
+
+                  if (type == 'SAFE') {
+                    markerWidget = _buildDotMarker(Colors.green, pulse: false);
+                    isCritical = true;
+                  } else if (type.contains('SOS') || severity >= 5) {
+                    markerWidget = _buildDotMarker(Colors.red, pulse: true);
+                    isCritical = true;
+                  } else {
+                    markerWidget = _buildDotMarker(Colors.orange, pulse: false);
+                    isCritical = false;
+                  }
+                  // Se l'utente NON è un soccorritore:
+                  if (!isRescuer) {
+                    if (isCritical) {
+                      // Controlla se è il proprietario
+                      bool isMine = (currentUserId != null && ownerId == currentUserId);
+                      if (!isMine) {
+                        continue;
+                      }
+                    }
+                  }
+
+                  markers.add(
+                    Marker(
+                      point: LatLng(lat, lng),
+                      width: 40,
+                      height: 40,
+                      child: GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("$type")),
+                          );
+                        },
+                        child: markerWidget,
                       ),
                     ),
                   );
-                }).toList();
+                }
+
                 return MarkerLayer(markers: markers);
               },
             ),

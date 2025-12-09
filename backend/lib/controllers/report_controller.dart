@@ -38,6 +38,7 @@ class ReportController {
       final String? description = data['description'];
       final double? lat = (data['lat'] as num?)?.toDouble();
       final double? lng = (data['lng'] as num?)?.toDouble();
+      final int severity = data['severity'] ?? 1;
 
       if (type == null || type.isEmpty) {
         return Response.badRequest(
@@ -54,6 +55,7 @@ class ReportController {
         description: description,
         lat: lat,
         lng: lng,
+        severity: severity,
       );
 
       return Response.ok(

@@ -15,6 +15,7 @@ import 'package:backend/controllers/report_controller.dart';
 import 'package:backend/controllers/emergency_controller.dart';
 
 import 'package:backend/controllers/resend_controller.dart';
+import 'package:backend/controllers/risk_controller.dart';
 
 void main() async {
   // 1. Configurazione ambiente
@@ -47,6 +48,9 @@ void main() async {
   final emergencyController = EmergencyController();
   final authGuard = AuthGuard();
 
+  final aiServiceUrl = env['AI_SERVICE_URL'] ?? 'http://127.0.0.1:8000/api/v1/analyze';
+  final riskController = RiskController(aiServiceUrl);
+
   // 4. Rounting pubblico
   // Router principale per endpoint accessibili a tutti
   final app = Router();
@@ -58,6 +62,10 @@ void main() async {
   app.post('/api/verify', verifyController.handleVerificationRequest);
   app.post('/api/auth/resend', resendController.handleResendRequest);
   app.get('/health', (Request request) => Response.ok('OK'));
+
+  // Endpoint per l'analisi del rischio tramite AI
+  app.post('/api/risk/analyze', riskController.handleRiskAnalysis);
+  app.get('/api/risk/hotspots', riskController.handleHotspotsRequest);
 
   // 5. Routing Protetto
   // Sotto-router dedicato alle operazioni sull'utente loggato

@@ -8,8 +8,9 @@ import 'package:frontend/ui/style/color_palette.dart';
 class CustomBottomNavBar extends StatefulWidget {
   // Funzione di callback: comunica alla Home quale icona è stata premuta
   final Function(int) onIconTapped;
-
-  const CustomBottomNavBar({super.key, required this.onIconTapped});
+// 1. NUOVO PARAMETRO: Lista di chiavi per ogni icona
+  final List<GlobalKey>? itemKeys;
+  const CustomBottomNavBar({super.key, required this.onIconTapped, this.itemKeys,});
 
   @override
   State<CustomBottomNavBar> createState() => _CustomBottomNavBarState();
@@ -65,6 +66,10 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
           final isSelected = _selectedIndex == index;
 
           return InkWell(
+            // 2. ASSEGNAZIONE CHIAVE (Safety check sulla lunghezza della lista)
+            key: (widget.itemKeys != null && widget.itemKeys!.length > index)
+                ? widget.itemKeys![index]
+                : null,
             onTap: () {
               setState(() {
                 _selectedIndex = index; // Aggiorna l'indice selezionato

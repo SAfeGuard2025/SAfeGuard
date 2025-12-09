@@ -1,7 +1,9 @@
+import 'dart:convert'; // Import aggiunto
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Importa il nuovo servizio
 import 'package:frontend/services/notification_handler.dart';
@@ -12,7 +14,11 @@ import 'package:frontend/providers/emergency_provider.dart';
 import 'package:frontend/providers/permission_provider.dart';
 import 'package:frontend/providers/notification_provider.dart';
 import 'package:frontend/providers/report_provider.dart';
+import 'package:frontend/providers/risk_provider.dart';
 import 'package:frontend/ui/screens/auth/loading_screen.dart';
+import 'package:frontend/ui/screens/home/safe_check_screen.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +39,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => PermissionProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => ReportProvider()),
+        ChangeNotifierProvider(create: (_) => RiskProvider()),
       ],
       child: const SAfeGuard(),
     ),
@@ -66,10 +73,38 @@ class _SAfeGuardState extends State<SAfeGuard> {
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
   }
 
-  void _handleMessage(RemoteMessage message) {
-    if (message.data['type'] == 'emergency_alert') {
-      // Naviga alla schermata mappa o lista emergenze
-      debugPrint("Navigazione verso Emergenze richiesta!");
+  void _handleMessage(RemoteMessage message) async {
+    // Controlla se la notifica è di tipo "emergency_alert" o "safe_check"
+    if (message.data['type'] == 'emergency_alert' || message.data['type'] == 'safe_check') {
+
+      // --- CONTROLLO RUOLO UTENTE ---
+      final prefs = await SharedPreferences.getInstance();
+      final String? userDataString = prefs.getString('user_data');
+
+      if (userDataString != null) {
+        try {
+          final Map<String, dynamic> userMap = jsonDecode(userDataString);
+          if (userMap['isSoccorritore'] == true) {
+            debugPrint("⛔ Soccorritore ha cliccato notifica: Blocco apertura SafeCheckScreen.");
+            return; //Non navigare se è un soccorritore
+          }
+        } catch (e) {
+          debugPrint("Errore parsing utente in main: $e");
+        }
+      }
+      // -----------------------------
+
+      // Estrai i dati dal payload della notifica (se presenti)
+      final String title = message.notification?.title ?? "ALLERTA DI SICUREZZA";
+
+      // Usa la navigatorKey per spingere la schermata
+      navigatorKey.currentState?.push(
+        MaterialPageRoute(
+          builder: (_) => SafeCheckScreen(
+            title: title,
+          ),
+        ),
+      );
     }
   }
 
@@ -78,6 +113,7 @@ class _SAfeGuardState extends State<SAfeGuard> {
     return MaterialApp(
       title: 'SafeGuard',
       debugShowCheckedModeBanner: false,
+      navigatorKey: navigatorKey,
       home: const LoadingScreen(),
     );
   }
