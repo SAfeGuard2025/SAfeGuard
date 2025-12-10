@@ -22,8 +22,9 @@ class EmergencyCard extends StatelessWidget {
   Future<void> _generatePdf(BuildContext context) async {
     final pdf = pw.Document();
     final logoImage = await imageFromAssetBundle('assets/logo.png');
+
     // Dati per la stampa
-    final title = data['type']?.toString() ?? 'GENERICO';
+    final title = data['type']?.toString().toUpperCase() ?? 'GENERICO';
     final desc = data['description']?.toString() ?? 'Nessuna descrizione';
     final time = data['timestamp']?.toString() ?? 'N/D';
 
@@ -31,24 +32,86 @@ class EmergencyCard extends StatelessWidget {
       pw.Page(
         pageFormat: PdfPageFormat.a4,
         build: (pw.Context context) {
-          return pw.Center(
-            child: pw.Column(
-              children: [
-                pw.Header(
-                  level: 0,
-                  child: pw.Image(logoImage, height: 100, width: 100),
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: pw.CrossAxisAlignment.center,
+                children: [
+                  pw.Row(
+                    children: [
+                      pw.Container(
+                        decoration: const pw.BoxDecoration(
+                          boxShadow: [
+                            pw.BoxShadow(
+                              color: PdfColors.grey500,
+                              blurRadius: 5,
+                              spreadRadius: 1,
+                              offset: PdfPoint(2, 2),
+                            ),
+                          ],
+                        ),
+                        child: pw.Image(logoImage, height: 60, width: 60),
+                      ),
+                      pw.SizedBox(width: 15),
+                      pw.Text(
+                        "SAfeGuard",
+                        style: pw.TextStyle(
+                          fontSize: 28,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.orange900,
+                        ),
+                      ),
+                    ],
+                  ),
+                  pw.Text(
+                    "REPORT INTERVENTO",
+                    style: pw.TextStyle(fontSize: 12, color: PdfColors.grey700),
+                  ),
+                ],
+              ),
+
+              pw.SizedBox(height: 10),
+              pw.Divider(thickness: 2, color: PdfColors.orange900),
+              pw.SizedBox(height: 30),
+              pw.Text(
+                "TIPO EMERGENZA:",
+                style: pw.TextStyle(fontSize: 14, color: PdfColors.grey700),
+              ),
+              pw.Text(
+                title,
+                style: pw.TextStyle(
+                  fontSize: 36,
+                  fontWeight: pw.FontWeight.bold,
                 ),
-                pw.SizedBox(height: 20),
-                pw.Text("TIPO: $title", style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
-                pw.SizedBox(height: 10),
-                pw.Text("DESCRIZIONE: $desc"),
-                pw.SizedBox(height: 10),
-                pw.Text("DATA/ORA: $time"),
-                pw.SizedBox(height: 20),
-                pw.Divider(),
-                pw.Text("Documento generato da SAfeGuard"),
-              ],
-            ),
+              ),
+
+              pw.SizedBox(height: 25),
+
+              pw.Text(
+                "DESCRIZIONE:",
+                style: pw.TextStyle(fontSize: 14, color: PdfColors.grey700),
+              ),
+              pw.Text(
+                desc,
+                style: pw.TextStyle(
+                  fontSize: 22,
+                ),
+              ),
+
+              pw.SizedBox(height: 40),
+              pw.Divider(thickness: 0.5),
+              pw.SizedBox(height: 10),
+
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text("DATA/ORA SEGNALAZIONE: $time", style: const pw.TextStyle(fontSize: 12)),
+                  pw.Text("Documento ufficiale SAfeGuard", style: pw.TextStyle(fontSize: 10, fontStyle: pw.FontStyle.italic)),
+                ],
+              ),
+            ],
           );
         },
       ),
