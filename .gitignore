@@ -401,3 +401,4 @@ $RECYCLE.BIN/
 /.idea/runConfigurations/
 **/pubspec_overrides.yaml
 google-services.json
+safeguard-service-account.json
