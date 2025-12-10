@@ -60,24 +60,26 @@ class _EmergencyDetailDialogState extends State<EmergencyDetailDialog> {
   String _calculateAge(dynamic birthDateData) {
     if (birthDateData == null) return "N/D";
     DateTime date = DateTime.now();
-    if (birthDateData is Timestamp)
+    if (birthDateData is Timestamp) {
       date = birthDateData.toDate();
-    else if (birthDateData is String) {
+    } else if (birthDateData is String) {
       final parsed = DateTime.tryParse(birthDateData);
       if (parsed != null) date = parsed;
     }
     final DateTime today = DateTime.now();
     int age = today.year - date.year;
     if (today.month < date.month ||
-        (today.month == date.month && today.day < date.day))
+        (today.month == date.month && today.day < date.day)) {
       age--;
+    }
     return "$age anni";
   }
 
   String _formatMedicalNotes(dynamic data) {
     if (data == null) return "Nessuna patologia segnalata";
-    if (data is List)
+    if (data is List) {
       return data.isEmpty ? "Nessuna patologia segnalata" : data.join(", ");
+    }
     String text = data
         .toString()
         .replaceAll('[', '')

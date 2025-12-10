@@ -55,7 +55,7 @@ class ReportProvider extends ChangeNotifier {
         notifyListeners();
       },
       onError: (e) {
-        print("Errore stream report: $e");
+        debugPrint("Errore stream report: $e");
         _isLoading = false;
         notifyListeners();
       },

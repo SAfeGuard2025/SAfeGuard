@@ -82,9 +82,6 @@ class RiskController {
       if (aiResponse.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(aiResponse.body);
 
-        // Log formattato per debug
-        //_printFormattedJsonLog(data);
-
         final Map<String, dynamic> cleanResponse = _extractCleanReports(data);
 
         return Response.ok(jsonEncode(cleanResponse), headers: _headers);
@@ -149,18 +146,5 @@ class RiskController {
       body: jsonEncode({'success': false, 'message': message}),
       headers: _headers,
     );
-  }
-
-  // Helper per stampare JSON lunghi nel terminale in modo leggibile.
-  void _printFormattedJsonLog(dynamic data) {
-    final jsonString = jsonEncode(data);
-    print('----------------------------------------------------');
-    print('DATA AI START');
-
-    final pattern = RegExp('.{1,800}');
-    pattern.allMatches(jsonString).forEach((match) => print(match.group(0)));
-
-    print('DATA AI END');
-    print('----------------------------------------------------');
   }
 }

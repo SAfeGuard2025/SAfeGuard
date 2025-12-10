@@ -21,7 +21,7 @@ class RiskProvider extends ChangeNotifier {
     try {
       _hotspots = await _riskRepository.getRiskHotspots();
     } catch (e) {
-      print("Errore provider risk: $e");
+      debugPrint("Errore provider risk: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
