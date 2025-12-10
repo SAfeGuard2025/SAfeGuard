@@ -369,7 +369,7 @@ class _RealtimeMapState extends State<RealtimeMap> {
                         onTap: () {
                           ScaffoldMessenger.of(
                             context,
-                          ).showSnackBar(SnackBar(content: Text("$type")));
+                          ).showSnackBar(SnackBar(content: Text(type)));
                         },
                         child: markerWidget,
                       ),
@@ -432,7 +432,7 @@ class _RealtimeMapState extends State<RealtimeMap> {
                     setState(() => _center = newC);
                     _mapController.move(newC, 15.0);
                   } catch (e) {
-                    print(e);
+                    debugPrint(e.toString());
                   }
                 },
                 backgroundColor: Colors.blue,

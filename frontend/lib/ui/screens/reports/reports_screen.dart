@@ -207,10 +207,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
       severity: severity,
     );
 
+    if (!mounted) return;
+
     //SE "HO BISOGNO DI AIUTO", INVIA ANCHE SOS
     // Questo crea il puntino rosso che si sposta con l'utente.
     if (_needsHelp && reportSuccess) {
       final user = context.read<AuthProvider>().currentUser;
+
       if (user != null) {
         // Usiamo EmergencyProvider per inviare un SOS tracciato
         await context.read<EmergencyProvider>().sendInstantSos(
@@ -219,6 +222,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
           phone: user.telefono,
           type: "SOS Generico",
         );
+
+        if (!mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

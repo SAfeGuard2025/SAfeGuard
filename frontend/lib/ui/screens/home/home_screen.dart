@@ -62,14 +62,16 @@ class _HomeScreenState extends State<HomeScreen> {
       final String? token = authProvider.token;
 
       if (token != null) {
-        print("🚑 Accesso Soccorritore rilevato: Invio posizione al server...");
+        debugPrint(
+          "🚑 Accesso Soccorritore rilevato: Invio posizione al server...",
+        );
         await _locationService.sendLocationUpdate(token);
       } else {
-        print("⚠️ Errore: Soccorritore loggato ma token mancante.");
+        debugPrint("⚠️ Errore: Soccorritore loggato ma token mancante.");
       }
     } else {
       // Se sei un cittadino, non facciamo nulla. La tua posizione serve solo in caso di SOS.
-      print("👤 Accesso Cittadino: Tracking passivo disabilitato.");
+      debugPrint("👤 Accesso Cittadino: Tracking passivo disabilitato.");
     }
   }
 

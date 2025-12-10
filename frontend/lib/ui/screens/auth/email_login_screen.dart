@@ -169,6 +169,8 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                                 _passController.text,
                               );
 
+                              if (!context.mounted) return;
+
                               if (result == 'success') {
                                 context.read<AuthProvider>().setRegistered();
                                 navigator.pushAndRemoveUntil(

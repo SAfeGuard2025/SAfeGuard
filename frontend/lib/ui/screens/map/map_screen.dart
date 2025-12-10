@@ -43,6 +43,9 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _initTracking() async {
+    // PRELEVA IL PROVIDER PRIMA DI QUALSIASI AWAIT LUNGO
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
     try {
       // 1. Controllo Permessi
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -51,22 +54,23 @@ class _MapScreenState extends State<MapScreen> {
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied)
+        if (permission == LocationPermission.denied) {
           throw Exception("Permessi GPS negati");
+        }
       }
 
-      // 2. Caricamento Dati in base al Ruolo
-      final isRescuer = Provider.of<AuthProvider>(
-        context,
-        listen: false,
-      ).isRescuer;
+      // 2. Controllo Mounted prima di usare il Provider o setState dopo gli Await
+      if (!mounted) return;
+
+      // 3. Caricamento Dati in base al Ruolo
+      final isRescuer = authProvider.isRescuer;
       if (isRescuer) {
         await _fetchEmergenciesFromDB();
       } else {
         await _fetchSafePointsFromDB();
       }
 
-      // 3. Avvio Tracking Posizione
+      // 4. Avvio Tracking Posizione
       const locationSettings = LocationSettings(
         accuracy: LocationAccuracy.high,
         distanceFilter: 1,

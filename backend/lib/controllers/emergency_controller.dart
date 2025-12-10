@@ -30,8 +30,9 @@ class EmergencyController {
   Future<Response> handleSendSos(Request request) async {
     try {
       final userId = _extractUserId(request);
-      if (userId == null)
+      if (userId == null) {
         return _buildErrorResponse(403, 'Utente non identificato');
+      }
 
       final body = await request.readAsString();
       if (body.isEmpty) return _buildErrorResponse(400, 'Body vuoto');

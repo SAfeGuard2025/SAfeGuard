@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,26 +10,6 @@ import 'package:data_models/soccorritore.dart';
 import '../repositories/profile_repository.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'dart:io';
-
-// L'URL base viene costruito come in UserApiService, usando le costanti di default
-// e sovrascrivendo per Android.
-String get _baseUrl {
-  String host = 'http://127.0.0.1';
-  String portPart = ':8080';
-
-  if (!kIsWeb && Platform.isAndroid && host.contains('127.0.0.1')) {
-    // Sostituisce 'localhost' con l'IP speciale per l'emulatore
-    host = 'http://10.0.2.2';
-  } else if (!kIsWeb &&
-      (Platform.isIOS || Platform.isMacOS) &&
-      host.contains('127.0.0.1')) {
-    // iOS / macOS usano localhost
-    host = 'http://localhost';
-  }
-
-  return '$host$portPart/api';
-}
 
 // Provider di Stato: AuthProvider
 // Gestisce l'autenticazione, usa ChangeNotifier per notificare la UI
@@ -547,7 +526,7 @@ class AuthProvider extends ChangeNotifier {
         }
       }
     } catch (e) {
-      print("Errore inizializzazione notifiche: $e");
+      debugPrint("Errore inizializzazione notifiche: $e");
     }
   }
 

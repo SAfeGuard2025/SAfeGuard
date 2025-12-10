@@ -172,6 +172,8 @@ class _SafeCheckScreenState extends State<SafeCheckScreen> {
         ),
       );
 
+      if (!context.mounted) return;
+
       // Invia report "SOS Generico" con Severity 5 -> La mappa lo renderizzerà ROSSO
       await context.read<ReportProvider>().sendReport(
         "SOS Generico",

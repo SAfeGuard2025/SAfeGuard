@@ -129,33 +129,31 @@ class _EmergencyDropdownMenuState extends State<EmergencyDropdownMenu> {
           const Divider(height: 1, color: Colors.grey),
           const SizedBox(height: 5.0), // Piccolo spazio
           // Lista dinamica degli elementi
-          ...widget.items
-              .map(
-                (item) => InkWell(
-                  onTap: () {
-                    widget.onSelected(item);
-                    _toggleMenu(); // Chiudi il menu dopo la selezione
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            item.label,
-                            style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+          ...widget.items.map(
+            (item) => InkWell(
+              onTap: () {
+                widget.onSelected(item);
+                _toggleMenu(); // Chiudi il menu dopo la selezione
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.label,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w500,
                         ),
-                        Icon(item.icon, size: 30, color: Colors.grey.shade700),
-                      ],
+                      ),
                     ),
-                  ),
+                    Icon(item.icon, size: 30, color: Colors.grey.shade700),
+                  ],
                 ),
-              )
-              .toList(),
+              ),
+            ),
+          ),
           // Rimosso Spacer()
         ],
       ),

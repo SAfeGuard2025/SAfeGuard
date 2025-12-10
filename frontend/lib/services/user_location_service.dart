@@ -18,23 +18,25 @@ class UserLocationService {
 
   // Metodo per INVIARE la posizione
   Future<void> sendLocationUpdate(String jwtToken) async {
-    print("🚀 [UserLocationService] Avvio aggiornamento posizione...");
+    debugPrint("🚀 [UserLocationService] Avvio aggiornamento posizione...");
     try {
       // 1. Controlla Permessi GPS
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          print("⛔ Permesso GPS negato.");
+          debugPrint("⛔ Permesso GPS negato.");
           return;
         }
       }
 
       // 2. Prendi coordinate GPS
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
-      print("📍 GPS Preso: ${position.latitude}, ${position.longitude}");
+      debugPrint("📍 GPS Preso: ${position.latitude}, ${position.longitude}");
 
       // 3. Prendi Token Notifiche
       String? fcmToken = await FirebaseMessaging.instance.getToken();
@@ -45,7 +47,7 @@ class UserLocationService {
       // QUINDI L'URL È:
       final url = Uri.parse('$_baseUrl/emergency/location');
 
-      print("📡 Invio dati a: $url");
+      debugPrint("📡 Invio dati a: $url");
 
       // 5. Chiamata al Server
       final response = await http.patch(
@@ -64,12 +66,14 @@ class UserLocationService {
       );
 
       if (response.statusCode == 200) {
-        print("✅ Posizione aggiornata con successo nel DB!");
+        debugPrint("✅ Posizione aggiornata con successo nel DB!");
       } else {
-        print("❌ Errore Backend (${response.statusCode}): ${response.body}");
+        debugPrint(
+          "❌ Errore Backend (${response.statusCode}): ${response.body}",
+        );
       }
     } catch (e) {
-      print("🔥 Errore connessione servizio posizione: $e");
+      debugPrint("🔥 Errore connessione servizio posizione: $e");
     }
   }
 }
