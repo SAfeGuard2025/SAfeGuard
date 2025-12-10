@@ -157,14 +157,16 @@ jobs:
           fi
         shell: bash
 
-      - name: Decode Keystore & Google Services
+      - name: Decode Keystore, Google Services & Service Account
         shell: bash
         env:
           KEYSTORE_BASE64: ${{ secrets.DEV_ANDROID_DEBUG_KEYSTORE }}
           GOOGLE_JSON_BASE64: ${{ secrets.DEV_GOOGLE_SERVICES_JSON }}
+          SERVICE_ACCOUNT_BASE64: ${{ secrets.DEV_SAFEGUARD_SERVICE_ACCOUNT_JSON }}
         run: |
           printf "%s" "$KEYSTORE_BASE64" | base64 --decode > frontend/android/app/debug.keystore
           printf "%s" "$GOOGLE_JSON_BASE64" | base64 --decode > frontend/android/app/google-services.json
+          printf "%s" "$SERVICE_ACCOUNT_BASE64" | base64 --decode > backend/safeguard-service-account.json
 
       - name: Verify Keystore Existence
         run: ls -lh frontend/android/app/debug.keystore
