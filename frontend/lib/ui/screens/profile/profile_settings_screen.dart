@@ -8,6 +8,7 @@ import 'package:frontend/ui/screens/medical/gestione_cartella_clinica_cittadino.
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/ui/screens/auth/login_screen.dart';
 import 'package:frontend/ui/style/color_palette.dart';
+import 'package:frontend/providers/report_provider.dart'; //import per vedere le segnalazioni inviate
 
 class ProfileSettingsScreen extends StatefulWidget {
   const ProfileSettingsScreen({super.key});
@@ -22,13 +23,11 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   // Funzione di logout
   void _handleLogout(BuildContext context) async {
-    // Ottiene l'istanza di AuthProvider
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     try {
       await authProvider.logout();
       if (context.mounted) {
-        // Naviga alla schermata di Login e rimuove tutte le schermate precedenti
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const LoginScreen()),
           (Route<dynamic> route) => false,
@@ -45,14 +44,73 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     }
   }
 
-  // Funzione helper per la navigazione
   void _navigateTo(BuildContext context, Widget page) {
     Navigator.push(context, MaterialPageRoute(builder: (context) => page));
   }
 
+  Widget _buildMiniReportItem({
+    required IconData icon,
+    required String title,
+    required String date,
+    required String status,
+    required Color statusColor,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: Colors.white, size: 20),
+          ),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  date,
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: statusColor.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: statusColor, width: 1),
+            ),
+            child: Text(
+              status,
+              style: TextStyle(
+                color: statusColor,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Ottiene lo stato e i dati utente dal Provider
     final provider = context.watch<AuthProvider>();
     final isRescuer = provider.isRescuer;
 
@@ -61,7 +119,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         ? "${user!.nome} ${user.cognome}"
         : "Utente";
 
-    // Logica responsive e color palette basata sul ruolo dell'utente
     final kCardColor = isRescuer
         ? ColorPalette.cardDarkOrange
         : ColorPalette.backgroundMidBlue;
@@ -75,9 +132,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     final size = MediaQuery.of(context).size;
     final bool isWideScreen = size.width > 700;
 
-    // Crea la lista delle card dinamicamente
     List<Widget> settingCards = [
-      // 1. Notifiche
       _buildSettingCard(
         "Notifiche",
         "Gestione Notifiche",
@@ -87,7 +142,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         () => _navigateTo(context, const GestioneNotificheCittadino()),
         isWideScreen,
       ),
-      // 2. Cartella Clinica (Visibile solo per il Cittadino)
       if (!isRescuer)
         _buildSettingCard(
           "Cartella clinica",
@@ -98,7 +152,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           () => _navigateTo(context, const GestioneCartellaClinicaCittadino()),
           isWideScreen,
         ),
-      // 3. Permessi
       _buildSettingCard(
         "Permessi",
         "Gestione Permessi",
@@ -108,7 +161,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         () => _navigateTo(context, const GestionePermessiCittadino()),
         isWideScreen,
       ),
-      // 4. Modifica Profilo
       _buildSettingCard(
         "Modifica Profilo",
         "Modifica Profilo",
@@ -122,7 +174,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
     return Scaffold(
       backgroundColor: kBackgroundColor,
-      // AppBar personalizzata
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: kBackgroundColor,
@@ -148,12 +199,10 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             constraints: const BoxConstraints(maxWidth: 1000),
             child: Column(
               children: [
-                // Header Utente (Avatar e Nome)
                 Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Row(
                     children: [
-                      // Avatar circolare con immagine adattiva al ruolo
                       CircleAvatar(
                         radius: isWideScreen ? 60 : 45,
                         backgroundColor: kAccentOrange,
@@ -179,7 +228,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            // Nome completo utente
                             Text(
                               nomeCompleto,
                               overflow: TextOverflow.ellipsis,
@@ -196,8 +244,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                     ],
                   ),
                 ),
-
-                // Contenuto scorrevole (Impostazioni + Lista)
                 Expanded(
                   child: SingleChildScrollView(
                     child: Padding(
@@ -206,8 +252,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 10),
-
-                          // Sottotitolo Impostazioni
                           Text(
                             "Impostazioni",
                             style: TextStyle(
@@ -217,8 +261,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                             ),
                           ),
                           const SizedBox(height: 15),
-
-                          // Card Impostazioni (scorrimento orizzontale)
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: Row(
@@ -232,54 +274,135 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                               }).toList(),
                             ),
                           ),
-
                           const SizedBox(height: 30),
 
-                          // Sezione "Richieste di aiuto" (solo se si è cittadino e si devono vedere solo le emergenze che ha fatto il cittadino stesso)
+                          // LISTA SCORREVOLE RICHIESTE UTENTE
                           if (!isRescuer)
                             Container(
                               padding: const EdgeInsets.all(20),
                               width: double.infinity,
                               decoration: BoxDecoration(
-                                color:
-                                    kCardColor, // Assicurati che kCardColor sia definito
+                                color: kCardColor,
                                 borderRadius: BorderRadius.circular(25),
                               ),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                              child: Consumer<ReportProvider>(
+                                builder: (context, reportProvider, child) {
+                                  // 1. Filtra i report dell'utente corrente
+                                  final myReports = reportProvider.emergencies
+                                      .where((e) {
+                                        final senderId =
+                                            e['rescuer_id'] ?? e['user_id'];
+                                        return senderId.toString() ==
+                                            user?.id.toString();
+                                      })
+                                      .toList();
+
+                                  // 2. Ordina dal più recente
+                                  myReports.sort((a, b) {
+                                    final tA =
+                                        DateTime.tryParse(
+                                          a['timestamp'].toString(),
+                                        ) ??
+                                        DateTime(0);
+                                    final tB =
+                                        DateTime.tryParse(
+                                          b['timestamp'].toString(),
+                                        ) ??
+                                        DateTime(0);
+                                    return tB.compareTo(tA);
+                                  });
+                                  // Lista di tutte le segnalazioni create dall'utente in questione
+                                  return Column(
                                     children: [
-                                      Text(
-                                        "Richieste di aiuto",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: isWideScreen
-                                              ? 22
-                                              : 18, // Assicurati che isWideScreen sia definito
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            "Le tue Segnalazioni",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: isWideScreen ? 22 : 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      TextButton(
-                                        onPressed: () {},
-                                        child: const Text(
-                                          "Guarda Tutto",
-                                          style: TextStyle(
-                                            color: Colors.white70,
-                                            decoration:
-                                                TextDecoration.underline,
+                                      const SizedBox(height: 10),
+                                      if (myReports.isEmpty)
+                                        const Padding(
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: 20.0,
+                                          ),
+                                          child: Text(
+                                            "Nessuna segnalazione attiva recente.",
+                                            style: TextStyle(
+                                              color: Colors.white54,
+                                              fontStyle: FontStyle.italic,
+                                            ),
+                                          ),
+                                        )
+                                      else
+                                        // Se ci sono più elementi, si attiverà lo scroll interno
+                                        Container(
+                                          constraints: const BoxConstraints(
+                                            maxHeight:
+                                                260, // Altezza sufficiente per circa 3 elementi e mezzo
+                                          ),
+                                          child: ListView.separated(
+                                            shrinkWrap:
+                                                true, // Si adatta al contenuto se è poco
+                                            physics:
+                                                const BouncingScrollPhysics(), // Scroll elastico
+                                            itemCount: myReports.length,
+                                            separatorBuilder:
+                                                (context, index) =>
+                                                    const Divider(
+                                                      color: Colors.white12,
+                                                    ),
+                                            itemBuilder: (context, index) {
+                                              final report = myReports[index];
+                                              // Parsing Dati
+                                              final dt =
+                                                  DateTime.tryParse(
+                                                    report['timestamp']
+                                                        .toString(),
+                                                  ) ??
+                                                  DateTime.now();
+                                              final dateStr =
+                                                  "${dt.day}/${dt.month} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+                                              // Icona dinamica
+                                              IconData icon;
+                                              switch (report['type']
+                                                  .toString()
+                                                  .toUpperCase()) {
+                                                case 'INCENDIO':
+                                                  icon = Icons
+                                                      .local_fire_department;
+                                                  break;
+                                                case 'MALESSERE':
+                                                  icon = Icons.medical_services;
+                                                  break;
+                                                case 'ALLUVIONE':
+                                                  icon = Icons.flood;
+                                                  break;
+                                                default:
+                                                  icon = Icons
+                                                      .warning_amber_rounded;
+                                              }
+                                              return _buildMiniReportItem(
+                                                icon: icon,
+                                                title: report['type']
+                                                    .toString()
+                                                    .toUpperCase(),
+                                                date: dateStr,
+                                                status: "In corso",
+                                                statusColor: Colors.orange,
+                                              );
+                                            },
                                           ),
                                         ),
-                                      ),
                                     ],
-                                  ),
-                                  const SizedBox(height: 10),
-                                  const Text(
-                                    "Futura implementazione",
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ],
+                                  );
+                                },
                               ),
                             ),
                           const SizedBox(height: 80),
@@ -296,7 +419,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     );
   }
 
-  // Widget Helper: Card per le Impostazioni
   Widget _buildSettingCard(
     String title,
     String subtitle,
@@ -333,10 +455,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Icona
             Icon(icon, size: iconSize, color: iconColor),
             const Spacer(),
-            // Titolo
             Text(
               title,
               style: TextStyle(
@@ -346,7 +466,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               ),
             ),
             const SizedBox(height: 5),
-            // Sottotitolo
             Text(
               subtitle,
               maxLines: 2,
