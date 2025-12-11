@@ -205,7 +205,7 @@ class _MapScreenState extends State<MapScreen> {
 
     if (mounted) {
       setState(() {
-        _nearestPoints = updatedList.take(3).toList(); // Prendi i primi 3
+        _nearestPoints = updatedList.take(20).toList();
         _isLoadingList = false;
       });
     }
@@ -217,8 +217,8 @@ class _MapScreenState extends State<MapScreen> {
 
     // Colori e Testi dinamici in base al ruolo
     final Color panelColor = isRescuer
-        ? ColorPalette.cardDarkOrange
-        : ColorPalette.backgroundMidBlue;
+        ? ColorPalette.primaryOrange
+        : ColorPalette.backgroundDarkBlue;
     final Color cardColor = isRescuer
         ? ColorPalette.primaryOrange
         : ColorPalette.backgroundDarkBlue;
@@ -231,191 +231,227 @@ class _MapScreenState extends State<MapScreen> {
 
     return Scaffold(
       backgroundColor: ColorPalette.backgroundDarkBlue,
-      body: Column(
+      body: Stack(
         children: [
-          // 1. MAPPA (60%)
-          const Expanded(flex: 6, child: RealtimeMap()),
+          // 1. Mappa a tutto schermo (livello inferiore)
+          const Positioned.fill(child: RealtimeMap()),
 
-          // 2. LISTA (40%)
-          Expanded(
-            flex: 4,
-            child: Container(
-              decoration: BoxDecoration(
-                color: panelColor,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(25),
-                  topRight: Radius.circular(25),
+          // 2. Pannello interattivo (livello superiore)
+          DraggableScrollableSheet(
+            initialChildSize: 0.4,
+            minChildSize: 0.15,
+            maxChildSize: 0.5,
+            builder: (context, scrollController) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: panelColor,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, -5),
+                    ),
+                  ],
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, -5),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  // Maniglia
-                  Center(
-                    child: Container(
-                      margin: const EdgeInsets.only(top: 10, bottom: 5),
-                      width: 40,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: Colors.white24,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
 
-                  // Intestazione
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(headerIcon, color: Colors.white),
-                        const SizedBox(width: 10),
-                        Text(
-                          listTitle,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                // ClipRRect forza i bordi curvi della sezione superiore
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
+                  child: CustomScrollView(
+                    controller: scrollController,
+                    slivers: [
+                      // Header della sezione superiore bloccato in alto
+                      SliverAppBar(
+                        pinned: true,
+                        floating: false,
+                        backgroundColor: panelColor,
+                        automaticallyImplyLeading: false,
+                        elevation: 0,
+                        scrolledUnderElevation: 0,
+                        toolbarHeight: 75,
+                        flexibleSpace: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            // Maniglia grafica
+                            Center(
+                              child: Container(
+                                margin: const EdgeInsets.only(
+                                  top: 10,
+                                  bottom: 5,
+                                ),
+                                width: 40,
+                                height: 5,
+                                decoration: BoxDecoration(
+                                  color: Colors.white24,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ),
+                            // Intestazione con Icona e Titolo
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 8,
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(headerIcon, color: Colors.white),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    listTitle,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Divider(color: Colors.white12, height: 1),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                  const Divider(color: Colors.white12),
+                      ),
 
-                  // Lista
-                  Expanded(
-                    child: _isLoadingList
-                        ? const Center(
+                      // Gestione Contenuto (Loading / Errori / Lista)
+                      if (_isLoadingList)
+                        const SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: Center(
                             child: CircularProgressIndicator(
                               color: Colors.white,
                             ),
-                          )
-                        : _errorList != null
-                        ? Center(
+                          ),
+                        )
+                      else if (_errorList != null)
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: Center(
                             child: Text(
                               "Errore: $_errorList",
                               style: const TextStyle(color: Colors.redAccent),
                             ),
-                          )
-                        : _nearestPoints.isEmpty
-                        ? Center(
+                          ),
+                        )
+                      else if (_nearestPoints.isEmpty)
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: Center(
                             child: Text(
                               isRescuer
                                   ? "Nessuna emergenza attiva."
                                   : "Nessun punto sicuro vicino.",
                               style: const TextStyle(color: Colors.white54),
                             ),
-                          )
-                        : ListView.builder(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 15,
-                              vertical: 5,
-                            ),
-                            itemCount: _nearestPoints.length,
-                            physics: const BouncingScrollPhysics(),
-                            itemBuilder: (context, index) {
-                              final item = _nearestPoints[index];
+                          ),
+                        )
+                      else
+                        // Lista dei risultati
+                        SliverList(
+                          delegate: SliverChildBuilderDelegate((
+                            context,
+                            index,
+                          ) {
+                            final item = _nearestPoints[index];
 
-                              // Formattazione Distanza
-                              final double d = item['distance'];
-                              final String distStr = d < 1000
-                                  ? "${d.toStringAsFixed(0)} m"
-                                  : "${(d / 1000).toStringAsFixed(1)} km";
+                            // Formattazione Distanza
+                            final double d = item['distance'];
+                            final String distStr = d < 1000
+                                ? "${d.toStringAsFixed(0)} m"
+                                : "${(d / 1000).toStringAsFixed(1)} km";
 
-                              // Icona dinamica
-                              IconData itemIcon;
-                              Color iconBgColor;
-                              Color iconColor;
+                            // Icona dinamica
+                            IconData itemIcon;
+                            Color iconBgColor;
+                            Color iconColor;
 
-                              if (item['type'] == 'hospital') {
-                                itemIcon = Icons.local_hospital;
-                                iconBgColor = Colors.blue.withValues(
-                                  alpha: 0.2,
-                                );
-                                iconColor = Colors.blueAccent;
-                              } else if (item['type'] == 'safe_point') {
-                                itemIcon = Icons.verified_user;
-                                iconBgColor = Colors.green.withValues(
-                                  alpha: 0.2,
-                                );
-                                iconColor = Colors.greenAccent;
-                              } else {
-                                // Caso Emergenza (Soccorritore)
-                                itemIcon = Icons.report_problem;
-                                iconBgColor = Colors.red.withValues(alpha: 0.2);
-                                iconColor = Colors.redAccent;
-                              }
+                            if (item['type'] == 'hospital') {
+                              itemIcon = Icons.local_hospital;
+                              iconBgColor = Colors.blue.withValues(alpha: 0.2);
+                              iconColor = Colors.blueAccent;
+                            } else if (item['type'] == 'safe_point') {
+                              itemIcon = Icons.verified_user;
+                              iconBgColor = Colors.green.withValues(alpha: 0.2);
+                              iconColor = Colors.greenAccent;
+                            } else {
+                              // Caso Emergenza (Soccorritore)
+                              itemIcon = Icons.report_problem;
+                              iconBgColor = Colors.red.withValues(alpha: 0.2);
+                              iconColor = Colors.redAccent;
+                            }
 
-                              return Card(
-                                color: cardColor,
-                                elevation: 4,
-                                margin: const EdgeInsets.only(bottom: 10),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15),
+                            return Card(
+                              color: cardColor,
+                              elevation: 4,
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 15,
+                                vertical: 5,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 15,
+                                  vertical: 5,
                                 ),
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 15,
+                                leading: CircleAvatar(
+                                  backgroundColor: iconBgColor,
+                                  child: Icon(itemIcon, color: iconColor),
+                                ),
+                                title: Text(
+                                  item['title'],
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                subtitle: Text(
+                                  item['subtitle'],
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                trailing: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
                                     vertical: 5,
                                   ),
-                                  leading: CircleAvatar(
-                                    backgroundColor: iconBgColor,
-                                    child: Icon(itemIcon, color: iconColor),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black26,
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
-                                  title: Text(
-                                    item['title'],
+                                  child: Text(
+                                    distStr,
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  subtitle: Text(
-                                    item['subtitle'],
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 12,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  trailing: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 5,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.black26,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Text(
-                                      distStr,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
-                                      ),
+                                      fontSize: 13,
                                     ),
                                   ),
                                 ),
-                              );
-                            },
-                          ),
+                              ),
+                            );
+                          }, childCount: _nearestPoints.length),
+                        ),
+
+                      // Spazio extra in fondo per lo scroll
+                      const SliverToBoxAdapter(child: SizedBox(height: 30)),
+                    ],
                   ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
         ],
       ),
