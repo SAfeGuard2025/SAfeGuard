@@ -32,8 +32,6 @@ void main() {
         'email': emailSoccorritore,
         'nome': 'Mario',
         'cognome': 'Rossi',
-        'passwordHash': 'NON_DEVE_VEDERSI',
-        'permessi': null
       };
 
       when(mockRepository.findUserById(soccorritoreId))
@@ -61,7 +59,6 @@ void main() {
         'email': emailCittadino,
         'nome': 'Luca',
         'cognome': 'Bianchi',
-        'passwordHash': 'hash123'
       };
 
       when(mockRepository.findUserById(userId))
