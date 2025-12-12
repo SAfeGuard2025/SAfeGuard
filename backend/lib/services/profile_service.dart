@@ -15,7 +15,11 @@ import 'package:data_models/contatto_emergenza.dart';
 
 class ProfileService {
   // Dipendenza dal Repository per l'accesso ai dati
-  final UserRepository _userRepository = UserRepository();
+
+  final UserRepository _userRepository;
+
+  ProfileService({UserRepository? userRepository})
+      : _userRepository = userRepository ?? UserRepository();
 
   String _hashPassword(String password) {
     final secret = Platform.environment['HASH_SECRET'] ?? 'fallback_secret_dev';
