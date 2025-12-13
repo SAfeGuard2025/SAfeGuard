@@ -13,9 +13,18 @@ import 'package:data_models/notifica.dart';
 import 'package:data_models/condizione.dart';
 import 'package:data_models/contatto_emergenza.dart';
 
+typedef SoccorritoreCheck = bool Function(String email);
+
 class ProfileService {
   // Dipendenza dal Repository per l'accesso ai dati
-  final UserRepository _userRepository = UserRepository();
+  final UserRepository _userRepository;
+  final SoccorritoreCheck _isSoccorritoreValidator;
+
+  // Modifica il costruttore per supportare la Dependency Injection
+  ProfileService({UserRepository? userRepository, SoccorritoreCheck? validator})
+    : _userRepository = userRepository ?? UserRepository(),
+      // Se non passiamo nulla, usa quella reale dell'altra persona (RescuerConfig)
+      _isSoccorritoreValidator = validator ?? RescuerConfig.isSoccorritore;
 
   String _hashPassword(String password) {
     final secret = Platform.environment['HASH_SECRET'] ?? 'fallback_secret_dev';
@@ -101,7 +110,7 @@ class ProfileService {
     }
   }
 
-  // 5. UPDATE Aanagrafica
+  // 5. UPDATE Anagrafica
   Future<bool> updateAnagrafica(
     int userId, {
     String? nome,
@@ -131,13 +140,20 @@ class ProfileService {
 
       // 2. Logica Email
       if (email != null && email.isNotEmpty) {
+        // --- VALIDAZIONE FORMATO
+        // Verifica che l'email abbia un formato valido (es. test@domain.com)
+        final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+        if (!emailRegex.hasMatch(email)) {
+          print("Errore: Formato email non valido.");
+          return false;
+        }
+
         final normalizedNewEmail = email.toLowerCase();
 
         // CONTROLLO CRITICO: Procedi solo se l'email è CAMBIATA
         if (normalizedNewEmail != currentEmail) {
-          // A. Sicurezza Domini Riservati
-          // Blocca solo se stai cambiando email VERSO un dominio soccorritore
-          if (RescuerConfig.isSoccorritore(normalizedNewEmail)) {
+          // A. Sicurezza Domini Riservati (Usa il validatore iniettato)
+          if (_isSoccorritoreValidator(normalizedNewEmail)) {
             print(
               "Errore: Impossibile passare a un'email istituzionale riservata.",
             );
@@ -162,6 +178,17 @@ class ProfileService {
       // 3. Logica Telefono (Simile all'email: controlla duplicati solo se cambia)
       if (telefono != null && telefono.isNotEmpty) {
         final cleanPhone = telefono.replaceAll(' ', '');
+
+        // --- VALIDAZIONE FORMATO ---
+        // Accetta opzionalmente il prefisso +39, seguito obbligatoriamente da 10 cifre
+        // Esempi validi: 3331234567, +393331234567
+        // Esempi non validi: 123, 333 (troppo corto), numeri esteri
+        final phoneRegex = RegExp(r'^(\+39)?[0-9]{10}$');
+        if (!phoneRegex.hasMatch(cleanPhone)) {
+          print("Errore: Formato telefono non valido.");
+          return false;
+        }
+
         final currentPhone = (currentUserData['telefono'] as String?) ?? '';
 
         // Controlla solo se il numero è diverso da quello attuale
@@ -169,6 +196,7 @@ class ProfileService {
           final existingUser = await _userRepository.findUserByPhone(
             cleanPhone,
           );
+          // Verifica che il numero non sia usato da UN ALTRO utente
           if (existingUser != null && existingUser['id'] != userId) {
             print("Errore: Telefono $cleanPhone già in uso.");
             return false;
