@@ -14,7 +14,7 @@ import 'package:backend/config/rescuer_config.dart'; // Importa la config per i 
   MockSpec<UserRepository>(),
   MockSpec<JWTService>()
 ])
-import 'login_service_test.mocks.dart';
+import 'email_service_test.mocks.dart';
 
 void main() {
   //1: SETUP PER IL TEST DEL SERVICE
@@ -82,7 +82,7 @@ void main() {
     });
 
     test('CASO 8: Validità Formale (No username)', () {
-      // Questo è il caso che hai FIXATO!
+
       final isSoccorritore = RescuerConfig.isSoccorritore("@safeguard.it");
       expect(isSoccorritore, isFalse);
     });
