@@ -13,8 +13,16 @@ import 'jwt_service.dart';
 
 class LoginService {
   // Dipendenze: Repository per il DB e Service per la verifica
-  final UserRepository _userRepository = UserRepository();
-  final JWTService _jwtService = JWTService();
+  //final UserRepository _userRepository = UserRepository();
+  //final JWTService _jwtService = JWTService();
+
+  //Modifica delle variabili per il testing
+  final UserRepository _userRepository;
+  final JWTService _jwtService;
+  // Costruttore che permette di passare i mock
+  LoginService({UserRepository? userRepository, JWTService? jwtService})
+    : _userRepository = userRepository ?? UserRepository(),
+      _jwtService = jwtService ?? JWTService();
 
   // Funzione privata per generare l'hash
   String _hashPassword(String password) {

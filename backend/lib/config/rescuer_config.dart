@@ -19,6 +19,9 @@ class RescuerConfig {
 
   // Helper per verificare se un'email è valida
   static bool isSoccorritore(String email) {
-    return domains.any((domain) => email.toLowerCase().endsWith(domain));
+    final cleanEmail = email.trim().toLowerCase();
+    return domains.any((domain) {
+      return cleanEmail.endsWith(domain) && cleanEmail.length > domain.length;
+    });
   }
 }

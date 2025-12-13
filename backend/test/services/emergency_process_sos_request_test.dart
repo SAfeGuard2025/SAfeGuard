@@ -31,7 +31,7 @@ void main() {
   const outOfAreaLat = 41.9028;
   const outOfAreaLng = 12.4964;
 
-  // Setup: Iniezione delle dipendenze mockate (come in login_service_test.dart)
+  // Setup: Iniezione delle dipendenze mockate (come in loginemail_service_test.dart)
   setUp(() {
     mockRepo = MockEmergencyRepository();
     mockNotif = MockNotificationService();
