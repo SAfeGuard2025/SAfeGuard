@@ -6,16 +6,30 @@ import '../repositories/user_repository.dart';
 import 'notification_service.dart';
 
 class ReportService {
-  final ReportRepository _reportRepository = ReportRepository();
-  final NotificationService _notificationService = NotificationService();
-  final UserRepository _userRepo = UserRepository();
+  // Dipendenze rese 'final' ma non inizializzate subito
+  final ReportRepository _reportRepository;
+  final NotificationService _notificationService;
+  final UserRepository _userRepo;
+  final http.Client _httpClient; // Aggiunto client HTTP iniettabile
+
+  // Costruttore con Dependency Injection
+  // Se i parametri non vengono passati (codice di produzione), usa le istanze reali.
+  // Se vengono passati (test), usa i Mock.
+  ReportService({
+    ReportRepository? reportRepository,
+    NotificationService? notificationService,
+    UserRepository? userRepo,
+    http.Client? httpClient,
+  })  : _reportRepository = reportRepository ?? ReportRepository(),
+        _notificationService = notificationService ?? NotificationService(),
+        _userRepo = userRepo ?? UserRepository(),
+        _httpClient = httpClient ?? http.Client();
 
   static final _env = DotEnv(includePlatformEnvironment: true)..load();
 
   String get _aiServiceUrl {
     String url =
-        _env['AI_SERVICE_URL'] ??
-        'https://moduloai.onrender.com/api/v1/analyze';
+        _env['AI_SERVICE_URL'] ?? 'https://moduloai.onrender.com/api/v1/analyze';
 
     if (url.endsWith('/')) {
       url = url.substring(0, url.length - 1);
@@ -33,6 +47,12 @@ class ReportService {
     double? lng,
     required int severity,
   }) async {
+
+    if (description == null || description.trim().isEmpty) {
+      print("Descrizione mancante. Operazione annullata.");
+      return;
+    }
+
     final String customId = DateTime.now().millisecondsSinceEpoch.toString();
 
     // 1. Definisce i dati per active_emergencies
@@ -40,7 +60,7 @@ class ReportService {
       'id': customId,
       'rescuer_id': senderId,
       'type': type,
-      'description': description ?? '',
+      'description': description,
       'status': 'active',
       'lat': lat,
       'lng': lng,
@@ -87,7 +107,7 @@ class ReportService {
         ],
       };
 
-      final response = await http.post(
+      final response = await _httpClient.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(payload),

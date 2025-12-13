@@ -31,6 +31,30 @@ class RegisterService {
     final nome = requestData['nome'] as String?;
     final cognome = requestData['cognome'] as String?;
 
+    if (telefono != null) {
+      // Campo numero lasciato vuoto
+      if (telefono.isEmpty) {
+        throw Exception('Numero non valido');
+      }
+
+      // Numero inserito inferiore a 5 cifre
+      if (telefono.length < 5) {
+        throw Exception('Numero troppo corto');
+      }
+
+      // Numero inserito superiore a 15 cifre
+      if (telefono.length > 15) {
+        throw Exception('Numero troppo lungo');
+      }
+    }
+
+    if (email != null) {
+      final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+      if (!emailRegex.hasMatch(email)) {
+        throw Exception('Formato email non valido'); // Blocca "ciao", "test@", ecc.
+      }
+    }
+
     // 1. Variabile per tracciare se stiamo aggiornando un utente esistente (rinvio OTP)
     bool isUpdate = false;
 
