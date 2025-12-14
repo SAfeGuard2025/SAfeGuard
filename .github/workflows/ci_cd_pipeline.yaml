@@ -71,6 +71,11 @@ jobs:
         run: flutter pub get
         working-directory: frontend
 
+      # È necessario generare i file per permettere all'analyzer di risolvere gli import nei test
+      - name: Generate Mocks - Backend
+        working-directory: backend
+        run: dart run build_runner build --delete-conflicting-outputs
+
       # --- STEP 1: FORMATTAZIONE ---
       - name: Check Formatting - Data Models
         run: dart format --output=none --set-exit-if-changed .
