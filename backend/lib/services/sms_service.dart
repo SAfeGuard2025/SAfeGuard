@@ -15,9 +15,10 @@ class SmsService {
     UserRepository? userRepository,
     // Per override nei test
     String? simulationEmail,
-  })  : _emailService = emailService ?? EmailService(),
-        _userRepository = userRepository ?? UserRepository(),
-        _simulationEmail = simulationEmail ?? Platform.environment['SMS_SIMULATION_EMAIL'];
+  }) : _emailService = emailService ?? EmailService(),
+       _userRepository = userRepository ?? UserRepository(),
+       _simulationEmail =
+           simulationEmail ?? Platform.environment['SMS_SIMULATION_EMAIL'];
 
   String generateOtp() {
     final random = Random();
@@ -49,13 +50,16 @@ class SmsService {
       await _emailService.send(
         to: _simulationEmail,
         subject: 'SIMULAZIONE SMS per $telefono',
-        htmlContent: '''
+        htmlContent:
+            '''
           <p>È stato richiesto un SMS per il numero: <strong>$telefono</strong></p>
           <p>Il codice OTP è: <h1>$otp</h1></p>
         ''',
       );
     } else {
-      print(' SMS_SIMULATION_EMAIL non impostata. OTP stampato in console: $otp');
+      print(
+        ' SMS_SIMULATION_EMAIL non impostata. OTP stampato in console: $otp',
+      );
     }
   }
 }

@@ -14,10 +14,9 @@ class EmergencyService {
     EmergencyRepository? repository,
     NotificationService? notificationService,
     UserRepository? userRepo,
-  })  : _repository = repository ?? EmergencyRepository(), // Fallback
-        _notificationService = notificationService ?? NotificationService(),
-        _userRepo = userRepo ?? UserRepository();
-
+  }) : _repository = repository ?? EmergencyRepository(), // Fallback
+       _notificationService = notificationService ?? NotificationService(),
+       _userRepo = userRepo ?? UserRepository();
 
   // Gestione Invio SOS Completo
   Future<void> processSosRequest({
@@ -43,15 +42,19 @@ class EmergencyService {
     const double salernoLngMin = 14.70;
     const double salernoLngMax = 14.90;
 
-    if (lat < salernoLatMin || lat > salernoLatMax ||
-        lng < salernoLngMin || lng > salernoLngMax) {
+    if (lat < salernoLatMin ||
+        lat > salernoLatMax ||
+        lng < salernoLngMin ||
+        lng > salernoLngMax) {
       throw ArgumentError("Coordinate fuori dall'area operativa di Salerno.");
     }
 
     // Validazione Telefono (+39) (Test 7)
     // Vincolo: Il numero di telefono deve iniziare con +39 prefisso italiano se fornito
     if (phone != null && phone.isNotEmpty && !phone.startsWith('+39')) {
-      throw ArgumentError("Formato telefono non valido. Deve iniziare con +39.");
+      throw ArgumentError(
+        "Formato telefono non valido. Deve iniziare con +39.",
+      );
     }
 
     // Validazione Email (Formato) (Test 8)
@@ -106,10 +109,10 @@ class EmergencyService {
         await _notificationService.sendBroadcast(
           title: "SOS ATTIVO: $type",
           body:
-          "Richiesta di soccorso urgente! Clicca per vedere la posizione.",
+              "Richiesta di soccorso urgente! Clicca per vedere la posizione.",
           tokens: tokens,
           type:
-          'emergency_alert', // Questo triggera la navigazione nel frontend
+              'emergency_alert', // Questo triggera la navigazione nel frontend
         );
       } else {
         print("⚠Nessun soccorritore disponibile per la notifica.");

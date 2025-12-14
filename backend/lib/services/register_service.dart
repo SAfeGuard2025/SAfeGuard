@@ -49,9 +49,11 @@ class RegisterService {
     }
 
     if (email != null) {
-      final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+      final emailRegex = RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$');
       if (!emailRegex.hasMatch(email)) {
-        throw Exception('Formato email non valido'); // Blocca "ciao", "test@", ecc.
+        throw Exception(
+          'Formato email non valido',
+        ); // Blocca "ciao", "test@", ecc.
       }
     }
 
@@ -113,7 +115,7 @@ class RegisterService {
 
     // Complessità (Maiuscola + Numero + Speciale)
     if (!RegExp(
-      r'^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%^&*(),.?":{}|<>_])',
+      r'^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>_])',
     ).hasMatch(password)) {
       throw Exception(
         'La password non rispetta i criteri di sicurezza (Maiuscola, Numero, Speciale).',

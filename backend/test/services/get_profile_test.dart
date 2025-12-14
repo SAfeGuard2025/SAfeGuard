@@ -19,61 +19,65 @@ void main() {
     service = ProfileService(
       userRepository: mockRepository,
       validator: (String email) =>
-      email.endsWith('118.it') || email.endsWith('crocerossa.it'),
+          email.endsWith('118.it') || email.endsWith('crocerossa.it'),
     );
   });
 
   group('ProfileService - getProfile', () {
-
     // [TU_PRO_1] Scenario 1: get di un profilo soccorritore
-    test('Deve restituire un oggetto Soccorritore e rimuovere la password', () async {
-      // 1. ARRANGE
-      final int soccorritoreId = 10;
-      final emailSoccorritore = 'mario@118.it';
+    test(
+      'Deve restituire un oggetto Soccorritore e rimuovere la password',
+      () async {
+        // 1. ARRANGE
+        final int soccorritoreId = 10;
+        final emailSoccorritore = 'mario@118.it';
 
-      final rawData = {
-        'id': soccorritoreId,
-        'email': emailSoccorritore,
-        'passwordHash': 'secret',
-      };
+        final rawData = {
+          'id': soccorritoreId,
+          'email': emailSoccorritore,
+          'passwordHash': 'secret',
+        };
 
-      when(mockRepository.findUserById(soccorritoreId))
-          .thenAnswer((_) async => Map<String, dynamic>.from(rawData));
+        when(
+          mockRepository.findUserById(soccorritoreId),
+        ).thenAnswer((_) async => Map<String, dynamic>.from(rawData));
 
-      // 2. ACT
-      final result = await service.getProfile(soccorritoreId);
+        // 2. ACT
+        final result = await service.getProfile(soccorritoreId);
 
-      // 3. ASSERT
-      expect(result, isNotNull);
-      expect(result, isA<Soccorritore>());
-      expect((result as Soccorritore).email, emailSoccorritore);
+        // 3. ASSERT
+        expect(result, isNotNull);
+        expect(result, isA<Soccorritore>());
+        expect((result as Soccorritore).email, emailSoccorritore);
 
-      verify(mockRepository.findUserById(soccorritoreId)).called(1);
-    });
+        verify(mockRepository.findUserById(soccorritoreId)).called(1);
+      },
+    );
 
     // [TU_PRO_2] Scenario 2: get di un profilo cittadino
-    test('Deve restituire un oggetto Utente standard se l\'email è normale', () async {
-      // 1. ARRANGE
-      final int userId = 20;
-      final emailCittadino = 'privato@gmail.com';
+    test(
+      'Deve restituire un oggetto Utente standard se l\'email è normale',
+      () async {
+        // 1. ARRANGE
+        final int userId = 20;
+        final emailCittadino = 'privato@gmail.com';
 
-      final rawData = {
-        'id': userId,
-        'email': emailCittadino,
-      };
+        final rawData = {'id': userId, 'email': emailCittadino};
 
-      when(mockRepository.findUserById(userId))
-          .thenAnswer((_) async => Map<String, dynamic>.from(rawData));
+        when(
+          mockRepository.findUserById(userId),
+        ).thenAnswer((_) async => Map<String, dynamic>.from(rawData));
 
-      // 2. ACT
-      final result = await service.getProfile(userId);
+        // 2. ACT
+        final result = await service.getProfile(userId);
 
-      // 3. ASSERT
-      expect(result, isNotNull);
-      expect(result, isA<Utente>());
-      expect(result, isNot(isA<Soccorritore>()));
-      expect(result?.email, emailCittadino);
-    });
+        // 3. ASSERT
+        expect(result, isNotNull);
+        expect(result, isA<Utente>());
+        expect(result, isNot(isA<Soccorritore>()));
+        expect(result?.email, emailCittadino);
+      },
+    );
 
     // [TU_PRO_3] Scenario 3: utente non trovato
     test('Deve restituire null se l\'utente non esiste', () async {
@@ -101,8 +105,9 @@ void main() {
         'cognome': 'Rossi',
       };
 
-      when(mockRepository.findUserById(soccorritoreId))
-          .thenAnswer((_) async => Map<String, dynamic>.from(rawData));
+      when(
+        mockRepository.findUserById(soccorritoreId),
+      ).thenAnswer((_) async => Map<String, dynamic>.from(rawData));
 
       // 2. ACT
       final result = await service.getProfile(soccorritoreId);
@@ -128,11 +133,12 @@ void main() {
         'email': emailSoccorritore,
         'nome': 'Mario',
         'cognome': 'Rossi',
-        'passwordHash': '1234567890A!'
+        'passwordHash': '1234567890A!',
       };
 
-      when(mockRepository.findUserById(soccorritoreId))
-          .thenAnswer((_) async => Map<String, dynamic>.from(rawData));
+      when(
+        mockRepository.findUserById(soccorritoreId),
+      ).thenAnswer((_) async => Map<String, dynamic>.from(rawData));
 
       // 2. ACT
       final result = await service.getProfile(soccorritoreId);
@@ -152,28 +158,32 @@ void main() {
     });
 
     // [TU_PRO_6] Scenario 6: setting della flag isSoccorritore a true mentre l'email non è istituzionale
-    test('isSoccorritore settato a true mentre l\'email non è di tipo soccorritore', () async {
-      // 1. ARRANGE
-      final userId = 30;
-      final emailCittadino = 'hacker@gmail.com';
+    test(
+      'isSoccorritore settato a true mentre l\'email non è di tipo soccorritore',
+      () async {
+        // 1. ARRANGE
+        final userId = 30;
+        final emailCittadino = 'hacker@gmail.com';
 
-      final rawData = {
-        'id': userId,
-        'email': emailCittadino,
-        'nome': 'Hacker',
-        'isSoccorritore': true,
-        'passwordHash': 'x'
-      };
+        final rawData = {
+          'id': userId,
+          'email': emailCittadino,
+          'nome': 'Hacker',
+          'isSoccorritore': true,
+          'passwordHash': 'x',
+        };
 
-      when(mockRepository.findUserById(userId))
-          .thenAnswer((_) async => Map<String, dynamic>.from(rawData));
+        when(
+          mockRepository.findUserById(userId),
+        ).thenAnswer((_) async => Map<String, dynamic>.from(rawData));
 
-      // 2. ACT
-      final result = await service.getProfile(userId);
+        // 2. ACT
+        final result = await service.getProfile(userId);
 
-      // 3. ASSERT
-      expect(result, isA<Utente>());
-      expect(result, isNot(isA<Soccorritore>()));
-    });
+        // 3. ASSERT
+        expect(result, isA<Utente>());
+        expect(result, isNot(isA<Soccorritore>()));
+      },
+    );
   });
 }
