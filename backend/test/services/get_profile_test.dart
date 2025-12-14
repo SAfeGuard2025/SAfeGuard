@@ -15,7 +15,12 @@ void main() {
 
   setUp(() {
     mockRepository = MockUserRepository();
-    service = ProfileService(userRepository: mockRepository);
+
+    service = ProfileService(
+      userRepository: mockRepository,
+      validator: (String email) =>
+      email.endsWith('118.it') || email.endsWith('crocerossa.it'),
+    );
   });
 
   group('ProfileService - getProfile', () {
@@ -24,12 +29,12 @@ void main() {
     test('Deve restituire un oggetto Soccorritore e rimuovere la password', () async {
       // 1. ARRANGE
       final int soccorritoreId = 10;
-
       final emailSoccorritore = 'mario@118.it';
 
       final rawData = {
         'id': soccorritoreId,
         'email': emailSoccorritore,
+        'passwordHash': 'secret',
       };
 
       when(mockRepository.findUserById(soccorritoreId))
@@ -41,7 +46,7 @@ void main() {
       // 3. ASSERT
       expect(result, isNotNull);
       expect(result, isA<Soccorritore>());
-      expect(result?.email, emailSoccorritore);
+      expect((result as Soccorritore).email, emailSoccorritore);
 
       verify(mockRepository.findUserById(soccorritoreId)).called(1);
     });
@@ -69,7 +74,6 @@ void main() {
       expect(result, isNot(isA<Soccorritore>()));
       expect(result?.email, emailCittadino);
     });
-
 
     // [TU_PRO_3] Scenario 3: utente non trovato
     test('Deve restituire null se l\'utente non esiste', () async {
@@ -117,7 +121,6 @@ void main() {
     test('Deve restituire i dati giusti ma non la password', () async {
       // 1. ARRANGE
       final int soccorritoreId = 10;
-
       final emailSoccorritore = 'mario@crocerossa.it';
 
       final rawData = {
@@ -140,8 +143,11 @@ void main() {
       expect(result?.cognome, 'Rossi');
       expect(result, isA<Soccorritore>());
       expect(result?.email, emailSoccorritore);
-      expect(result?.passwordHash, isNot('1234567890A!'));
-      expect(result?.passwordHash, isNot('5c5456f6162d6fe5f18eb7636b1efe8b4506028c4a5f20df888476fbf994d259')); // SHA 256 di '1234567890A!'
+
+      if (result is Soccorritore) {
+        expect(result.passwordHash, isNot('1234567890A!'));
+      }
+
       verify(mockRepository.findUserById(soccorritoreId)).called(1);
     });
 

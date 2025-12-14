@@ -46,7 +46,7 @@ class ProfileService {
         data.remove('passwordHash');
 
         // 3. Logica di classificazione
-        final bool isSoccorritore = RescuerConfig.isSoccorritore(email);
+        final bool isSoccorritore = _isSoccorritoreValidator(email);
 
         if (isSoccorritore) {
           data['isSoccorritore'] = true; // Assicura il flag corretto
@@ -142,7 +142,7 @@ class ProfileService {
       if (email != null && email.isNotEmpty) {
         // --- VALIDAZIONE FORMATO
         // Verifica che l'email abbia un formato valido (es. test@domain.com)
-        final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+        final emailRegex = RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$');
         if (!emailRegex.hasMatch(email)) {
           print("Errore: Formato email non valido.");
           return false;
