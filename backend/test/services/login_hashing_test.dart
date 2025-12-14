@@ -51,8 +51,9 @@ void main() {
     // --- Scenario 1: Login Email Success ---
     test('Login Success: Il service calcola correttamente l\'hash', () async {
       //Restituiamo una COPIA (.from) per evitare che il Service modifichi fakeUserData originale
-      when(mockRepo.findUserByEmail('test@example.com'))
-          .thenAnswer((_) async => Map<String, dynamic>.from(fakeUserData));
+      when(
+        mockRepo.findUserByEmail('test@example.com'),
+      ).thenAnswer((_) async => Map<String, dynamic>.from(fakeUserData));
 
       final result = await loginService.login(
         email: 'test@example.com',
@@ -70,8 +71,9 @@ void main() {
       phoneUser['telefono'] = '+393331234567';
 
       //Restituiamo una COPIA di phoneUser
-      when(mockRepo.findUserByPhone('+393331234567'))
-          .thenAnswer((_) async => Map<String, dynamic>.from(phoneUser));
+      when(
+        mockRepo.findUserByPhone('+393331234567'),
+      ).thenAnswer((_) async => Map<String, dynamic>.from(phoneUser));
 
       final result = await loginService.login(
         telefono: '+393331234567',
@@ -87,24 +89,29 @@ void main() {
       final googleUser = Map<String, dynamic>.from(fakeUserData);
       googleUser['passwordHash'] = ''; // Hash vuoto
 
-      when(mockRepo.findUserByEmail('test@example.com'))
-          .thenAnswer((_) async => Map<String, dynamic>.from(googleUser));
+      when(
+        mockRepo.findUserByEmail('test@example.com'),
+      ).thenAnswer((_) async => Map<String, dynamic>.from(googleUser));
 
       expect(
-            () async => await loginService.login(
+        () async => await loginService.login(
           email: 'test@example.com',
           password: 'QualsiasiPassword',
         ),
-        throwsA(predicate(
-                (e) => e.toString().contains('accedere tramite Google/Apple'))),
+        throwsA(
+          predicate(
+            (e) => e.toString().contains('accedere tramite Google/Apple'),
+          ),
+        ),
       );
     });
 
     // --- Scenario 4: Password Errata ---
     test('Login Fail: Una password diversa genera un hash diverso', () async {
       //Restituiamo una COPIA fresca, con l'hash originale intatto
-      when(mockRepo.findUserByEmail('test@example.com'))
-          .thenAnswer((_) async => Map<String, dynamic>.from(fakeUserData));
+      when(
+        mockRepo.findUserByEmail('test@example.com'),
+      ).thenAnswer((_) async => Map<String, dynamic>.from(fakeUserData));
 
       final result = await loginService.login(
         email: 'test@example.com',

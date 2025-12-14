@@ -10,10 +10,7 @@ import 'package:backend/repositories/user_repository.dart';
 import 'package:backend/services/jwt_service.dart';
 import 'package:backend/config/rescuer_config.dart'; // Importa la config per i test logici
 
-@GenerateNiceMocks([
-  MockSpec<UserRepository>(),
-  MockSpec<JWTService>()
-])
+@GenerateNiceMocks([MockSpec<UserRepository>(), MockSpec<JWTService>()])
 import 'email_service_test.mocks.dart';
 
 void main() {
@@ -35,25 +32,30 @@ void main() {
 
     // Iniezione dei Mock
     loginService = LoginService(
-        userRepository: mockUserRepository,
-        jwtService: mockJwtService
+      userRepository: mockUserRepository,
+      jwtService: mockJwtService,
     );
   });
 
   //2: TEST LOGICI (RESCUER CONFIG)
   group('TU-05 [Unit] - Logica di Configurazione (RescuerConfig)', () {
+    test(
+      'CASO 1: Deve identificare come Soccorritore una email con dominio @safeguard.it',
+      () {
+        final emailSoccorritore = "mario.rossi@safeguard.it";
+        final isSoccorritore = RescuerConfig.isSoccorritore(emailSoccorritore);
+        expect(isSoccorritore, isTrue);
+      },
+    );
 
-    test('CASO 1: Deve identificare come Soccorritore una email con dominio @safeguard.it', () {
-      final emailSoccorritore = "mario.rossi@safeguard.it";
-      final isSoccorritore = RescuerConfig.isSoccorritore(emailSoccorritore);
-      expect(isSoccorritore, isTrue);
-    });
-
-    test('CASO 2: NON deve identificare come Soccorritore una email generica (gmail)', () {
-      final emailCittadino = "privato@gmail.com";
-      final isSoccorritore = RescuerConfig.isSoccorritore(emailCittadino);
-      expect(isSoccorritore, isFalse);
-    });
+    test(
+      'CASO 2: NON deve identificare come Soccorritore una email generica (gmail)',
+      () {
+        final emailCittadino = "privato@gmail.com";
+        final isSoccorritore = RescuerConfig.isSoccorritore(emailCittadino);
+        expect(isSoccorritore, isFalse);
+      },
+    );
 
     test('CASO 3: Case Insensitive (ignora maiuscole)', () {
       final emailMix = "MARIO@SAFEGUARD.IT";
@@ -67,22 +69,27 @@ void main() {
     });
 
     test('CASO 5: Sicurezza (Dominio ingannevole es. fakesafeguard.it)', () {
-      final isSoccorritore = RescuerConfig.isSoccorritore("hacker@fakesafeguard.it");
+      final isSoccorritore = RescuerConfig.isSoccorritore(
+        "hacker@fakesafeguard.it",
+      );
       expect(isSoccorritore, isFalse);
     });
 
     test('CASO 6: Usabilità (Spazi accidentali)', () {
-      final isSoccorritore = RescuerConfig.isSoccorritore("  mario.rossi@safeguard.it  ");
+      final isSoccorritore = RescuerConfig.isSoccorritore(
+        "  mario.rossi@safeguard.it  ",
+      );
       expect(isSoccorritore, isTrue);
     });
 
     test('CASO 7: Gerarchia (Sottodomini non ammessi)', () {
-      final isSoccorritore = RescuerConfig.isSoccorritore("capo@lazio.safeguard.it");
+      final isSoccorritore = RescuerConfig.isSoccorritore(
+        "capo@lazio.safeguard.it",
+      );
       expect(isSoccorritore, isFalse);
     });
 
     test('CASO 8: Validità Formale (No username)', () {
-
       final isSoccorritore = RescuerConfig.isSoccorritore("@safeguard.it");
       expect(isSoccorritore, isFalse);
     });
@@ -95,40 +102,67 @@ void main() {
 
   //3: TEST DEL SERVICE
   group('TU-05 [Integration] - LoginService & Role Assignment', () {
+    test(
+      'Il Service deve restituire un oggetto SOCCORRITORE se la mail è valida',
+      () async {
+        final email = "mario.rossi@safeguard.it";
+        final password = "Password123!";
 
-    test('Il Service deve restituire un oggetto SOCCORRITORE se la mail è valida', () async {
+        // Setup Mock
+        when(mockUserRepository.findUserByEmail(email)).thenAnswer(
+          (_) async => {
+            'id': 1,
+            'email': email,
+            'passwordHash': hashPassword(password),
+            'nome': 'Mario',
+            'isVerified': true,
+            'attivo': true,
+          },
+        );
+        when(mockJwtService.generateToken(any, any)).thenReturn("token");
 
-      final email = "mario.rossi@safeguard.it";
-      final password = "Password123!";
+        final result = await loginService.login(
+          email: email,
+          password: password,
+        );
 
-      // Setup Mock
-      when(mockUserRepository.findUserByEmail(email)).thenAnswer((_) async => {
-        'id': 1, 'email': email, 'passwordHash': hashPassword(password),
-        'nome': 'Mario', 'isVerified': true, 'attivo': true
-      });
-      when(mockJwtService.generateToken(any, any)).thenReturn("token");
+        expect(
+          result!['user'],
+          isA<Soccorritore>(),
+          reason: "Il Service non ha istanziato la classe corretta!",
+        );
+      },
+    );
 
-      final result = await loginService.login(email: email, password: password);
+    test(
+      'Il Service deve restituire un oggetto UTENTE se la mail è generica',
+      () async {
+        final email = "privato@gmail.com";
+        final password = "Password123!";
 
-      expect(result!['user'], isA<Soccorritore>(),
-          reason: "Il Service non ha istanziato la classe corretta!");
-    });
+        when(mockUserRepository.findUserByEmail(email)).thenAnswer(
+          (_) async => {
+            'id': 2,
+            'email': email,
+            'passwordHash': hashPassword(password),
+            'nome': 'Luigi',
+            'isVerified': true,
+            'attivo': true,
+          },
+        );
+        when(mockJwtService.generateToken(any, any)).thenReturn("token");
 
-    test('Il Service deve restituire un oggetto UTENTE se la mail è generica', () async {
+        final result = await loginService.login(
+          email: email,
+          password: password,
+        );
 
-      final email = "privato@gmail.com";
-      final password = "Password123!";
-
-      when(mockUserRepository.findUserByEmail(email)).thenAnswer((_) async => {
-        'id': 2, 'email': email, 'passwordHash': hashPassword(password),
-        'nome': 'Luigi', 'isVerified': true, 'attivo': true
-      });
-      when(mockJwtService.generateToken(any, any)).thenReturn("token");
-
-      final result = await loginService.login(email: email, password: password);
-
-      expect(result!['user'], isA<Utente>(),
-          reason: "Il Service doveva creare un utente semplice");
-    });
+        expect(
+          result!['user'],
+          isA<Utente>(),
+          reason: "Il Service doveva creare un utente semplice",
+        );
+      },
+    );
   });
 }

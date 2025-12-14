@@ -8,11 +8,9 @@ class VerificationService {
 
   // Costruttore con Dependency Injection opzionale
   // Se non vengono passati, usa le istanze reali di default.
-  VerificationService([
-    UserRepository? userRepository,
-    SmsService? smsService
-  ]) : _userRepository = userRepository ?? UserRepository(),
-        _smsService = smsService ?? SmsService();
+  VerificationService([UserRepository? userRepository, SmsService? smsService])
+    : _userRepository = userRepository ?? UserRepository(),
+      _smsService = smsService ?? SmsService();
 
   // Avvia il processo di invio OTP
   Future<void> startPhoneVerification(String telefono) async {

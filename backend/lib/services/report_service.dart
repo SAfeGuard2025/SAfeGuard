@@ -20,16 +20,17 @@ class ReportService {
     NotificationService? notificationService,
     UserRepository? userRepo,
     http.Client? httpClient,
-  })  : _reportRepository = reportRepository ?? ReportRepository(),
-        _notificationService = notificationService ?? NotificationService(),
-        _userRepo = userRepo ?? UserRepository(),
-        _httpClient = httpClient ?? http.Client();
+  }) : _reportRepository = reportRepository ?? ReportRepository(),
+       _notificationService = notificationService ?? NotificationService(),
+       _userRepo = userRepo ?? UserRepository(),
+       _httpClient = httpClient ?? http.Client();
 
   static final _env = DotEnv(includePlatformEnvironment: true)..load();
 
   String get _aiServiceUrl {
     String url =
-        _env['AI_SERVICE_URL'] ?? 'https://moduloai.onrender.com/api/v1/analyze';
+        _env['AI_SERVICE_URL'] ??
+        'https://moduloai.onrender.com/api/v1/analyze';
 
     if (url.endsWith('/')) {
       url = url.substring(0, url.length - 1);
@@ -47,7 +48,6 @@ class ReportService {
     double? lng,
     required int severity,
   }) async {
-
     if (description == null || description.trim().isEmpty) {
       print("Descrizione mancante. Operazione annullata.");
       return;
