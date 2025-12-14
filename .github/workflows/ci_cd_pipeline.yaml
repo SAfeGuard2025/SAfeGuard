@@ -71,6 +71,11 @@ jobs:
         run: flutter pub get
         working-directory: frontend
 
+      # È necessario generare i file per permettere all'analyzer di risolvere gli import nei test
+      - name: Generate Mocks - Backend
+        working-directory: backend
+        run: dart run build_runner build --delete-conflicting-outputs
+
       # --- STEP 1: FORMATTAZIONE ---
       - name: Check Formatting - Data Models
         run: dart format --output=none --set-exit-if-changed .
@@ -101,7 +106,60 @@ jobs:
         working-directory: frontend
 
   # -----------------------------------------------------
-  # 2. BUILD APK
+  # 2. TEST BACKEND (Non bloccante)
+  # -----------------------------------------------------
+  backend_tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Questo job parte su PR o Push, in parallelo agli altri
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 'stable'
+
+      # Cache delle dipendenze (fondamentale per velocità)
+      - name: Restore Dart Dependencies Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            backend/.dart_tool/package_config.json
+            data_models/.dart_tool/package_config.json
+          key: ${{ runner.os }}-pub-backend-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: ${{ runner.os }}-pub-backend-
+
+      # Risoluzione dipendenze (Data Models serve al Backend)
+      - name: Pub Get - Data Models
+        run: dart pub get
+        working-directory: data_models
+
+      - name: Pub Get - Backend
+        run: dart pub get
+        working-directory: backend
+
+      # Generazione dei Mock (.mocks.dart)
+      # È obbligatorio se si usano @GenerateMocks
+      - name: Generate Mockito Files
+        working-directory: backend
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      # ESECUZIONE TEST
+      # L'opzione continue-on-error: true permette al workflow di finire con successo
+      # anche se i test falliscono (errore nei log).
+      - name: Run Backend Unit & Integration Tests
+        id: run_tests
+        working-directory: backend
+        continue-on-error: true
+        run: dart test
+
+  # -----------------------------------------------------
+  # 3. BUILD APK
   # -----------------------------------------------------
   build_apk:
     runs-on: ubuntu-latest
