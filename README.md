@@ -4,15 +4,14 @@
 
 ## Indice
 
-1.  [Panoramica del Progetto](https://www.google.com/search?q=%23panoramica-del-progetto)
-2.  [Obiettivi e Scopo](https://www.google.com/search?q=%23obiettivi-e-scopo)
-3.  [Architettura del Sistema](https://www.google.com/search?q=%23architettura-del-sistema)
-4.  [Funzionalità e Moduli](https://www.google.com/search?q=%23funzionalit%C3%A0-e-moduli)
-5.  [Stack Tecnologico](https://www.google.com/search?q=%23stack-tecnologico)
-6.  [Guida all'Installazione e Configurazione](https://www.google.com/search?q=%23guida-allinstallazione-e-configurazione)
-7.  [Struttura del Repository](https://www.google.com/search?q=%23struttura-del-repository)
-8.  [Team di Sviluppo](https://www.google.com/search?q=%23team-di-sviluppo)
-9.  [Licenza](https://www.google.com/search?q=%23licenza)
+1. [Panoramica del Progetto](#panoramica-del-progetto)
+2. [Obiettivi e Scopo](#obiettivi-e-scopo)
+3. [Architettura del Sistema](#architettura-del-sistema)
+4. [Funzionalità e Moduli](#funzionalità-e-moduli)
+5. [Stack Tecnologico](#stack-tecnologico)
+6. [Guida all'Installazione e Configurazione](#guida-allinstallazione-e-configurazione)
+7. [Struttura del Repository](#struttura-del-repository)
+8. [Team di Sviluppo](#team-di-sviluppo)
 
 -----
 
