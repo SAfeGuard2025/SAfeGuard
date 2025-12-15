@@ -1,0 +1,27 @@
+name: safeguard
+
+packages:
+  - frontend
+  - backend
+  - data_models
+  # Oppure puoi usare un pattern generico se aggiungerai altro in futuro:
+  # - "*"
+
+command:
+  bootstrap:
+    # Se usi Flutter nel frontend, abilita questo per usare 'flutter pub get' lì
+    usePubspecOverrides: true
+
+scripts:
+  # Esegue 'pub get' forzato su tutti i pacchetti
+  get:
+    run: melos exec -- "dart pub get"
+    description: Esegue dart pub get in tutti i pacchetti.
+
+  # Pulisce tutti i pacchetti
+  clean:
+    run: melos exec -- "flutter clean"
+    # Usa un filtro per eseguirlo solo dove c'è flutter (es. frontend)
+    packageFilters:
+      flutter: true
+    description: Pulisce i progetti Flutter.

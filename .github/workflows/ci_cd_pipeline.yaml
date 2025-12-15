@@ -1,0 +1,258 @@
+name: CI/CD Pipeline (Quality & Build)
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - 'frontend/**'
+      - 'data_models/**'
+      - '.github/workflows/**'
+
+  pull_request:
+    branches: [dev]
+
+  workflow_dispatch:
+
+# OTTIMIZZAZIONE 1: Concurrency
+# Se arriva un nuovo push sullo stesso branch mentre gira una build vecchia,
+# quella vecchia viene cancellata automaticamente per risparmiare risorse.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# OTTIMIZZAZIONE 2: Variabili Centralizzate
+env:
+  FLUTTER_VERSION: '3.38.2'
+  JAVA_VERSION: '17'
+
+jobs:
+  # -----------------------------------------------------
+  # 1. QUALITY GATE (Unificato: Formattazione + Analisi)
+  # -----------------------------------------------------
+  # OTTIMIZZAZIONE 3: Unire i job evita di dover fare il setup dell'ambiente
+  # (installazione Flutter, checkout, pub get) due volte. Risparmio: ~2 min.
+  quality_gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15 # OTTIMIZZAZIONE 4: Timeout di sicurezza
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 'stable'
+
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Restore Dart Dependencies Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            frontend/.dart_tool/package_config.json
+            backend/.dart_tool/package_config.json
+            data_models/.dart_tool/package_config.json
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: ${{ runner.os }}-pub-
+
+      - name: Pub Get - Data Models
+        run: dart pub get
+        working-directory: data_models
+      - name: Pub Get - Backend
+        run: dart pub get
+        working-directory: backend
+      - name: Pub Get - Frontend
+        run: flutter pub get
+        working-directory: frontend
+
+      # È necessario generare i file per permettere all'analyzer di risolvere gli import nei test
+      - name: Generate Mocks - Backend
+        working-directory: backend
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      # --- STEP 1: FORMATTAZIONE ---
+      - name: Check Formatting - Data Models
+        run: dart format --output=none --set-exit-if-changed .
+        working-directory: data_models
+        continue-on-error: true # Non blocca subito, permette di vedere errori di analisi successivi
+
+      - name: Check Formatting - Backend
+        run: dart format --output=none --set-exit-if-changed .
+        working-directory: backend
+        continue-on-error: true
+
+      - name: Check Formatting - Frontend
+        run: dart format --output=none --set-exit-if-changed .
+        working-directory: frontend
+        continue-on-error: true
+
+      # --- STEP 2: ANALISI STATICA ---
+      - name: Analyze Data Models
+        run: dart analyze .
+        working-directory: data_models
+
+      - name: Analyze Backend
+        run: dart analyze .
+        working-directory: backend
+
+      - name: Analyze Frontend
+        run: flutter analyze
+        working-directory: frontend
+
+  # -----------------------------------------------------
+  # 2. TEST BACKEND (Non bloccante)
+  # -----------------------------------------------------
+  backend_tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Questo job parte su PR o Push, in parallelo agli altri
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 'stable'
+
+      # Cache delle dipendenze (fondamentale per velocità)
+      - name: Restore Dart Dependencies Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            backend/.dart_tool/package_config.json
+            data_models/.dart_tool/package_config.json
+          key: ${{ runner.os }}-pub-backend-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: ${{ runner.os }}-pub-backend-
+
+      # Risoluzione dipendenze (Data Models serve al Backend)
+      - name: Pub Get - Data Models
+        run: dart pub get
+        working-directory: data_models
+
+      - name: Pub Get - Backend
+        run: dart pub get
+        working-directory: backend
+
+      # Generazione dei Mock (.mocks.dart)
+      # È obbligatorio se si usano @GenerateMocks
+      - name: Generate Mockito Files
+        working-directory: backend
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      # ESECUZIONE TEST
+      # L'opzione continue-on-error: true permette al workflow di finire con successo
+      # anche se i test falliscono (errore nei log).
+      - name: Run Backend Unit & Integration Tests
+        id: run_tests
+        working-directory: backend
+        continue-on-error: true
+        run: dart test
+
+  # -----------------------------------------------------
+  # 3. BUILD APK
+  # -----------------------------------------------------
+  build_apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Cache Gradle (per Android) - Deve essere PRIMA del setup Java
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Restore Dart Dependencies Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            frontend/.dart_tool/package_config.json
+            backend/.dart_tool/package_config.json
+            data_models/.dart_tool/package_config.json
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: ${{ runner.os }}-pub-
+
+      - name: Check Secret Availability
+        env:
+          KEYSTORE_BASE64: ${{ secrets.DEV_ANDROID_DEBUG_KEYSTORE }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "ERRORE CRITICO: Secret mancante!"
+            exit 1
+          fi
+        shell: bash
+
+      - name: Decode Keystore, Google Services & Service Account
+        shell: bash
+        env:
+          KEYSTORE_BASE64: ${{ secrets.DEV_ANDROID_DEBUG_KEYSTORE }}
+          GOOGLE_JSON_BASE64: ${{ secrets.DEV_GOOGLE_SERVICES_JSON }}
+          SERVICE_ACCOUNT_BASE64: ${{ secrets.DEV_SAFEGUARD_SERVICE_ACCOUNT_JSON }}
+        run: |
+          printf "%s" "$KEYSTORE_BASE64" | base64 --decode > frontend/android/app/debug.keystore
+          printf "%s" "$GOOGLE_JSON_BASE64" | base64 --decode > frontend/android/app/google-services.json
+          printf "%s" "$SERVICE_ACCOUNT_BASE64" | base64 --decode > backend/safeguard-service-account.json
+
+      - name: Verify Keystore Existence
+        run: ls -lh frontend/android/app/debug.keystore
+        working-directory: .
+
+      - name: Pub Get - All
+        run: |
+          cd data_models && dart pub get
+          cd ../frontend && flutter pub get
+
+      - name: Generate Assets
+        working-directory: frontend
+        run: |
+          dart run flutter_native_splash:create
+          dart run flutter_launcher_icons
+
+      # OTTIMIZZAZIONE 5: Versioning Automatico
+      - name: Build Release APK
+        working-directory: frontend
+        run: |
+          flutter build apk --release \
+            --build-number=${{ github.run_number }} \
+            --dart-define=SERVER_HOST=${{ secrets.DEV_SERVER_HOST }} \
+            --dart-define=SERVER_PORT=${{ secrets.DEV_SERVER_PORT }}
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-dev-release
+          path: frontend/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 5

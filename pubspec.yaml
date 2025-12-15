@@ -1,0 +1,9 @@
+name: safeguard_workspace
+description: Workspace root per il progetto SafeGuard.
+publish_to: 'none' # Importante: impedisce di pubblicare la root per sbaglio
+
+environment:
+  sdk: ^3.0.0 # Usa la versione compatibile con i tuoi progetti figli
+
+dev_dependencies:
+  melos: ^6.0.0 # Controlla sempre l'ultima versione
