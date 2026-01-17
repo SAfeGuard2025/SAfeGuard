@@ -176,6 +176,7 @@ Progetto realizzato per il corso di **Ingegneria del Software** (Prof.ssa Filome
     * Antonello Castelluccio
     * Francesco Carbone
     * Francesco Zambrino
+    * Gianpaolo Aquilone
     * Giorgio Zazzerini
     * Giovanni Lamberti
     * Matteo Manganiello
